@@ -1,0 +1,18 @@
+[package]
+name = "moul-cli"
+description = "The moul command-line tool: pull, restore, check, serve, hub and deploy."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["cli", "sqlite", "litestream", "backend", "deploy"]
+categories = ["command-line-utilities", "database"]
+
+[[bin]]
+name = "moul"
+path = "src/main.rs"
+
+[lints]
+workspace = true

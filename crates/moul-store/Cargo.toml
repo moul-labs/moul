@@ -1,0 +1,14 @@
+[package]
+name = "moul-store"
+description = "SQLite access for Moul: the shared, writer-only and device stores, system tables and migrations."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["sqlite", "storage", "migrations", "database", "wasm"]
+categories = ["database"]
+
+[lints]
+workspace = true

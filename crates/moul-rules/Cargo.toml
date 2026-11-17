@@ -1,0 +1,14 @@
+[package]
+name = "moul-rules"
+description = "Parser, SQL compiler and record evaluator for Moul's access-rule language."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["rules", "access-control", "sql", "parser", "filter"]
+categories = ["parser-implementations", "authentication", "database"]
+
+[lints]
+workspace = true

@@ -1,0 +1,14 @@
+[package]
+name = "moul"
+description = "A backend that runs in a browser tab: one SQLite file, access rules, auth, files and realtime, synced as a Litestream replica."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["backend", "sqlite", "local-first", "wasm", "litestream"]
+categories = ["database", "wasm", "web-programming"]
+
+[lints]
+workspace = true

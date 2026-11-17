@@ -1,0 +1,32 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/moul-labs/moul"
+homepage = "https://moul.dev"
+
+# Internal crates, so a member can write `moul-ltx.workspace = true`.
+# Keep these versions in step with `workspace.package.version`.
+[workspace.dependencies]
+moul = { version = "0.0.1", path = "crates/moul" }
+moul-ltx = { version = "0.0.1", path = "crates/moul-ltx" }
+moul-vfs = { version = "0.0.1", path = "crates/moul-vfs" }
+moul-store = { version = "0.0.1", path = "crates/moul-store" }
+moul-rules = { version = "0.0.1", path = "crates/moul-rules" }
+moul-core = { version = "0.0.1", path = "crates/moul-core" }
+moul-sync = { version = "0.0.1", path = "crates/moul-sync" }
+moul-web = { version = "0.0.1", path = "crates/moul-web" }
+moul-server = { version = "0.0.1", path = "crates/moul-server" }
+moul-hub = { version = "0.0.1", path = "crates/moul-hub" }
+moul-cli = { version = "0.0.1", path = "crates/moul-cli" }
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }

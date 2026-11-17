@@ -1,0 +1,17 @@
+[package]
+name = "moul-web"
+description = "Browser host for the Moul engine: worker entry point, message protocol and tab coordination."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme = "README.md"
+keywords = ["wasm", "browser", "web-worker", "opfs", "local-first"]
+categories = ["wasm", "web-programming"]
+
+[package.metadata.docs.rs]
+targets = ["wasm32-unknown-unknown"]
+
+[lints]
+workspace = true
