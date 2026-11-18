@@ -1,0 +1,64 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "da7858623ea3b749",
+      "exchanges": [
+        {
+          "route": "/api/custom-hello",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/custom-hello",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "hello world"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 26,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/custom-init",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/custom-init",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "router-init-ok"
+            },
+            "headers": {
+              "Content-Type": [
+                "text/plain; charset=UTF-8"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 14,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAppRouteExtensibility"
+}

@@ -1,0 +1,182 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "7ee47a85a9afcb01",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "json": [
+                {
+                  "active": true,
+                  "id": "prod_1",
+                  "score": 99.5,
+                  "title": "Keyboard"
+                },
+                {
+                  "active": true,
+                  "id": "prod_2",
+                  "score": 45.0,
+                  "title": "Mouse"
+                }
+              ]
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "144"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/products/import",
+            "query": "mode=insert"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "inserted": 2,
+                "mode": "insert",
+                "skipped": 0,
+                "success": true,
+                "total": 2,
+                "updated": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 80,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "text": "--3825ad4543a61f540f65e1985062705cf0bdb66ae5f7e1a5d601ecadc5f4\r\nContent-Disposition: form-data; name=\"file\"; filename=\"products.csv\"\r\nContent-Type: application/octet-stream\r\n\r\nid,title,score,active\nprod_1,\"Keyboard Updated\",120.0,true\nprod_3,\"Monitor\",300.0,false\n\r\n--3825ad4543a61f540f65e1985062705cf0bdb66ae5f7e1a5d601ecadc5f4\r\nContent-Disposition: form-data; name=\"mode\"\r\n\r\nupsert\r\n--3825ad4543a61f540f65e1985062705cf0bdb66ae5f7e1a5d601ecadc5f4--\r\n"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "451"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=3825ad4543a61f540f65e1985062705cf0bdb66ae5f7e1a5d601ecadc5f4"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/products/import",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "inserted": 1,
+                "mode": "upsert",
+                "skipped": 0,
+                "success": true,
+                "total": 2,
+                "updated": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 80,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "json": [
+                {
+                  "active": true,
+                  "id": "prod_solo",
+                  "score": 10.0,
+                  "title": "Only One Product"
+                }
+              ]
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "81"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/products/import",
+            "query": "mode=replace"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "inserted": 1,
+                "mode": "replace",
+                "skipped": 0,
+                "success": true,
+                "total": 1,
+                "updated": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 81,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestImportRecordsAPI"
+}

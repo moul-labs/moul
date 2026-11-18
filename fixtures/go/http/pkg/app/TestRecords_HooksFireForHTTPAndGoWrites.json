@@ -1,0 +1,55 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "7b84592c5c46d4f5",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "bob",
+                "title": "web"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/posts/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "author": "bob",
+                "createdAt": "2026-11-18T00:32:44Z",
+                "id": "post-j6IEBdXN1RAE7jv",
+                "title": "web!",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 130,
+            "status": 201
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRecords_HooksFireForHTTPAndGoWrites"
+}

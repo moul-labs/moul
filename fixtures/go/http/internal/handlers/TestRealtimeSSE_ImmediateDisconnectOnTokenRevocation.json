@@ -1,0 +1,56 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "5687e117ca273187",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9zc2VfcmV2IiwiZW1haWwiOiJyZXZAbW91bC5kZXYiLCJ1c2VybmFtZSI6InJldnVzZXIiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNGY1NWE1ZjNlMzJmZWRlYmI1YWM4ODBlMDJlNzMyY2QifQ.ooRO7B77iKjZeFyqJqK8uPpk5891Amjed_sYn44WQp0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"b60d1a650075e749\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\nevent: auth_expired\ndata: {\"message\":\"Token has expired or was revoked\",\"reason\":\"auth_expired\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 195,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeSSE_ImmediateDisconnectOnTokenRevocation"
+}

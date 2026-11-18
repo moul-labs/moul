@@ -1,0 +1,3266 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "8c18d50d4699245a",
+      "exchanges": [
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:42Z",
+                  "emailTemplates": {
+                    "confirm_email_change": {
+                      "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                      "subject": "Confirm email change"
+                    },
+                    "login_alert": {
+                      "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                      "subject": "New Login Alert"
+                    },
+                    "otp": {
+                      "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                      "subject": "Your OTP Code"
+                    },
+                    "password_reset": {
+                      "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                      "subject": "Reset your password"
+                    },
+                    "verification": {
+                      "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                      "subject": "Confirm your email address"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "name": "displayName",
+                      "type": "text"
+                    }
+                  ],
+                  "id": "moul_users",
+                  "name": "users",
+                  "rules": {
+                    "createRule": "",
+                    "deleteRule": "id = @request.auth.id",
+                    "listRule": "",
+                    "updateRule": "id = @request.auth.id",
+                    "viewRule": ""
+                  },
+                  "type": "auth",
+                  "updatedAt": "2026-11-18T00:32:42Z"
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1287,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:42Z",
+                  "emailTemplates": {
+                    "confirm_email_change": {
+                      "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                      "subject": "Confirm email change"
+                    },
+                    "login_alert": {
+                      "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                      "subject": "New Login Alert"
+                    },
+                    "otp": {
+                      "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                      "subject": "Your OTP Code"
+                    },
+                    "password_reset": {
+                      "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                      "subject": "Reset your password"
+                    },
+                    "verification": {
+                      "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                      "subject": "Confirm your email address"
+                    }
+                  },
+                  "fields": [
+                    {
+                      "name": "displayName",
+                      "type": "text"
+                    }
+                  ],
+                  "id": "moul_users",
+                  "name": "users",
+                  "rules": {
+                    "createRule": "",
+                    "deleteRule": "id = @request.auth.id",
+                    "listRule": "",
+                    "updateRule": "id = @request.auth.id",
+                    "viewRule": ""
+                  },
+                  "type": "auth",
+                  "updatedAt": "2026-11-18T00:32:42Z"
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1287,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "evil",
+                "type": "base"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "evil",
+                "type": "base"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "evil",
+                "type": "base"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:42Z",
+                "fields": null,
+                "id": "X26qNg9mC8AjXHH",
+                "name": "evil",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "",
+                  "listRule": "",
+                  "updateRule": "",
+                  "viewRule": ""
+                },
+                "type": "base",
+                "updatedAt": "2026-11-18T00:32:42Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 223,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "evil",
+                "type": "base"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Failed to save moul metadata"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 43,
+            "status": 500
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:42Z",
+                "emailTemplates": {
+                  "confirm_email_change": {
+                    "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm email change"
+                  },
+                  "login_alert": {
+                    "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                    "subject": "New Login Alert"
+                  },
+                  "otp": {
+                    "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                    "subject": "Your OTP Code"
+                  },
+                  "password_reset": {
+                    "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                    "subject": "Reset your password"
+                  },
+                  "verification": {
+                    "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm your email address"
+                  }
+                },
+                "fields": [
+                  {
+                    "name": "displayName",
+                    "type": "text"
+                  }
+                ],
+                "id": "moul_users",
+                "name": "users",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "id = @request.auth.id",
+                  "listRule": "",
+                  "updateRule": "id = @request.auth.id",
+                  "viewRule": ""
+                },
+                "type": "auth",
+                "updatedAt": "2026-11-18T00:32:42Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1285,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:42Z",
+                "emailTemplates": {
+                  "confirm_email_change": {
+                    "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm email change"
+                  },
+                  "login_alert": {
+                    "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                    "subject": "New Login Alert"
+                  },
+                  "otp": {
+                    "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                    "subject": "Your OTP Code"
+                  },
+                  "password_reset": {
+                    "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                    "subject": "Reset your password"
+                  },
+                  "verification": {
+                    "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm your email address"
+                  }
+                },
+                "fields": [
+                  {
+                    "name": "displayName",
+                    "type": "text"
+                  }
+                ],
+                "id": "moul_users",
+                "name": "users",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "id = @request.auth.id",
+                  "listRule": "",
+                  "updateRule": "id = @request.auth.id",
+                  "viewRule": ""
+                },
+                "type": "auth",
+                "updatedAt": "2026-11-18T00:32:42Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1285,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": {
+              "json": {
+                "rules": {
+                  "listRule": ""
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": {
+              "json": {
+                "rules": {
+                  "listRule": ""
+                }
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": {
+              "json": {
+                "rules": {
+                  "listRule": ""
+                }
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:42Z",
+                "emailTemplates": {
+                  "confirm_email_change": {
+                    "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm email change"
+                  },
+                  "login_alert": {
+                    "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                    "subject": "New Login Alert"
+                  },
+                  "otp": {
+                    "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                    "subject": "Your OTP Code"
+                  },
+                  "password_reset": {
+                    "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                    "subject": "Reset your password"
+                  },
+                  "verification": {
+                    "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm your email address"
+                  }
+                },
+                "fields": [
+                  {
+                    "name": "displayName",
+                    "type": "text"
+                  }
+                ],
+                "id": "moul_users",
+                "name": "users",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "id = @request.auth.id",
+                  "listRule": "id = @request.auth.id",
+                  "updateRule": "id = @request.auth.id",
+                  "viewRule": "id = @request.auth.id"
+                },
+                "type": "auth",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1327,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": {
+              "json": {
+                "rules": {
+                  "listRule": ""
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:42Z",
+                "emailTemplates": {
+                  "confirm_email_change": {
+                    "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm email change"
+                  },
+                  "login_alert": {
+                    "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                    "subject": "New Login Alert"
+                  },
+                  "otp": {
+                    "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                    "subject": "Your OTP Code"
+                  },
+                  "password_reset": {
+                    "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                    "subject": "Reset your password"
+                  },
+                  "verification": {
+                    "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm your email address"
+                  }
+                },
+                "fields": [
+                  {
+                    "name": "displayName",
+                    "type": "text"
+                  }
+                ],
+                "id": "moul_users",
+                "name": "users",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "id = @request.auth.id",
+                  "listRule": "id = @request.auth.id",
+                  "updateRule": "id = @request.auth.id",
+                  "viewRule": "id = @request.auth.id"
+                },
+                "type": "auth",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1327,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "DELETE",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 204
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/users",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/users/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Collection \"users\" not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 45,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Collection \"users\" not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 45,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/webhooks",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/users/webhooks",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/webhooks",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/webhooks",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name/webhooks",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/webhooks",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/webhooks",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/webhooks",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/email-templates",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/users/email-templates",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/email-templates",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/email-templates",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name/email-templates",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/email-templates",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/email-templates",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/email-templates",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "app_name": "moul-dev",
+                "email_api_key": "",
+                "email_api_secret": "",
+                "email_domain": "",
+                "email_enabled": "false",
+                "email_endpoint": "",
+                "email_from_address": "",
+                "email_from_name": "",
+                "email_provider": "console",
+                "email_region": "us-east-1",
+                "file_s3_access_key": "",
+                "file_s3_bucket": "",
+                "file_s3_enabled": "false",
+                "file_s3_endpoint": "",
+                "file_s3_force_path_style": "false",
+                "file_s3_region": "",
+                "file_s3_secret_key": "",
+                "file_thumbs_async": "false",
+                "litestream_access_key_id": "",
+                "litestream_enabled": "false",
+                "litestream_replica_path": "",
+                "litestream_s3_bucket": "",
+                "litestream_s3_endpoint": "",
+                "litestream_s3_force_path_style": "false",
+                "litestream_s3_region": "",
+                "litestream_secret_access_key": "",
+                "oauth_apple_client_id": "",
+                "oauth_apple_client_secret": "",
+                "oauth_apple_enabled": "false",
+                "oauth_apple_key_id": "",
+                "oauth_apple_private_key": "",
+                "oauth_apple_team_id": "",
+                "oauth_github_client_id": "",
+                "oauth_github_client_secret": "",
+                "oauth_github_enabled": "false",
+                "oauth_google_client_id": "",
+                "oauth_google_client_secret": "",
+                "oauth_google_enabled": "false",
+                "oauth_redirect_url": "",
+                "rate_limiting_enabled": "true",
+                "rate_limiting_rules": "[{\"label\":\"*:auth\",\"maxRequests\":10,\"interval\":3,\"targetedUsers\":\"all\"},{\"label\":\"/\",\"maxRequests\":300,\"interval\":5,\"targetedUsers\":\"all\"}]",
+                "request_log_enabled": "true",
+                "request_log_exclude_paths": "",
+                "request_log_retention_days": "30",
+                "request_log_sample_rate": "1",
+                "root_user_allowed_ips": "",
+                "root_user_ip_enabled": "false",
+                "tls_domains": "",
+                "tls_email": "",
+                "tls_enabled": "false",
+                "tls_http_port": "80",
+                "tls_https_port": "443",
+                "tls_use_staging": "false",
+                "visit_retention_days": "30"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1593,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "app_name": "moul-dev",
+                "email_api_key": "",
+                "email_api_secret": "",
+                "email_domain": "",
+                "email_enabled": "false",
+                "email_endpoint": "",
+                "email_from_address": "",
+                "email_from_name": "",
+                "email_provider": "console",
+                "email_region": "us-east-1",
+                "file_s3_access_key": "",
+                "file_s3_bucket": "",
+                "file_s3_enabled": "false",
+                "file_s3_endpoint": "",
+                "file_s3_force_path_style": "false",
+                "file_s3_region": "",
+                "file_s3_secret_key": "",
+                "file_thumbs_async": "false",
+                "litestream_access_key_id": "",
+                "litestream_enabled": "false",
+                "litestream_replica_path": "",
+                "litestream_s3_bucket": "",
+                "litestream_s3_endpoint": "",
+                "litestream_s3_force_path_style": "false",
+                "litestream_s3_region": "",
+                "litestream_secret_access_key": "",
+                "oauth_apple_client_id": "",
+                "oauth_apple_client_secret": "",
+                "oauth_apple_enabled": "false",
+                "oauth_apple_key_id": "",
+                "oauth_apple_private_key": "",
+                "oauth_apple_team_id": "",
+                "oauth_github_client_id": "",
+                "oauth_github_client_secret": "",
+                "oauth_github_enabled": "false",
+                "oauth_google_client_id": "",
+                "oauth_google_client_secret": "",
+                "oauth_google_enabled": "false",
+                "oauth_redirect_url": "",
+                "rate_limiting_enabled": "true",
+                "rate_limiting_rules": "[{\"label\":\"*:auth\",\"maxRequests\":10,\"interval\":3,\"targetedUsers\":\"all\"},{\"label\":\"/\",\"maxRequests\":300,\"interval\":5,\"targetedUsers\":\"all\"}]",
+                "request_log_enabled": "true",
+                "request_log_exclude_paths": "",
+                "request_log_retention_days": "30",
+                "request_log_sample_rate": "1",
+                "root_user_allowed_ips": "",
+                "root_user_ip_enabled": "false",
+                "tls_domains": "",
+                "tls_email": "",
+                "tls_enabled": "false",
+                "tls_http_port": "80",
+                "tls_https_port": "443",
+                "tls_use_staging": "false",
+                "visit_retention_days": "30"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1593,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "app_name": "pwned"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "app_name": "pwned"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "app_name": "pwned"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "app_name": "pwned",
+                "email_api_key": "",
+                "email_api_secret": "",
+                "email_domain": "",
+                "email_enabled": "false",
+                "email_endpoint": "",
+                "email_from_address": "",
+                "email_from_name": "",
+                "email_provider": "console",
+                "email_region": "us-east-1",
+                "file_s3_access_key": "",
+                "file_s3_bucket": "",
+                "file_s3_enabled": "false",
+                "file_s3_endpoint": "",
+                "file_s3_force_path_style": "false",
+                "file_s3_region": "",
+                "file_s3_secret_key": "",
+                "file_thumbs_async": "false",
+                "litestream_access_key_id": "",
+                "litestream_enabled": "false",
+                "litestream_replica_path": "",
+                "litestream_s3_bucket": "",
+                "litestream_s3_endpoint": "",
+                "litestream_s3_force_path_style": "false",
+                "litestream_s3_region": "",
+                "litestream_secret_access_key": "",
+                "oauth_apple_client_id": "",
+                "oauth_apple_client_secret": "",
+                "oauth_apple_enabled": "false",
+                "oauth_apple_key_id": "",
+                "oauth_apple_private_key": "",
+                "oauth_apple_team_id": "",
+                "oauth_github_client_id": "",
+                "oauth_github_client_secret": "",
+                "oauth_github_enabled": "false",
+                "oauth_google_client_id": "",
+                "oauth_google_client_secret": "",
+                "oauth_google_enabled": "false",
+                "oauth_redirect_url": "",
+                "rate_limiting_enabled": "true",
+                "rate_limiting_rules": "[{\"label\":\"*:auth\",\"maxRequests\":10,\"interval\":3,\"targetedUsers\":\"all\"},{\"label\":\"/\",\"maxRequests\":300,\"interval\":5,\"targetedUsers\":\"all\"}]",
+                "request_log_enabled": "true",
+                "request_log_exclude_paths": "",
+                "request_log_retention_days": "30",
+                "request_log_sample_rate": "1",
+                "root_user_allowed_ips": "",
+                "root_user_ip_enabled": "false",
+                "tls_domains": "",
+                "tls_email": "",
+                "tls_enabled": "false",
+                "tls_http_port": "80",
+                "tls_https_port": "443",
+                "tls_use_staging": "false",
+                "visit_retention_days": "30"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1590,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "app_name": "pwned"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "app_name": "pwned",
+                "email_api_key": "",
+                "email_api_secret": "",
+                "email_domain": "",
+                "email_enabled": "false",
+                "email_endpoint": "",
+                "email_from_address": "",
+                "email_from_name": "",
+                "email_provider": "console",
+                "email_region": "us-east-1",
+                "file_s3_access_key": "",
+                "file_s3_bucket": "",
+                "file_s3_enabled": "false",
+                "file_s3_endpoint": "",
+                "file_s3_force_path_style": "false",
+                "file_s3_region": "",
+                "file_s3_secret_key": "",
+                "file_thumbs_async": "false",
+                "litestream_access_key_id": "",
+                "litestream_enabled": "false",
+                "litestream_replica_path": "",
+                "litestream_s3_bucket": "",
+                "litestream_s3_endpoint": "",
+                "litestream_s3_force_path_style": "false",
+                "litestream_s3_region": "",
+                "litestream_secret_access_key": "",
+                "oauth_apple_client_id": "",
+                "oauth_apple_client_secret": "",
+                "oauth_apple_enabled": "false",
+                "oauth_apple_key_id": "",
+                "oauth_apple_private_key": "",
+                "oauth_apple_team_id": "",
+                "oauth_github_client_id": "",
+                "oauth_github_client_secret": "",
+                "oauth_github_enabled": "false",
+                "oauth_google_client_id": "",
+                "oauth_google_client_secret": "",
+                "oauth_google_enabled": "false",
+                "oauth_redirect_url": "",
+                "rate_limiting_enabled": "true",
+                "rate_limiting_rules": "[{\"label\":\"*:auth\",\"maxRequests\":10,\"interval\":3,\"targetedUsers\":\"all\"},{\"label\":\"/\",\"maxRequests\":300,\"interval\":5,\"targetedUsers\":\"all\"}]",
+                "request_log_enabled": "true",
+                "request_log_exclude_paths": "",
+                "request_log_retention_days": "30",
+                "request_log_sample_rate": "1",
+                "root_user_allowed_ips": "",
+                "root_user_ip_enabled": "false",
+                "tls_domains": "",
+                "tls_email": "",
+                "tls_enabled": "false",
+                "tls_http_port": "80",
+                "tls_https_port": "443",
+                "tls_use_staging": "false",
+                "visit_retention_days": "30"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1590,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/files",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/files",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/files",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/files",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/files",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/files",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/files",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/files",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/files/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "DELETE",
+            "path": "/api/files/abc",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/files/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/files/abc",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/files/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/files/abc",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/files/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/files/abc",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 50,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 50,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/system/metrics",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/system/metrics",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/system/metrics",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/system/metrics",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/system/metrics",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/system/metrics",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "error": "system monitoring collector not initialized"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 56,
+            "status": 503
+          }
+        },
+        {
+          "route": "/api/system/metrics",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/system/metrics",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "error": "system monitoring collector not initialized"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 56,
+            "status": 503
+          }
+        },
+        {
+          "route": "/api/visits",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/visits",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/visits",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/visits",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/visits",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/visits",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/visits",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/visits",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/requests",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/requests",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/requests",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/requests",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/requests",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/requests",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 50,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/requests",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/requests",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 50,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": {
+              "json": {
+                "key": "f1"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": {
+              "json": {
+                "key": "f1"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": {
+              "json": {
+                "key": "f1"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "default_value": "false",
+                "description": "",
+                "enabled": true,
+                "gates": {},
+                "id": "ff_1794961963007521000",
+                "key": "f1",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 180,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": {
+              "json": {
+                "key": "f1"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "default_value": "false",
+                "description": "",
+                "enabled": true,
+                "gates": {},
+                "id": "ff_1794961963007696000",
+                "key": "f1",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 180,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/rules/test",
+          "request": {
+            "body": {
+              "json": {
+                "rule": "true"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/rules/test",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/rules/test",
+          "request": {
+            "body": {
+              "json": {
+                "rule": "true"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/rules/test",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/rules/test",
+          "request": {
+            "body": {
+              "json": {
+                "rule": "true"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/rules/test",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "duration_us": 561,
+                "matched": true,
+                "translated": "true",
+                "valid": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 68,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/rules/test",
+          "request": {
+            "body": {
+              "json": {
+                "rule": "true"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/rules/test",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "duration_us": 58,
+                "matched": true,
+                "translated": "true",
+                "valid": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "ping"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "ping"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYThlNDY2ODg1MTNjZjg4NmVhY2UxN2ZlNDI3YjA3MDMifQ.1j_uZQXlifKf4dzmH7XuemYgPZBeKO2t8i96THRsrTQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Root or admin access required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "ping"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QxIiwiZW1haWwiOiJyb290QGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290IiwibW91bCI6Il9yb290VXNlcnMiLCJleHAiOjE3OTUwNDgzNjIsImlhdCI6MTc5NDk2MTk2MiwianRpIjoiYzZiMWIwNjI4Yjc5ZGExODRiNzU0MTkzOGVlYWRmYTAifQ.O54cbMIBfuhZmTIPtEGwxIHR6tiaAV6csmBOu6dHvEo"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "Invalid session ID\n"
+            },
+            "headers": {
+              "Content-Type": [
+                "text/plain; charset=utf-8"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 19,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "ping"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "Invalid session ID\n"
+            },
+            "headers": {
+              "Content-Type": [
+                "text/plain; charset=utf-8"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 19,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAdminSurface_RootOrAdminKeyOnly"
+}

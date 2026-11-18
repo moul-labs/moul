@@ -1,0 +1,180 @@
+{
+  "outcome": "pass",
+  "package": "internal/seed",
+  "sessions": [
+    {
+      "db_before": "cbc2a77b5c6e0079",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "authorId": "usr_admin_001",
+                "categoryId": "cat_eng_001"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3RfYWRtaW5fMDEiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJhZG1pbiIsIm1vdWwiOiJfcm9vdFVzZXJzIiwiZXhwIjoxNzk1MDQ4MzYzLCJpYXQiOjE3OTQ5NjE5NjMsImp0aSI6Ijk5YTBiNTFjNzg2YTNlOTJjYjNiMTEwZmY5N2ZiMjUzIn0.OZEd0fv30eqjV9InLJ2WbUGWeBXv7aW-XNvqDyRfC60"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/posts/records/pst_001",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorId": "usr_admin_001",
+                "categoryId": "cat_eng_001",
+                "content": "Exploring WAL mode, busy timeouts, and in-memory caches to handle thousands of requests per second.",
+                "createdAt": "2026-11-06T00:32:43Z",
+                "id": "pst_001",
+                "isFeatured": true,
+                "publishedAt": "2026-11-06T00:32:43Z",
+                "slug": "building-high-performance-sqlite-backends-with-go",
+                "status": "published",
+                "tags": [
+                  "sqlite",
+                  "golang",
+                  "database",
+                  "performance"
+                ],
+                "title": "Building High-Performance SQLite Backends with Go",
+                "updatedAt": "2026-11-18T00:32:43Z",
+                "viewsCount": 1420
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 518,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "authorId": "usr_jane_002",
+                "categoryId": "cat_des_003"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3RfYWRtaW5fMDEiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJhZG1pbiIsIm1vdWwiOiJfcm9vdFVzZXJzIiwiZXhwIjoxNzk1MDQ4MzYzLCJpYXQiOjE3OTQ5NjE5NjMsImp0aSI6Ijk5YTBiNTFjNzg2YTNlOTJjYjNiMTEwZmY5N2ZiMjUzIn0.OZEd0fv30eqjV9InLJ2WbUGWeBXv7aW-XNvqDyRfC60"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/posts/records/pst_002",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorId": "usr_jane_002",
+                "categoryId": "cat_des_003",
+                "content": "How to achieve deterministic, accessible, and fast design systems in modern React applications.",
+                "createdAt": "2026-11-12T00:32:43Z",
+                "id": "pst_002",
+                "isFeatured": false,
+                "publishedAt": "2026-11-12T00:32:43Z",
+                "slug": "zero-runtime-styling-with-stylex-and-react-aria",
+                "status": "published",
+                "tags": [
+                  "react",
+                  "stylex",
+                  "a11y",
+                  "design-systems"
+                ],
+                "title": "Zero-Runtime Styling with StyleX and React Aria",
+                "updatedAt": "2026-11-18T00:32:43Z",
+                "viewsCount": 985
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 507,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "authorId": "usr_admin_001",
+                "categoryId": "cat_prod_002"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3RfYWRtaW5fMDEiLCJlbWFpbCI6ImFkbWluQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJhZG1pbiIsIm1vdWwiOiJfcm9vdFVzZXJzIiwiZXhwIjoxNzk1MDQ4MzYzLCJpYXQiOjE3OTQ5NjE5NjMsImp0aSI6Ijk5YTBiNTFjNzg2YTNlOTJjYjNiMTEwZmY5N2ZiMjUzIn0.OZEd0fv30eqjV9InLJ2WbUGWeBXv7aW-XNvqDyRfC60"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/posts/records/pst_003",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorId": "usr_admin_001",
+                "categoryId": "cat_prod_002",
+                "content": "Introducing native Server-Sent Events, Model Context Protocol integration, and multi-actor feature flags.",
+                "createdAt": "2026-11-16T00:32:43Z",
+                "id": "pst_003",
+                "isFeatured": true,
+                "publishedAt": "2026-11-16T00:32:43Z",
+                "slug": "announcing-moul-2026-08",
+                "status": "published",
+                "tags": [
+                  "release",
+                  "mcp",
+                  "realtime",
+                  "openfeature"
+                ],
+                "title": "Announcing Moul 2026.08: Realtime Subscriptions \u0026 MCP Engine",
+                "updatedAt": "2026-11-18T00:32:43Z",
+                "viewsCount": 2840
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 513,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestSeededPostsAcceptUnchangedRelations"
+}

@@ -1,0 +1,60 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "a0eb2412e107539e",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/email-templates/test",
+          "request": {
+            "body": {
+              "json": {
+                "email": "testrecipient@example.com",
+                "template": "otp"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "54"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/email-templates/test",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Test email sent/queued successfully"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 50,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestSendTestEmailHandler"
+}

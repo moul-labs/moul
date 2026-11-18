@@ -1,0 +1,104 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "2997b86501dffe4b",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMjMzMTA4Y2QyMzk3NDI2YmMwYTZhMWQ2Nzc1ZTMxNjUifQ.kyIMOSeys1h6weIPqIiMYmrK-1HVzCHbgEWQVb77hWc"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records/b_alice",
+            "query": "expand=garage,author"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "createdAt": "2026-01-01T00:00:00Z",
+                "expand": {
+                  "author": {
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "displayName": null,
+                    "id": "alice",
+                    "updatedAt": "2026-01-01T00:00:00Z",
+                    "username": "alice"
+                  },
+                  "garage": null
+                },
+                "garage": "g_alice",
+                "id": "b_alice",
+                "title": "Alice build",
+                "updatedAt": "2026-01-01T00:00:00Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 302,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMzExODgyNjQxOGE0NmNiNDI3ZTE2ZmU5ODU0NzBlYmIifQ.FVbvoqElntnN6nL9IMmq4oxZNfKO-JbneEYv83yylx0"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records/b_alice",
+            "query": "expand=garage"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "createdAt": "2026-01-01T00:00:00Z",
+                "expand": {
+                  "garage": {
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "id": "g_alice",
+                    "odometer": 100,
+                    "owner": "alice",
+                    "updatedAt": "2026-01-01T00:00:00Z",
+                    "vin": "VIN-ALICE"
+                  }
+                },
+                "garage": "g_alice",
+                "id": "b_alice",
+                "title": "Alice build",
+                "updatedAt": "2026-01-01T00:00:00Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 301,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRecords_ExpandHonorsTargetViewRule"
+}

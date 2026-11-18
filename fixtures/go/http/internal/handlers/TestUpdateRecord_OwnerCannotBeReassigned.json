@@ -1,0 +1,175 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "66949e6065c2093a",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "owner": "bob"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTM4NDI0NTBhMzM4YmEyNWY5ZGE0NzE1YmU0N2E5Y2QifQ.G7UiRrlbbmwhVhBuG4p35vxvbrRpVJ2h6YUXn8tf-Z8"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "You are not allowed to set \"owner\" to another user"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "author": "bob"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTM4NDI0NTBhMzM4YmEyNWY5ZGE0NzE1YmU0N2E5Y2QifQ.G7UiRrlbbmwhVhBuG4p35vxvbrRpVJ2h6YUXn8tf-Z8"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/builds/records/b_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "You are not allowed to set \"author\" to another user"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 68,
+            "status": 403
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "owner": "alice",
+                "vin": "NEW"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTM4NDI0NTBhMzM4YmEyNWY5ZGE0NzE1YmU0N2E5Y2QifQ.G7UiRrlbbmwhVhBuG4p35vxvbrRpVJ2h6YUXn8tf-Z8"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-01-01T00:00:00Z",
+                "id": "g_alice",
+                "odometer": 100,
+                "owner": "alice",
+                "updatedAt": "2026-11-18T00:32:43Z",
+                "vin": "NEW"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 130,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "owner": "bob"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-01-01T00:00:00Z",
+                "id": "g_alice",
+                "odometer": 100,
+                "owner": "bob",
+                "updatedAt": "2026-11-18T00:32:43Z",
+                "vin": "NEW"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 128,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestUpdateRecord_OwnerCannotBeReassigned"
+}

@@ -1,0 +1,283 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "7b508695744eff35",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "0x1p0"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"odometer\" must be a decimal number"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "1_000"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"odometer\" must be a decimal number"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "Inf"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"odometer\" must be a decimal number"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "NaN"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"odometer\" must be a decimal number"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "123456789012345678901234567890123"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"odometer\" must be a decimal number"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "12abc"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"odometer\" must be a number"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 50,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "odometer": "12.5"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZWJiMzlhMWQ5MDdmOGY0YTVhZDg3N2I3NWQwYzVhOGEifQ.zDeP1e5xpN-hh8qogaTnQE5xbSodfgw6C8eSEEG9yAA"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-01-01T00:00:00Z",
+                "id": "g_alice",
+                "odometer": 12.5,
+                "owner": "alice",
+                "updatedAt": "2026-11-18T00:32:43Z",
+                "vin": "VIN-ALICE"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 137,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRecords_NumberFieldsAreCanonical"
+}

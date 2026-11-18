@@ -15,3 +15,19 @@ targets = ["wasm32-unknown-unknown"]
 
 [lints]
 workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+wasm-bindgen-test.workspace = true
+js-sys.workspace = true
+web-sys = { workspace = true, features = [
+  "WorkerGlobalScope",
+  "WorkerNavigator",
+  "StorageManager",
+  "FileSystemDirectoryHandle",
+  "FileSystemFileHandle",
+  "FileSystemGetFileOptions",
+  "FileSystemSyncAccessHandle",
+  "FileSystemReadWriteOptions",
+] }

@@ -1,0 +1,270 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "bf82c64aa019e32b",
+      "exchanges": [
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "rate_limiting_enabled": "true",
+                "rate_limiting_rules": "[{\"label\":\"sse_posts:subscribe\",\"maxRequests\":100,\"interval\":60,\"targetedUsers\":\"all\",\"maxConcurrent\":2}]"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "176"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "admin-secret-key"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "app_name": "moul-dev",
+                "email_api_key": "",
+                "email_api_secret": "",
+                "email_domain": "",
+                "email_enabled": "false",
+                "email_endpoint": "",
+                "email_from_address": "",
+                "email_from_name": "",
+                "email_provider": "console",
+                "email_region": "us-east-1",
+                "file_s3_access_key": "",
+                "file_s3_bucket": "",
+                "file_s3_enabled": "false",
+                "file_s3_endpoint": "",
+                "file_s3_force_path_style": "false",
+                "file_s3_region": "",
+                "file_s3_secret_key": "",
+                "file_thumbs_async": "false",
+                "litestream_access_key_id": "",
+                "litestream_enabled": "false",
+                "litestream_replica_path": "",
+                "litestream_s3_bucket": "",
+                "litestream_s3_endpoint": "",
+                "litestream_s3_force_path_style": "false",
+                "litestream_s3_region": "",
+                "litestream_secret_access_key": "",
+                "oauth_apple_client_id": "",
+                "oauth_apple_client_secret": "",
+                "oauth_apple_enabled": "false",
+                "oauth_apple_key_id": "",
+                "oauth_apple_private_key": "",
+                "oauth_apple_team_id": "",
+                "oauth_github_client_id": "",
+                "oauth_github_client_secret": "",
+                "oauth_github_enabled": "false",
+                "oauth_google_client_id": "",
+                "oauth_google_client_secret": "",
+                "oauth_google_enabled": "false",
+                "oauth_redirect_url": "",
+                "rate_limiting_enabled": "true",
+                "rate_limiting_rules": "[{\"label\":\"sse_posts:subscribe\",\"maxRequests\":100,\"interval\":60,\"targetedUsers\":\"all\",\"maxConcurrent\":2}]",
+                "request_log_enabled": "true",
+                "request_log_exclude_paths": "",
+                "request_log_retention_days": "30",
+                "request_log_sample_rate": "1",
+                "root_user_allowed_ips": "",
+                "root_user_ip_enabled": "false",
+                "tls_domains": "",
+                "tls_email": "",
+                "tls_enabled": "false",
+                "tls_http_port": "80",
+                "tls_https_port": "443",
+                "tls_use_staging": "false",
+                "visit_retention_days": "30"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1549,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Too many concurrent realtime connections for this subscription"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 77,
+            "status": 429
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"ab2a938d3997ef47\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 97,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"8a1c523db862bd68\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 97,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"2adbd11e0443fcd6\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 97,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeSSE_ConcurrentConnectionLimit"
+}

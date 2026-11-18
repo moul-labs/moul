@@ -1,0 +1,12 @@
+{
+  "name": "moul-browser-tests",
+  "private": true,
+  "description": "Runs the workspace's wasm-bindgen tests in Chromium, Firefox and WebKit through Playwright.",
+  "type": "module",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.65.1"
+  }
+}

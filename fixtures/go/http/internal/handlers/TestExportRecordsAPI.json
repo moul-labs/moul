@@ -1,0 +1,171 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "d2ea2cf372223e1e",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/posts/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"127.0.0.1:49793\", error=\"unauthorized\", resource_metadata=\"http://127.0.0.1:49793/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/posts/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "active": true,
+                  "createdAt": "2026-09-04T10:00:00Z",
+                  "id": "p1",
+                  "score": 100,
+                  "title": "Hello World",
+                  "updatedAt": "2026-09-04T10:00:00Z"
+                }
+              ]
+            },
+            "headers": {
+              "Content-Disposition": [
+                "attachment; filename=\"posts-records-2026-11-18-003244.json\""
+              ],
+              "Content-Type": [
+                "application/json; charset=utf-8"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 175,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/posts/export",
+            "query": "format=csv"
+          },
+          "response": {
+            "body": {
+              "text": "id,title,score,active,createdAt,updatedAt\np1,Hello World,100,true,2026-09-04T10:00:00Z,2026-09-04T10:00:00Z\n"
+            },
+            "headers": {
+              "Content-Disposition": [
+                "attachment; filename=\"posts-records-2026-11-18-003244.csv\""
+              ],
+              "Content-Type": [
+                "text/csv; charset=utf-8"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 108,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/nonexistent/export",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Collection \"nonexistent\" not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 51,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestExportRecordsAPI"
+}

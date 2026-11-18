@@ -1,0 +1,48 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "d9825808f8620986",
+      "exchanges": [
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS1jMzMwZjQzODAzYjM5M2Y3YzUzN2ZmMWRjMDBjYjNjMmNhYmNiNjI4MDlkMmM4NGE1NTUyNDBlMDU3NmINCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJib21iLmdpZiINCkNvbnRlbnQtVHlwZTogaW1hZ2UvZ2lmDQoNCkdJRjg5YRAnECeAAAAAAAD///8sAAAAAAEAAQAAAgJEAQA7DQotLWMzMzBmNDM4MDNiMzkzZjdjNTM3ZmYxZGMwMGNiM2MyY2FiY2I2MjgwOWQyYzg0YTU1NTI0MGUwNTc2Yi0tDQo="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTRiZjNiNTE4NjU0ZWZiNTYwNTI3NDM1OTA1YzI5YjcifQ.wwpZHbggm3k4hf0iJ6gJe3gny-VSUV55sRQAcTN23FE"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=c330f43803b393f7c537ff1dc00cb3c2cabcb62809d2c84a555240e0576b"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Image is too large to process (at most 40 megapixels)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 68,
+            "status": 413
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestUploads_OversizedImageIs413"
+}

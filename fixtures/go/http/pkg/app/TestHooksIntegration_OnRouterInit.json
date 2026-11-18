@@ -1,0 +1,88 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "afc6d6eb0b2c690f",
+      "exchanges": [
+        {
+          "route": "/api/v1/plugin/products/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/v1/plugin/products/p-100",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "id": "p-100",
+                "name": "Gadget",
+                "price": 99
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Custom-Framework-Plugin": [
+                "v1"
+              ]
+            },
+            "size": 42,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/v1/plugin/products/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/v1/plugin/products/non-existent",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "error": "product not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Custom-Framework-Plugin": [
+                "v1"
+              ]
+            },
+            "size": 30,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestHooksIntegration_OnRouterInit"
+}

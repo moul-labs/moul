@@ -1,0 +1,783 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "5397ec6bd85ecd04",
+      "exchanges": [
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "users",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "id = @request.auth.id",
+                  "listRule": "",
+                  "updateRule": "id = @request.auth.id",
+                  "viewRule": "id = @request.auth.id"
+                },
+                "type": "auth"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "179"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "emailTemplates": {
+                  "confirm_email_change": {
+                    "body": "Hello,\n\nPlease confirm your email address change by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm email change"
+                  },
+                  "login_alert": {
+                    "body": "Hello,\n\nA new login was detected on your account.\n\nIf this was not you, please secure your account immediately.\n\nRegards,\nSupport Team",
+                    "subject": "New Login Alert"
+                  },
+                  "otp": {
+                    "body": "Hello,\n\nYour one-time password (OTP) code is:\n\n{{.OTP}}\n\nThis code will expire in 10 minutes.\n\nRegards,\nSupport Team",
+                    "subject": "Your OTP Code"
+                  },
+                  "password_reset": {
+                    "body": "Hello,\n\nYou requested a password reset. Please use the link below to set a new password:\n\n{{.Link}}\n\nIf you did not request this, you can ignore this email.\n\nRegards,\nSupport Team",
+                    "subject": "Reset your password"
+                  },
+                  "verification": {
+                    "body": "Hello,\n\nPlease verify your email by clicking on the link below:\n\n{{.Link}}\n\nRegards,\nSupport Team",
+                    "subject": "Confirm your email address"
+                  }
+                },
+                "fields": null,
+                "id": "u9XMeguqrD5wLQR",
+                "name": "users",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "id = @request.auth.id",
+                  "listRule": "id = @request.auth.id",
+                  "updateRule": "id = @request.auth.id",
+                  "viewRule": "id = @request.auth.id"
+                },
+                "type": "auth",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 1298,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "fields": [
+                  {
+                    "name": "title",
+                    "type": "text"
+                  },
+                  {
+                    "name": "body",
+                    "type": "text"
+                  },
+                  {
+                    "name": "authorId",
+                    "type": "text"
+                  }
+                ],
+                "name": "posts",
+                "rules": {
+                  "createRule": "@request.auth.id != ''",
+                  "deleteRule": "authorId = @request.auth.id",
+                  "listRule": "",
+                  "updateRule": "authorId = @request.auth.id",
+                  "viewRule": ""
+                },
+                "type": "base"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "298"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "fields": [
+                  {
+                    "name": "title",
+                    "type": "text"
+                  },
+                  {
+                    "name": "body",
+                    "type": "text"
+                  },
+                  {
+                    "name": "authorId",
+                    "type": "text"
+                  }
+                ],
+                "id": "o1I5HQ44w6iU5EP",
+                "name": "posts",
+                "rules": {
+                  "createRule": "@request.auth.id != ''",
+                  "deleteRule": "authorId = @request.auth.id",
+                  "listRule": "",
+                  "updateRule": "authorId = @request.auth.id",
+                  "viewRule": ""
+                },
+                "type": "base",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 392,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "bg_tasks",
+                "type": "worker"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "35"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "fields": null,
+                "id": "z14B0BDofj70ky8",
+                "name": "bg_tasks",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "",
+                  "listRule": "",
+                  "updateRule": "",
+                  "viewRule": ""
+                },
+                "type": "worker",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 229,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul",
+          "request": {
+            "body": {
+              "json": {
+                "name": "app_events",
+                "type": "analytic"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "39"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "fields": null,
+                "id": "YwXvt9LnLn6Dtao",
+                "name": "app_events",
+                "rules": {
+                  "createRule": "",
+                  "deleteRule": "",
+                  "listRule": "",
+                  "updateRule": "",
+                  "viewRule": ""
+                },
+                "type": "analytic",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 233,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "email": "alice@example.com",
+                "password": "Password123!",
+                "passwordConfirm": "Password123!",
+                "username": "alice"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "107"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "id": "user-5X9h8v71NjwXPu7",
+                "updatedAt": "2026-11-18T00:32:44Z",
+                "username": "alice"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 119,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul/:name/auth-with-password",
+          "request": {
+            "body": {
+              "json": {
+                "identity": "alice@example.com",
+                "password": "Password123!"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "58"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-password",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "record": {
+                  "createdAt": "2026-11-18T00:32:44Z",
+                  "email": "alice@example.com",
+                  "id": "user-5X9h8v71NjwXPu7",
+                  "updatedAt": "2026-11-18T00:32:44Z",
+                  "username": "alice"
+                },
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXItNVg5aDh2NzFOandYUHU3IiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjQsImlhdCI6MTc5NDk2MTk2NCwianRpIjoiNmRlMmEwOTI1ZmE0M2NhNTA5MjFlMTg4YzhhZjQ2NjcifQ.6kpng7fQdN6T9kz-JXKg1erytRyycqmN4P-ybMHkk8A"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 472,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "authorId": "user-5X9h8v71NjwXPu7",
+                "body": "This should fail",
+                "title": "Unauthorized Post"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "89"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/posts/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to perform this action"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 61,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "authorId": "user-5X9h8v71NjwXPu7",
+                "body": "End-to-end testing with in-process server is awesome.",
+                "title": "Hello E2E Moul World"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXItNVg5aDh2NzFOandYUHU3IiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjQsImlhdCI6MTc5NDk2MTk2NCwianRpIjoiNmRlMmEwOTI1ZmE0M2NhNTA5MjFlMTg4YzhhZjQ2NjcifQ.6kpng7fQdN6T9kz-JXKg1erytRyycqmN4P-ybMHkk8A"
+              ],
+              "Content-Length": [
+                "129"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/posts/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorId": "user-5X9h8v71NjwXPu7",
+                "body": "End-to-end testing with in-process server is awesome.",
+                "createdAt": "2026-11-18T00:32:44Z",
+                "id": "post-2xMlWP1yDVqDSdr",
+                "title": "Hello E2E Moul World",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 228,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "title": "Updated Title By Owner"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXItNVg5aDh2NzFOandYUHU3IiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjQsImlhdCI6MTc5NDk2MTk2NCwianRpIjoiNmRlMmEwOTI1ZmE0M2NhNTA5MjFlMTg4YzhhZjQ2NjcifQ.6kpng7fQdN6T9kz-JXKg1erytRyycqmN4P-ybMHkk8A"
+              ],
+              "Content-Length": [
+                "34"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/posts/records/post-2xMlWP1yDVqDSdr",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorId": "user-5X9h8v71NjwXPu7",
+                "body": "End-to-end testing with in-process server is awesome.",
+                "createdAt": "2026-11-18T00:32:44Z",
+                "id": "post-2xMlWP1yDVqDSdr",
+                "title": "Updated Title By Owner",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 230,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/posts/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [
+                  {
+                    "authorId": "user-5X9h8v71NjwXPu7",
+                    "body": "End-to-end testing with in-process server is awesome.",
+                    "createdAt": "2026-11-18T00:32:44Z",
+                    "id": "post-2xMlWP1yDVqDSdr",
+                    "title": "Updated Title By Owner",
+                    "updatedAt": "2026-11-18T00:32:44Z"
+                  }
+                ],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 1,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 294,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "args": {
+                  "name": "Alice",
+                  "to": "alice@example.com"
+                },
+                "priority": 1,
+                "worker": "SendWelcomeEmail"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "91"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/bg_tasks/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "args": {
+                  "name": "Alice",
+                  "to": "alice@example.com"
+                },
+                "attempt": 0,
+                "attempted_at": null,
+                "attempted_by": null,
+                "cancelled_at": null,
+                "completed_at": null,
+                "createdAt": "2026-11-18T00:32:44Z",
+                "discarded_at": null,
+                "errors": [],
+                "id": "bg_task-VCLmWi8MPmHsIZD",
+                "inserted_at": "2026-11-18T00:32:44Z",
+                "max_attempts": 20,
+                "meta": {},
+                "priority": 1,
+                "queue": "default",
+                "scheduled_at": "2026-11-18T00:32:44Z",
+                "state": "available",
+                "tags": [],
+                "updatedAt": "2026-11-18T00:32:44Z",
+                "worker": "SendWelcomeEmail"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 468,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "landing_page": "https://moul.dev/dashboard",
+                "name": "test_event",
+                "path": "/dashboard"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "85"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Moul-E2E-Tester/1.0"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/app_events/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "id": "app_event-k8JOV8Yi8LyOS0n",
+                "name": "test_event",
+                "properties": {
+                  "path": "/dashboard"
+                },
+                "time": "2026-11-18T00:32:44Z",
+                "updatedAt": "2026-11-18T00:32:44Z",
+                "user_id": null,
+                "visit_token": "2e65c562-2ab5-4287-994c-7a815f26b4a3",
+                "visitor_token": "eb6e6784-6fe9-453b-a966-05501c2b37ab"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Set-Cookie": [
+                "moul_visit=2e65c562-2ab5-4287-994c-7a815f26b4a3; Path=/; Expires=Wed, 18 Nov 2026 01:02:44 GMT; HttpOnly; Secure; SameSite=Lax",
+                "moul_visitor=eb6e6784-6fe9-453b-a966-05501c2b37ab; Path=/; Expires=Sat, 18 Nov 2028 00:32:44 GMT; HttpOnly; Secure; SameSite=Lax"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Visit-Token": [
+                "2e65c562-2ab5-4287-994c-7a815f26b4a3"
+              ],
+              "X-Visitor-Token": [
+                "eb6e6784-6fe9-453b-a966-05501c2b37ab"
+              ]
+            },
+            "size": 313,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXItNVg5aDh2NzFOandYUHU3IiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjQsImlhdCI6MTc5NDk2MTk2NCwianRpIjoiNmRlMmEwOTI1ZmE0M2NhNTA5MjFlMTg4YzhhZjQ2NjcifQ.6kpng7fQdN6T9kz-JXKg1erytRyycqmN4P-ybMHkk8A"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/posts/records/post-2xMlWP1yDVqDSdr",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 204
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAppE2EFlow"
+}

@@ -1,0 +1,161 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "1ac7046024988605",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZTM4MDMyZTQxYzI3NDg0NTQ0MDY1ODM0NzUyZmRkMDUifQ.PqoLqozhKpH6yY5bummcQ6t6xcdSwInql35vSuAZ4lQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records",
+            "query": "filter=owner+%3D+%27bob%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZTM4MDMyZTQxYzI3NDg0NTQ0MDY1ODM0NzUyZmRkMDUifQ.PqoLqozhKpH6yY5bummcQ6t6xcdSwInql35vSuAZ4lQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records",
+            "query": "filter=vin+%3D+%27VIN-BOB%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZTM4MDMyZTQxYzI3NDg0NTQ0MDY1ODM0NzUyZmRkMDUifQ.PqoLqozhKpH6yY5bummcQ6t6xcdSwInql35vSuAZ4lQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records",
+            "query": "filter=id+%3D+%27g_bob%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZTM4MDMyZTQxYzI3NDg0NTQ0MDY1ODM0NzUyZmRkMDUifQ.PqoLqozhKpH6yY5bummcQ6t6xcdSwInql35vSuAZ4lQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records",
+            "query": "filter=vin+%3D+%27VIN-ALICE%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [
+                  {
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "id": "g_alice",
+                    "odometer": 100,
+                    "owner": "alice",
+                    "updatedAt": "2026-01-01T00:00:00Z",
+                    "vin": "VIN-ALICE"
+                  }
+                ],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 1,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 200,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestListRecords_FilterCannotOverwriteListRule"
+}

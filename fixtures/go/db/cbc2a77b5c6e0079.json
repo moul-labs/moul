@@ -1,0 +1,1076 @@
+{
+  "schema": [
+    {
+      "type": "trigger",
+      "name": "_moul_version_after_delete",
+      "table": "_moul",
+      "sql": "CREATE TRIGGER _moul_version_after_delete AFTER DELETE ON _moul\n\t\tBEGIN UPDATE _moul_version SET version = version + 1 WHERE id = 1; END"
+    },
+    {
+      "type": "trigger",
+      "name": "_moul_version_after_insert",
+      "table": "_moul",
+      "sql": "CREATE TRIGGER _moul_version_after_insert AFTER INSERT ON _moul\n\t\tBEGIN UPDATE _moul_version SET version = version + 1 WHERE id = 1; END"
+    },
+    {
+      "type": "trigger",
+      "name": "_moul_version_after_update",
+      "table": "_moul",
+      "sql": "CREATE TRIGGER _moul_version_after_update AFTER UPDATE ON _moul\n\t\tBEGIN UPDATE _moul_version SET version = version + 1 WHERE id = 1; END"
+    },
+    {
+      "type": "table",
+      "name": "_certmagic",
+      "table": "_certmagic",
+      "sql": "CREATE TABLE _certmagic (\n\t\t\tkey TEXT PRIMARY KEY,\n\t\t\tvalue BLOB,\n\t\t\tmodified TEXT NOT NULL,\n\t\t\tis_dir INTEGER NOT NULL DEFAULT 0\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_feature_flags",
+      "table": "_feature_flags",
+      "sql": "CREATE TABLE _feature_flags (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tkey TEXT UNIQUE NOT NULL,\n\t\t\tdescription TEXT NOT NULL DEFAULT '',\n\t\t\tenabled INTEGER NOT NULL DEFAULT 1,\n\t\t\tdefault_value TEXT NOT NULL DEFAULT 'false',\n\t\t\tgates TEXT NOT NULL DEFAULT '{}',\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_file_refs",
+      "table": "_file_refs",
+      "sql": "CREATE TABLE _file_refs (\n\t\t\tfileId TEXT NOT NULL,\n\t\t\tmoul TEXT NOT NULL,\n\t\t\trecordId TEXT NOT NULL,\n\t\t\tfield TEXT NOT NULL,\n\t\t\tPRIMARY KEY (fileId, moul, recordId, field)\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_files",
+      "table": "_files",
+      "sql": "CREATE TABLE _files (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\townerMoul TEXT NOT NULL DEFAULT '',\n\t\t\townerId TEXT NOT NULL DEFAULT '',\n\t\t\tcreatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_moul",
+      "table": "_moul",
+      "sql": "CREATE TABLE _moul (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tname TEXT UNIQUE NOT NULL,\n\t\t\ttype TEXT NOT NULL,\n\t\t\tfields TEXT NOT NULL,\n\t\t\trules TEXT NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL\n\t\t, `email_templates` TEXT, `webhooks` TEXT)"
+    },
+    {
+      "type": "table",
+      "name": "_moul_version",
+      "table": "_moul_version",
+      "sql": "CREATE TABLE _moul_version (\n\t\t\tid INTEGER PRIMARY KEY CHECK (id = 1),\n\t\t\tversion INTEGER NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_realtime_tickets",
+      "table": "_realtime_tickets",
+      "sql": "CREATE TABLE _realtime_tickets (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tauthRecord TEXT,\n\t\t\tisAdmin INTEGER NOT NULL DEFAULT 0,\n\t\t\ttokenHash TEXT,\n\t\t\ttokenExpiresAt TEXT,\n\t\t\trevealFields TEXT,\n\t\t\texpiresAt TEXT NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_requests",
+      "table": "_requests",
+      "sql": "CREATE TABLE _requests (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tvisit_id TEXT,\n\t\t\tmethod TEXT NOT NULL,\n\t\t\tpath TEXT NOT NULL,\n\t\t\tstatus_code INTEGER NOT NULL,\n\t\t\tresponse_time_ms INTEGER NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_revoked_tokens",
+      "table": "_revoked_tokens",
+      "sql": "CREATE TABLE _revoked_tokens (\n\t\t\ttoken_hash TEXT PRIMARY KEY,\n\t\t\texpires_at TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_rootUsers",
+      "table": "_rootUsers",
+      "sql": "CREATE TABLE _rootUsers (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tusername TEXT UNIQUE NOT NULL,\n\t\t\temail TEXT UNIQUE NOT NULL,\n\t\t\tname TEXT NOT NULL DEFAULT '',\n\t\t\tpasswordHash TEXT NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_settings",
+      "table": "_settings",
+      "sql": "CREATE TABLE _settings (\n\t\t\tkey TEXT PRIMARY KEY,\n\t\t\tvalue TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_visits",
+      "table": "_visits",
+      "sql": "CREATE TABLE _visits (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tvisitor_token TEXT NOT NULL,\n\t\t\tuser_id TEXT,\n\t\t\tip TEXT,\n\t\t\tuser_agent TEXT,\n\t\t\treferrer TEXT,\n\t\t\treferring_domain TEXT,\n\t\t\tlanding_page TEXT,\n\t\t\tbrowser TEXT,\n\t\t\tos TEXT,\n\t\t\tdevice_type TEXT,\n\t\t\tcountry TEXT,\n\t\t\tregion TEXT,\n\t\t\tcity TEXT,\n\t\t\tutm_source TEXT,\n\t\t\tutm_medium TEXT,\n\t\t\tutm_term TEXT,\n\t\t\tutm_content TEXT,\n\t\t\tutm_campaign TEXT,\n\t\t\tstarted_at TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_workers",
+      "table": "_workers",
+      "sql": "CREATE TABLE _workers (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL,\n\t\t\tstate TEXT NOT NULL DEFAULT 'available',\n\t\t\tqueue TEXT NOT NULL DEFAULT 'default',\n\t\t\tworker TEXT NOT NULL,\n\t\t\targs TEXT NOT NULL DEFAULT '{}',\n\t\t\tmeta TEXT NOT NULL DEFAULT '{}',\n\t\t\ttags TEXT NOT NULL DEFAULT '[]',\n\t\t\terrors TEXT NOT NULL DEFAULT '[]',\n\t\t\tattempt INTEGER NOT NULL DEFAULT 0,\n\t\t\tmax_attempts INTEGER NOT NULL DEFAULT 20,\n\t\t\tpriority INTEGER NOT NULL DEFAULT 0,\n\t\t\tinserted_at TEXT NOT NULL,\n\t\t\tscheduled_at TEXT NOT NULL,\n\t\t\tattempted_at TEXT,\n\t\t\tattempted_by TEXT,\n\t\t\tcancelled_at TEXT,\n\t\t\tcompleted_at TEXT,\n\t\t\tdiscarded_at TEXT\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "categories",
+      "table": "categories",
+      "sql": "CREATE TABLE `categories` (\n\t\t\t\tid TEXT PRIMARY KEY,\n\t\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\t\tupdatedAt TEXT NOT NULL\n\t\t\t\t, `name` TEXT, `slug` TEXT, `description` TEXT, `color` TEXT\n\t\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "events",
+      "table": "events",
+      "sql": "CREATE TABLE `events` (\n\t\t\t\tid TEXT PRIMARY KEY,\n\t\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\t\tupdatedAt TEXT NOT NULL,\n\t\t\t\tvisit_token TEXT NOT NULL,\n\t\t\t\tvisitor_token TEXT NOT NULL,\n\t\t\t\tuser_id TEXT,\n\t\t\t\tname TEXT NOT NULL,\n\t\t\t\tproperties TEXT NOT NULL DEFAULT '{}',\n\t\t\t\ttime TEXT NOT NULL\n\t\t\t\t\n\t\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "posts",
+      "table": "posts",
+      "sql": "CREATE TABLE `posts` (\n\t\t\t\tid TEXT PRIMARY KEY,\n\t\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\t\tupdatedAt TEXT NOT NULL\n\t\t\t\t, `title` TEXT, `slug` TEXT, `content` TEXT, `authorId` TEXT, `categoryId` TEXT, `status` TEXT, `viewsCount` NUMERIC, `isFeatured` INTEGER, `tags` TEXT, `publishedAt` TEXT\n\t\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "tasks_queue",
+      "table": "tasks_queue",
+      "sql": "CREATE TABLE `tasks_queue` (\n\t\t\t\tid TEXT PRIMARY KEY,\n\t\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\t\tupdatedAt TEXT NOT NULL,\n\t\t\t\tstate TEXT NOT NULL DEFAULT 'available',\n\t\t\t\tqueue TEXT NOT NULL DEFAULT 'default',\n\t\t\t\tworker TEXT NOT NULL,\n\t\t\t\targs TEXT NOT NULL DEFAULT '{}',\n\t\t\t\tmeta TEXT NOT NULL DEFAULT '{}',\n\t\t\t\ttags TEXT NOT NULL DEFAULT '[]',\n\t\t\t\terrors TEXT NOT NULL DEFAULT '[]',\n\t\t\t\tattempt INTEGER NOT NULL DEFAULT 0,\n\t\t\t\tmax_attempts INTEGER NOT NULL DEFAULT 20,\n\t\t\t\tpriority INTEGER NOT NULL DEFAULT 0,\n\t\t\t\tinserted_at TEXT NOT NULL,\n\t\t\t\tscheduled_at TEXT NOT NULL,\n\t\t\t\tattempted_at TEXT,\n\t\t\t\tattempted_by TEXT,\n\t\t\t\tcancelled_at TEXT,\n\t\t\t\tcompleted_at TEXT,\n\t\t\t\tdiscarded_at TEXT\n\t\t\t\t\n\t\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "users",
+      "table": "users",
+      "sql": "CREATE TABLE `users` (\n\t\t\t\tid TEXT PRIMARY KEY,\n\t\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\t\tupdatedAt TEXT NOT NULL,\n\t\t\t\tusername TEXT UNIQUE NOT NULL,\n\t\t\t\temail TEXT UNIQUE NOT NULL,\n\t\t\t\tpasswordHash TEXT,\n\t\t\t\totpCode TEXT,\n\t\t\t\totpExpiresAt TEXT,\n\t\t\t\tpasskeys TEXT,\n\t\t\t\tresetToken TEXT,\n\t\t\t\tresetTokenExpiresAt TEXT,\n\t\t\t\toauthProviders TEXT\n\t\t\t\t, `name` TEXT, `avatar` TEXT, `role` TEXT, `bio` TEXT\n\t\t\t)"
+    },
+    {
+      "type": "index",
+      "name": "idx_feature_flags_key",
+      "table": "_feature_flags",
+      "sql": "CREATE INDEX idx_feature_flags_key ON _feature_flags(key)"
+    },
+    {
+      "type": "index",
+      "name": "idx_file_refs_record",
+      "table": "_file_refs",
+      "sql": "CREATE INDEX idx_file_refs_record ON _file_refs (moul, recordId)"
+    },
+    {
+      "type": "index",
+      "name": "idx_realtime_tickets_expires",
+      "table": "_realtime_tickets",
+      "sql": "CREATE INDEX idx_realtime_tickets_expires ON _realtime_tickets(expiresAt)"
+    },
+    {
+      "type": "index",
+      "name": "idx_requests_createdAt",
+      "table": "_requests",
+      "sql": "CREATE INDEX idx_requests_createdAt ON _requests (createdAt)"
+    },
+    {
+      "type": "index",
+      "name": "idx_requests_path",
+      "table": "_requests",
+      "sql": "CREATE INDEX idx_requests_path ON _requests (path)"
+    },
+    {
+      "type": "index",
+      "name": "idx_requests_visit_id",
+      "table": "_requests",
+      "sql": "CREATE INDEX idx_requests_visit_id ON _requests (visit_id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_revoked_tokens_expires",
+      "table": "_revoked_tokens",
+      "sql": "CREATE INDEX idx_revoked_tokens_expires ON _revoked_tokens(expires_at)"
+    },
+    {
+      "type": "index",
+      "name": "idx_tasks_queue_job_processing",
+      "table": "tasks_queue",
+      "sql": "CREATE INDEX idx_tasks_queue_job_processing ON `tasks_queue` (state, queue, priority, scheduled_at, id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_visits_started_at",
+      "table": "_visits",
+      "sql": "CREATE INDEX idx_visits_started_at ON _visits (started_at)"
+    },
+    {
+      "type": "index",
+      "name": "idx_visits_user",
+      "table": "_visits",
+      "sql": "CREATE INDEX idx_visits_user ON _visits (user_id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_visits_visitor",
+      "table": "_visits",
+      "sql": "CREATE INDEX idx_visits_visitor ON _visits (visitor_token)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_job_processing",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_job_processing ON _workers (state, queue, priority, scheduled_at, id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_scheduled_at",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_scheduled_at ON _workers (scheduled_at)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_state",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_state ON _workers (state)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_worker",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_worker ON _workers (worker)"
+    }
+  ],
+  "tables": {
+    "_certmagic": {
+      "columns": [
+        "key",
+        "value",
+        "modified",
+        "is_dir"
+      ],
+      "rows": null
+    },
+    "_feature_flags": {
+      "columns": [
+        "id",
+        "key",
+        "description",
+        "enabled",
+        "default_value",
+        "gates",
+        "createdAt",
+        "updatedAt"
+      ],
+      "rows": [
+        [
+          "ff_beta_dash",
+          "beta_dashboard",
+          "Enable new unified analytics dashboard layout",
+          1,
+          "true",
+          "{\"groups\":{\"admin\":true,\"beta-testers\":true}}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z"
+        ],
+        [
+          "ff_dark_v2",
+          "dark_mode_v2",
+          "High contrast dark mode theme token set",
+          1,
+          "false",
+          "{\"percentage\":{\"percentage\":50,\"attribute\":\"user_id\"}}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z"
+        ],
+        [
+          "ff_ai_assist",
+          "ai_completions",
+          "AI-assisted schema migration suggestions",
+          1,
+          "true",
+          "{\"actors\":{\"usr_admin_001\":true}}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z"
+        ],
+        [
+          "ff_legacy_checkout",
+          "legacy_checkout",
+          "Legacy checkout fallback route",
+          0,
+          "false",
+          "{}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z"
+        ]
+      ]
+    },
+    "_file_refs": {
+      "columns": [
+        "fileId",
+        "moul",
+        "recordId",
+        "field"
+      ],
+      "rows": null
+    },
+    "_files": {
+      "columns": [
+        "id",
+        "ownerMoul",
+        "ownerId",
+        "createdAt"
+      ],
+      "rows": null
+    },
+    "_moul": {
+      "columns": [
+        "id",
+        "name",
+        "type",
+        "fields",
+        "rules",
+        "createdAt",
+        "updatedAt",
+        "email_templates",
+        "webhooks"
+      ],
+      "rows": [
+        [
+          "moul_users_auth",
+          "users",
+          "auth",
+          "[{\"name\":\"name\",\"type\":\"text\"},{\"name\":\"avatar\",\"type\":\"url\"},{\"name\":\"role\",\"type\":\"select\",\"options\":[\"admin\",\"editor\",\"member\"]},{\"name\":\"bio\",\"type\":\"text\"}]",
+          "{\"listRule\":\"\",\"viewRule\":\"\",\"createRule\":\"\",\"updateRule\":\"id = @request.auth.id\",\"deleteRule\":\"id = @request.auth.id\"}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "{\"verification\":{\"subject\":\"Confirm your email address\",\"body\":\"Hello,\\n\\nPlease verify your email by clicking on the link below:\\n\\n{{.Link}}\\n\\nRegards,\\nSupport Team\"},\"password_reset\":{\"subject\":\"Reset your password\",\"body\":\"Hello,\\n\\nYou requested a password reset. Please use the link below to set a new password:\\n\\n{{.Link}}\\n\\nIf you did not request this, you can ignore this email.\\n\\nRegards,\\nSupport Team\"},\"confirm_email_change\":{\"subject\":\"Confirm email change\",\"body\":\"Hello,\\n\\nPlease confirm your email address change by clicking on the link below:\\n\\n{{.Link}}\\n\\nRegards,\\nSupport Team\"},\"otp\":{\"subject\":\"Your OTP Code\",\"body\":\"Hello,\\n\\nYour one-time password (OTP) code is:\\n\\n{{.OTP}}\\n\\nThis code will expire in 10 minutes.\\n\\nRegards,\\nSupport Team\"},\"login_alert\":{\"subject\":\"New Login Alert\",\"body\":\"Hello,\\n\\nA new login was detected on your account.\\n\\nIf this was not you, please secure your account immediately.\\n\\nRegards,\\nSupport Team\"}}",
+          "[]"
+        ],
+        [
+          "moul_categories_base",
+          "categories",
+          "base",
+          "[{\"name\":\"name\",\"type\":\"text\",\"required\":true},{\"name\":\"slug\",\"type\":\"text\",\"required\":true},{\"name\":\"description\",\"type\":\"text\"},{\"name\":\"color\",\"type\":\"text\"}]",
+          "{\"listRule\":\"\",\"viewRule\":\"\",\"createRule\":\"@request.auth.id != ''\",\"updateRule\":\"@request.auth.id != ''\",\"deleteRule\":\"@request.auth.id != ''\"}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "{}",
+          "[]"
+        ],
+        [
+          "moul_posts_base",
+          "posts",
+          "base",
+          "[{\"name\":\"title\",\"type\":\"text\",\"required\":true},{\"name\":\"slug\",\"type\":\"text\",\"required\":true},{\"name\":\"content\",\"type\":\"text\"},{\"name\":\"authorId\",\"type\":\"relation\",\"relationConfig\":{\"targetMoul\":\"users\",\"cardinality\":\"1:N\",\"onDelete\":\"SET_NULL\"}},{\"name\":\"categoryId\",\"type\":\"relation\",\"relationConfig\":{\"targetMoul\":\"categories\",\"cardinality\":\"1:N\",\"onDelete\":\"SET_NULL\"}},{\"name\":\"status\",\"type\":\"select\",\"options\":[\"draft\",\"published\",\"archived\"]},{\"name\":\"viewsCount\",\"type\":\"number\"},{\"name\":\"isFeatured\",\"type\":\"bool\"},{\"name\":\"tags\",\"type\":\"json\"},{\"name\":\"publishedAt\",\"type\":\"datetime\"}]",
+          "{\"listRule\":\"\",\"viewRule\":\"\",\"createRule\":\"@request.auth.id != ''\",\"updateRule\":\"authorId = @request.auth.id\",\"deleteRule\":\"authorId = @request.auth.id\"}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "{}",
+          "[]"
+        ],
+        [
+          "moul_tasks_queue_worker",
+          "tasks_queue",
+          "worker",
+          "null",
+          "{\"listRule\":\"\",\"viewRule\":\"\",\"createRule\":\"\",\"updateRule\":\"\",\"deleteRule\":\"\"}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "{}",
+          "[]"
+        ],
+        [
+          "moul_events_analytic",
+          "events",
+          "analytic",
+          "null",
+          "{\"listRule\":\"\",\"viewRule\":\"\",\"createRule\":\"\",\"updateRule\":\"\",\"deleteRule\":\"\"}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "{}",
+          "[]"
+        ]
+      ]
+    },
+    "_moul_version": {
+      "columns": [
+        "id",
+        "version"
+      ],
+      "rows": [
+        [
+          1,
+          5
+        ]
+      ]
+    },
+    "_realtime_tickets": {
+      "columns": [
+        "id",
+        "authRecord",
+        "isAdmin",
+        "tokenHash",
+        "tokenExpiresAt",
+        "revealFields",
+        "expiresAt",
+        "createdAt"
+      ],
+      "rows": null
+    },
+    "_requests": {
+      "columns": [
+        "id",
+        "visit_id",
+        "method",
+        "path",
+        "status_code",
+        "response_time_ms",
+        "createdAt"
+      ],
+      "rows": null
+    },
+    "_revoked_tokens": {
+      "columns": [
+        "token_hash",
+        "expires_at"
+      ],
+      "rows": null
+    },
+    "_rootUsers": {
+      "columns": [
+        "id",
+        "username",
+        "email",
+        "name",
+        "passwordHash",
+        "createdAt",
+        "updatedAt"
+      ],
+      "rows": [
+        [
+          "root_admin_01",
+          "admin",
+          "admin@example.com",
+          "Super Administrator",
+          "$2a$10$KJqI3SZjMsPSOuDaT0wPoeNa5S9Ed1bcQ8aRG1XMGGKLsGWz3zkNa",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z"
+        ]
+      ]
+    },
+    "_settings": {
+      "columns": [
+        "key",
+        "value"
+      ],
+      "rows": [
+        [
+          "email_endpoint",
+          ""
+        ],
+        [
+          "oauth_apple_team_id",
+          ""
+        ],
+        [
+          "file_s3_force_path_style",
+          "false"
+        ],
+        [
+          "email_enabled",
+          "false"
+        ],
+        [
+          "email_provider",
+          "console"
+        ],
+        [
+          "email_from_address",
+          ""
+        ],
+        [
+          "email_from_name",
+          ""
+        ],
+        [
+          "tls_domains",
+          ""
+        ],
+        [
+          "tls_https_port",
+          "443"
+        ],
+        [
+          "oauth_github_client_secret",
+          ""
+        ],
+        [
+          "file_s3_region",
+          ""
+        ],
+        [
+          "rate_limiting_rules",
+          "[{\"label\":\"*:auth\",\"maxRequests\":10,\"interval\":3,\"targetedUsers\":\"all\"},{\"label\":\"/\",\"maxRequests\":300,\"interval\":5,\"targetedUsers\":\"all\"}]"
+        ],
+        [
+          "root_user_ip_enabled",
+          "false"
+        ],
+        [
+          "root_user_allowed_ips",
+          ""
+        ],
+        [
+          "oauth_github_enabled",
+          "false"
+        ],
+        [
+          "request_log_enabled",
+          "true"
+        ],
+        [
+          "request_log_exclude_paths",
+          ""
+        ],
+        [
+          "request_log_retention_days",
+          "30"
+        ],
+        [
+          "file_s3_enabled",
+          "false"
+        ],
+        [
+          "litestream_secret_access_key",
+          ""
+        ],
+        [
+          "email_api_key",
+          ""
+        ],
+        [
+          "email_region",
+          "us-east-1"
+        ],
+        [
+          "tls_enabled",
+          "false"
+        ],
+        [
+          "oauth_google_client_secret",
+          ""
+        ],
+        [
+          "oauth_apple_private_key",
+          ""
+        ],
+        [
+          "file_s3_bucket",
+          ""
+        ],
+        [
+          "litestream_s3_endpoint",
+          ""
+        ],
+        [
+          "litestream_s3_region",
+          ""
+        ],
+        [
+          "litestream_s3_force_path_style",
+          "false"
+        ],
+        [
+          "email_api_secret",
+          ""
+        ],
+        [
+          "email_domain",
+          ""
+        ],
+        [
+          "oauth_google_client_id",
+          ""
+        ],
+        [
+          "oauth_apple_enabled",
+          "false"
+        ],
+        [
+          "litestream_enabled",
+          "false"
+        ],
+        [
+          "tls_email",
+          ""
+        ],
+        [
+          "tls_http_port",
+          "80"
+        ],
+        [
+          "oauth_apple_client_id",
+          ""
+        ],
+        [
+          "oauth_apple_client_secret",
+          ""
+        ],
+        [
+          "oauth_apple_key_id",
+          ""
+        ],
+        [
+          "request_log_sample_rate",
+          "1"
+        ],
+        [
+          "file_s3_access_key",
+          ""
+        ],
+        [
+          "litestream_access_key_id",
+          ""
+        ],
+        [
+          "litestream_replica_path",
+          ""
+        ],
+        [
+          "oauth_github_client_id",
+          ""
+        ],
+        [
+          "oauth_redirect_url",
+          ""
+        ],
+        [
+          "app_name",
+          "moul-dev"
+        ],
+        [
+          "file_s3_secret_key",
+          ""
+        ],
+        [
+          "tls_use_staging",
+          "false"
+        ],
+        [
+          "oauth_google_enabled",
+          "false"
+        ],
+        [
+          "visit_retention_days",
+          "30"
+        ],
+        [
+          "file_s3_endpoint",
+          ""
+        ],
+        [
+          "file_thumbs_async",
+          "false"
+        ],
+        [
+          "litestream_s3_bucket",
+          ""
+        ],
+        [
+          "rate_limiting_enabled",
+          "true"
+        ]
+      ]
+    },
+    "_visits": {
+      "columns": [
+        "id",
+        "visitor_token",
+        "user_id",
+        "ip",
+        "user_agent",
+        "referrer",
+        "referring_domain",
+        "landing_page",
+        "browser",
+        "os",
+        "device_type",
+        "country",
+        "region",
+        "city",
+        "utm_source",
+        "utm_medium",
+        "utm_term",
+        "utm_content",
+        "utm_campaign",
+        "started_at"
+      ],
+      "rows": [
+        [
+          "vst_001",
+          "tok_visitor_alpha",
+          "usr_admin_001",
+          "127.0.0.1",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/128.0.0.0 Safari/537.36",
+          "https://github.com/moul-dev/moul-dev",
+          "github.com",
+          "http://localhost:8090/_moul_/",
+          "Chrome",
+          "Mac OS",
+          "Desktop",
+          "United States",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "2026-11-17T22:32:43Z"
+        ],
+        [
+          "vst_002",
+          "tok_visitor_beta",
+          "usr_jane_002",
+          "192.168.1.50",
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1",
+          "https://x.com/mouldev/status/123",
+          "x.com",
+          "http://localhost:8090/posts/announcing-moul-2026-08?utm_source=twitter\u0026utm_medium=social",
+          "Mobile Safari",
+          "iOS",
+          "Mobile",
+          "United Kingdom",
+          null,
+          null,
+          "twitter",
+          "social",
+          null,
+          null,
+          null,
+          "2026-11-17T23:32:43Z"
+        ]
+      ]
+    },
+    "_workers": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "state",
+        "queue",
+        "worker",
+        "args",
+        "meta",
+        "tags",
+        "errors",
+        "attempt",
+        "max_attempts",
+        "priority",
+        "inserted_at",
+        "scheduled_at",
+        "attempted_at",
+        "attempted_by",
+        "cancelled_at",
+        "completed_at",
+        "discarded_at"
+      ],
+      "rows": null
+    },
+    "categories": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "name",
+        "slug",
+        "description",
+        "color"
+      ],
+      "rows": [
+        [
+          "cat_eng_001",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Engineering",
+          "engineering",
+          "Architecture, performance, and distributed systems",
+          "#3B82F6"
+        ],
+        [
+          "cat_prod_002",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Product Updates",
+          "product",
+          "Latest feature releases and roadmap highlights",
+          "#10B981"
+        ],
+        [
+          "cat_des_003",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Design \u0026 UX",
+          "design",
+          "Design tokens, accessibility, and micro-interactions",
+          "#8B5CF6"
+        ],
+        [
+          "cat_tut_004",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Tutorials \u0026 Guides",
+          "tutorials",
+          "Step-by-step developer walkthroughs",
+          "#F59E0B"
+        ]
+      ]
+    },
+    "events": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "visit_token",
+        "visitor_token",
+        "user_id",
+        "name",
+        "properties",
+        "time"
+      ],
+      "rows": [
+        [
+          "evt_001",
+          "2026-11-17T22:32:43Z",
+          "2026-11-17T22:32:43Z",
+          "vst_001",
+          "tok_visitor_alpha",
+          "usr_admin_001",
+          "page_view",
+          "{\"path\": \"/_moul_/\", \"title\": \"Admin Console\"}",
+          "2026-11-17T22:32:43Z"
+        ],
+        [
+          "evt_002",
+          "2026-11-17T23:32:43Z",
+          "2026-11-17T23:32:43Z",
+          "vst_002",
+          "tok_visitor_beta",
+          "usr_jane_002",
+          "post_read",
+          "{\"slug\": \"announcing-moul-2026-08\", \"read_percentage\": 100}",
+          "2026-11-17T23:32:43Z"
+        ]
+      ]
+    },
+    "posts": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "title",
+        "slug",
+        "content",
+        "authorId",
+        "categoryId",
+        "status",
+        "viewsCount",
+        "isFeatured",
+        "tags",
+        "publishedAt"
+      ],
+      "rows": [
+        [
+          "pst_001",
+          "2026-11-06T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Building High-Performance SQLite Backends with Go",
+          "building-high-performance-sqlite-backends-with-go",
+          "Exploring WAL mode, busy timeouts, and in-memory caches to handle thousands of requests per second.",
+          "usr_admin_001",
+          "cat_eng_001",
+          "published",
+          1420,
+          1,
+          "[\"sqlite\", \"golang\", \"database\", \"performance\"]",
+          "2026-11-06T00:32:43Z"
+        ],
+        [
+          "pst_002",
+          "2026-11-12T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Zero-Runtime Styling with StyleX and React Aria",
+          "zero-runtime-styling-with-stylex-and-react-aria",
+          "How to achieve deterministic, accessible, and fast design systems in modern React applications.",
+          "usr_jane_002",
+          "cat_des_003",
+          "published",
+          985,
+          0,
+          "[\"react\", \"stylex\", \"a11y\", \"design-systems\"]",
+          "2026-11-12T00:32:43Z"
+        ],
+        [
+          "pst_003",
+          "2026-11-16T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "Announcing Moul 2026.08: Realtime Subscriptions \u0026 MCP Engine",
+          "announcing-moul-2026-08",
+          "Introducing native Server-Sent Events, Model Context Protocol integration, and multi-actor feature flags.",
+          "usr_admin_001",
+          "cat_prod_002",
+          "published",
+          2840,
+          1,
+          "[\"release\", \"mcp\", \"realtime\", \"openfeature\"]",
+          "2026-11-16T00:32:43Z"
+        ]
+      ]
+    },
+    "tasks_queue": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "state",
+        "queue",
+        "worker",
+        "args",
+        "meta",
+        "tags",
+        "errors",
+        "attempt",
+        "max_attempts",
+        "priority",
+        "inserted_at",
+        "scheduled_at",
+        "attempted_at",
+        "attempted_by",
+        "cancelled_at",
+        "completed_at",
+        "discarded_at"
+      ],
+      "rows": [
+        [
+          "job_email_001",
+          "2026-11-17T19:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "completed",
+          "default",
+          "SendEmail",
+          "{\"to\": \"jane.doe@example.com\", \"subject\": \"Welcome to Moul!\"}",
+          "{\"initiator\": \"signup_flow\"}",
+          "[\"email\", \"transactional\"]",
+          "[]",
+          1,
+          5,
+          1,
+          "2026-11-17T19:32:43Z",
+          "2026-11-17T19:32:43Z",
+          null,
+          null,
+          null,
+          "2026-11-17T19:32:43Z",
+          null
+        ],
+        [
+          "job_cleanup_002",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "available",
+          "maintenance",
+          "CleanupOldRequests",
+          "{\"retention_days\": 30}",
+          "{\"scheduled_by\": \"cron\"}",
+          "[\"maintenance\", \"db\"]",
+          "[]",
+          0,
+          3,
+          2,
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "job_webhook_003",
+          "2026-11-17T22:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "discarded",
+          "webhooks",
+          "DispatchWebhook",
+          "{\"target_url\": \"https://api.external.com/hook\", \"event\": \"record.created\"}",
+          "{\"retry_count\": 5}",
+          "[\"webhook\", \"external\"]",
+          "[\"[2026-08-28T09:00:00Z] HTTP 503 Service Unavailable\", \"[2026-08-28T09:05:00Z] Connection timeout (max attempts reached)\"]",
+          5,
+          5,
+          3,
+          "2026-11-17T22:32:43Z",
+          "2026-11-17T22:32:43Z",
+          null,
+          null,
+          null,
+          null,
+          "2026-11-17T23:32:43Z"
+        ]
+      ]
+    },
+    "users": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "username",
+        "email",
+        "passwordHash",
+        "otpCode",
+        "otpExpiresAt",
+        "passkeys",
+        "resetToken",
+        "resetTokenExpiresAt",
+        "oauthProviders",
+        "name",
+        "avatar",
+        "role",
+        "bio"
+      ],
+      "rows": [
+        [
+          "usr_admin_001",
+          "2026-10-19T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "admin",
+          "admin@example.com",
+          "$2a$10$YCcj828sVniFT.wzf9Qa4.KGF.P508dHrkQqxEP3yHMc2YAB.IcR6",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Alex Administrator",
+          null,
+          "admin",
+          "Platform administrator and lead engineer."
+        ],
+        [
+          "usr_jane_002",
+          "2026-10-29T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "janedoe",
+          "jane.doe@example.com",
+          "$2a$10$YCcj828sVniFT.wzf9Qa4.KGF.P508dHrkQqxEP3yHMc2YAB.IcR6",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "Jane Doe",
+          null,
+          "editor",
+          "Content strategist and technical writer."
+        ],
+        [
+          "usr_john_003",
+          "2026-11-08T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "johnsmith",
+          "john.smith@example.com",
+          "$2a$10$YCcj828sVniFT.wzf9Qa4.KGF.P508dHrkQqxEP3yHMc2YAB.IcR6",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          "John Smith",
+          null,
+          "member",
+          "Open source contributor and community builder."
+        ]
+      ]
+    }
+  }
+}

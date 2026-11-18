@@ -1,0 +1,524 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "a98091c8d868c895",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "vin": "X"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "vin": "X"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "DELETE",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "DELETE",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiODUyNWExMDU3YTBlNTBlM2RiNmM2YzJlOTI1YzkxY2QifQ.aJbKu1kRcL2GesrR_sAqyEu-R9kveQqii_Q32yWjcLw"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiODUyNWExMDU3YTBlNTBlM2RiNmM2YzJlOTI1YzkxY2QifQ.aJbKu1kRcL2GesrR_sAqyEu-R9kveQqii_Q32yWjcLw"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "vin": "X"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiODUyNWExMDU3YTBlNTBlM2RiNmM2YzJlOTI1YzkxY2QifQ.aJbKu1kRcL2GesrR_sAqyEu-R9kveQqii_Q32yWjcLw"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "vin": "X"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiODUyNWExMDU3YTBlNTBlM2RiNmM2YzJlOTI1YzkxY2QifQ.aJbKu1kRcL2GesrR_sAqyEu-R9kveQqii_Q32yWjcLw"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiODUyNWExMDU3YTBlNTBlM2RiNmM2YzJlOTI1YzkxY2QifQ.aJbKu1kRcL2GesrR_sAqyEu-R9kveQqii_Q32yWjcLw"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiODUyNWExMDU3YTBlNTBlM2RiNmM2YzJlOTI1YzkxY2QifQ.aJbKu1kRcL2GesrR_sAqyEu-R9kveQqii_Q32yWjcLw"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer not.a.valid-token"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records/g_alice",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to view this record"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer not.a.valid-token"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records/nope",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to view this record"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 58,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "garage": "g_alice",
+                "title": "x"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to perform this action"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 61,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "garage": "nope",
+                "title": "x"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to perform this action"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 61,
+            "status": 401
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRecords_HiddenAnswersLikeMissing"
+}

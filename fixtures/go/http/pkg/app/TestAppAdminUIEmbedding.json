@@ -1,0 +1,67 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "309763ba98400208",
+      "exchanges": [
+        {
+          "route": "/_moul_/",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/_moul_/",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n  \u003chead\u003e\n    \u003cmeta charset=\"UTF-8\" /\u003e\n    \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /\u003e\n    \u003ctitle\u003emoul — Web Admin Console\u003c/title\u003e\n    \u003clink rel=\"icon\" type=\"image/svg+xml\" href=\"/_moul_/favicon.svg\" /\u003e\n    \u003cscript type=\"module\" crossorigin src=\"/_moul_/assets/index-BTyfsV_n.js\"\u003e\u003c/script\u003e\n    \u003clink rel=\"modulepreload\" crossorigin href=\"/_moul_/assets/press-CVc8c9H4.js\"\u003e\n    \u003clink rel=\"modulepreload\" crossorigin href=\"/_moul_/assets/query-DdOx0cLf.js\"\u003e\n    \u003clink rel=\"modulepreload\" crossorigin href=\"/_moul_/assets/client-DaTS5Mxb.js\"\u003e\n    \u003clink rel=\"modulepreload\" crossorigin href=\"/_moul_/assets/router-B1wwybcr.js\"\u003e\n    \u003clink rel=\"stylesheet\" crossorigin href=\"/_moul_/assets/index-Cr1uRTsq.css\"\u003e\n  \u003cscript\u003ewindow.__MOUL_API_PREFIX__=\"/api\";\u003c/script\u003e\u003c/head\u003e\n  \u003cbody\u003e\n    \u003cadmin-app\u003e\u003c/admin-app\u003e\n  \u003c/body\u003e\n\u003c/html\u003e\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache, no-store, must-revalidate"
+              ],
+              "Content-Type": [
+                "text/html; charset=utf-8"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 884,
+            "status": 200
+          }
+        },
+        {
+          "route": "",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/admin",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not Found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAppAdminUIEmbedding"
+}

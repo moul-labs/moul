@@ -1,0 +1,21 @@
+{
+  "go_repo": "git@github.com:moul-dev/moul-dev.git",
+  "commit": "5849a03c95f39f129ae65d2563882699356ecbee",
+  "dirty": false,
+  "go_version": "go1.26.5",
+  "packages": [
+    "./..."
+  ],
+  "exported_at": "2026-11-18T00:32:47Z",
+  "counts": {
+    "db_states": 68,
+    "go_tests_run": 383,
+    "http_exchanges": 389,
+    "http_sessions": 70,
+    "http_tests": 64,
+    "rules_evaluate": 258,
+    "rules_filter_sql": 64,
+    "rules_sort_sql": 40
+  },
+  "failed_tests": null
+}

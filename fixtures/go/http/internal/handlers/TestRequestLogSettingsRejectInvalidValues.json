@@ -1,0 +1,200 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "66cd231bc4035e71",
+      "exchanges": [
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "request_log_enabled": "sometimes"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "35"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "request_log_enabled must be true or false"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 56,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "request_log_sample_rate": "2"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "31"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "request_log_sample_rate must be a number from 0 to 1"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "request_log_retention_days": "0"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "34"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "request_log_retention_days must be a whole number of days, at least 1"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 84,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": {
+              "json": {
+                "visit_retention_days": "a week"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "33"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "visit_retention_days must be a whole number of days, at least 1"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 78,
+            "status": 400
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRequestLogSettingsRejectInvalidValues"
+}

@@ -1,0 +1,234 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "91ec2e18e6e0fd65",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/export",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/items/export",
+            "query": "format=xml"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid export format (supported: 'csv', 'json')"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 63,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "2"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/nonexistent/import",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Collection \"nonexistent\" not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 51,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "2"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/items/import",
+            "query": "mode=invalid_mode"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Import error: invalid import mode \"invalid_mode\": must be 'upsert', 'insert', or 'replace'"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 107,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "2"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/items/import",
+            "query": "error_strategy=invalid_strat"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Import error: invalid on-error behavior \"invalid_strat\": must be 'atomic' or 'continue'"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 104,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/import",
+          "request": {
+            "body": {
+              "text": "id,title,score,active\nitem_1,\"Item One\",25.5,true\nitem_2,\"Item Two\",50.0,false\n"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "79"
+              ],
+              "Content-Type": [
+                "text/csv"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/items/import",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "inserted": 2,
+                "mode": "upsert",
+                "skipped": 0,
+                "success": true,
+                "total": 2,
+                "updated": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 80,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestExportImportErrorsAPI"
+}

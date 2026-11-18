@@ -1,0 +1,609 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "73da487ada966975",
+      "exchanges": [
+        {
+          "route": "/",
+          "request": {
+            "body": null,
+            "headers": {
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "HEAD",
+            "path": "/",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Location": [
+                "/_moul_/"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 307
+          }
+        },
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": null,
+            "headers": {
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "HEAD",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"127.0.0.1:49927\", error=\"unauthorized\", resource_metadata=\"http://127.0.0.1:49927/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 0,
+            "status": 401
+          }
+        },
+        {
+          "route": "/.well-known/oauth-protected-resource/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/.well-known/oauth-protected-resource/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorization_servers": [
+                  "http://127.0.0.1:49927"
+                ],
+                "bearer_methods_supported": [
+                  "header"
+                ],
+                "resource": "http://127.0.0.1:49927/api/mcp",
+                "resource_documentation": "http://127.0.0.1:49927/docs",
+                "resource_name": "moul-dev MCP Server",
+                "scopes_supported": [
+                  "mcp",
+                  "admin"
+                ]
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 263,
+            "status": 200
+          }
+        },
+        {
+          "route": "/.well-known/oauth-protected-resource",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/.well-known/oauth-protected-resource",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorization_servers": [
+                  "http://127.0.0.1:49927"
+                ],
+                "bearer_methods_supported": [
+                  "header"
+                ],
+                "resource": "http://127.0.0.1:49927/api/mcp",
+                "resource_documentation": "http://127.0.0.1:49927/docs",
+                "resource_name": "moul-dev MCP Server",
+                "scopes_supported": [
+                  "mcp",
+                  "admin"
+                ]
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 263,
+            "status": 200
+          }
+        },
+        {
+          "route": "/.well-known/oauth-authorization-server",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/.well-known/oauth-authorization-server",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorization_endpoint": "http://127.0.0.1:49927/api/oauth2/authorize",
+                "code_challenge_methods_supported": [
+                  "S256",
+                  "plain"
+                ],
+                "grant_types_supported": [
+                  "authorization_code",
+                  "refresh_token"
+                ],
+                "issuer": "http://127.0.0.1:49927",
+                "registration_endpoint": "http://127.0.0.1:49927/api/oauth2/register",
+                "response_modes_supported": [
+                  "query"
+                ],
+                "response_types_supported": [
+                  "code"
+                ],
+                "scopes_supported": [
+                  "mcp",
+                  "admin"
+                ],
+                "token_endpoint": "http://127.0.0.1:49927/api/oauth2/token",
+                "token_endpoint_auth_methods_supported": [
+                  "client_secret_post",
+                  "client_secret_basic",
+                  "none"
+                ]
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 550,
+            "status": 200
+          }
+        },
+        {
+          "route": "/.well-known/openid-configuration",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/.well-known/openid-configuration",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "authorization_endpoint": "http://127.0.0.1:49927/api/oauth2/authorize",
+                "code_challenge_methods_supported": [
+                  "S256",
+                  "plain"
+                ],
+                "grant_types_supported": [
+                  "authorization_code",
+                  "refresh_token"
+                ],
+                "issuer": "http://127.0.0.1:49927",
+                "registration_endpoint": "http://127.0.0.1:49927/api/oauth2/register",
+                "response_modes_supported": [
+                  "query"
+                ],
+                "response_types_supported": [
+                  "code"
+                ],
+                "scopes_supported": [
+                  "mcp",
+                  "admin"
+                ],
+                "token_endpoint": "http://127.0.0.1:49927/api/oauth2/token",
+                "token_endpoint_auth_methods_supported": [
+                  "client_secret_post",
+                  "client_secret_basic",
+                  "none"
+                ]
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 550,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/oauth2/register",
+          "request": {
+            "body": {
+              "json": {
+                "client_name": "Google Gemini",
+                "redirect_uris": [
+                  "https://vertexaisearch.cloud.google.com/oauth-redirect"
+                ]
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "106"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/register",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "client_id": "moul_client_S2gpZW2agZ2luPJe",
+                "client_id_issued_at": 1794961965,
+                "client_name": "Google Gemini",
+                "client_secret": "moul_sec_xFakBZWVvf8t59yjrtmVDhdyoa0baxf2",
+                "grant_types": [
+                  "authorization_code",
+                  "refresh_token"
+                ],
+                "redirect_uris": [
+                  "https://vertexaisearch.cloud.google.com/oauth-redirect"
+                ],
+                "response_types": [
+                  "code"
+                ],
+                "token_endpoint_auth_method": "client_secret_post"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 372,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/oauth2/authorize",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/oauth2/authorize",
+            "query": "client_id=moul_client_S2gpZW2agZ2luPJe\u0026code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\u0026code_challenge_method=S256\u0026redirect_uri=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Foauth-redirect\u0026response_type=code\u0026scope=mcp\u0026state=xyz123"
+          },
+          "response": {
+            "body": {
+              "text": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n    \u003cmeta charset=\"UTF-8\"\u003e\n    \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\u003e\n    \u003ctitle\u003eAuthorize Google Gemini - moul-dev MCP\u003c/title\u003e\n    \u003clink rel=\"icon\" type=\"image/svg+xml\" href=\"/favicon.svg\"\u003e\n    \u003clink href=\"https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800\u0026display=swap\" rel=\"stylesheet\"\u003e\n    \u003cstyle\u003e\n        :root {\n            --bg-color: #09090b;\n            --card-bg: rgba(18, 18, 22, 0.75);\n            --card-border: rgba(255, 255, 255, 0.08);\n            --primary: #ffffff;\n            --primary-glow: rgba(255, 255, 255, 0.15);\n            --text-color: #f4f4f5;\n            --text-muted: #a1a1aa;\n            --badge-bg: rgba(255, 255, 255, 0.08);\n            --badge-border: rgba(255, 255, 255, 0.15);\n            --input-bg: rgba(9, 9, 11, 0.85);\n            --input-border: rgba(255, 255, 255, 0.12);\n            --btn-bg: #ffffff;\n            --btn-text: #09090b;\n            --btn-hover: #e4e4e7;\n            --danger-bg: rgba(239, 68, 68, 0.12);\n            --danger-border: rgba(239, 68, 68, 0.3);\n            --danger-text: #fca5a5;\n        }\n        @media (prefers-color-scheme: light) {\n            :root {\n                --bg-color: #fafafa;\n                --card-bg: rgba(255, 255, 255, 0.9);\n                --card-border: rgba(0, 0, 0, 0.08);\n                --primary: #09090b;\n                --primary-glow: rgba(0, 0, 0, 0.08);\n                --text-color: #09090b;\n                --text-muted: #71717a;\n                --badge-bg: rgba(0, 0, 0, 0.04);\n                --badge-border: rgba(0, 0, 0, 0.1);\n                --input-bg: #ffffff;\n                --input-border: rgba(0, 0, 0, 0.14);\n                --btn-bg: #09090b;\n                --btn-text: #ffffff;\n                --btn-hover: #27272a;\n                --danger-bg: rgba(239, 68, 68, 0.08);\n                --danger-border: rgba(239, 68, 68, 0.2);\n                --danger-text: #b91c1c;\n            }\n        }\n        * {\n            box-sizing: border-box;\n            margin: 0;\n            padding: 0;\n            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;\n        }\n        body {\n            background-color: var(--bg-color);\n            color: var(--text-color);\n            min-height: 100vh;\n            display: flex;\n            align-items: center;\n            justify-content: center;\n            padding: 24px;\n        }\n        .container {\n            width: 100%;\n            max-width: 460px;\n            background: var(--card-bg);\n            backdrop-filter: blur(16px);\n            -webkit-backdrop-filter: blur(16px);\n            border: 1px solid var(--card-border);\n            border-radius: 18px;\n            padding: 36px;\n            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);\n            text-align: center;\n        }\n        .logo-wrap {\n            margin-bottom: 20px;\n            display: inline-flex;\n            align-items: center;\n            justify-content: center;\n        }\n        .logo-icon {\n            width: 48px;\n            height: 48px;\n        }\n        h1 {\n            font-size: 1.5rem;\n            font-weight: 700;\n            margin-bottom: 8px;\n            letter-spacing: -0.5px;\n        }\n        .subtitle {\n            color: var(--text-muted);\n            font-size: 0.95rem;\n            margin-bottom: 20px;\n            line-height: 1.45;\n        }\n        .scope-badge {\n            display: inline-block;\n            background: var(--badge-bg);\n            border: 1px solid var(--badge-border);\n            border-radius: 999px;\n            padding: 6px 14px;\n            font-size: 0.8rem;\n            font-weight: 600;\n            margin-bottom: 24px;\n            letter-spacing: 0.5px;\n        }\n        .error-box {\n            background: var(--danger-bg);\n            border: 1px solid var(--danger-border);\n            color: var(--danger-text);\n            padding: 10px 14px;\n            border-radius: 10px;\n            font-size: 0.88rem;\n            margin-bottom: 18px;\n            text-align: left;\n        }\n        .form-group {\n            text-align: left;\n            margin-bottom: 16px;\n        }\n        label {\n            display: block;\n            font-size: 0.82rem;\n            font-weight: 600;\n            text-transform: uppercase;\n            letter-spacing: 0.8px;\n            margin-bottom: 6px;\n            color: var(--text-muted);\n        }\n        input {\n            width: 100%;\n            padding: 10px 14px;\n            background: var(--input-bg);\n            border: 1px solid var(--input-border);\n            border-radius: 10px;\n            color: var(--text-color);\n            font-size: 0.95rem;\n            outline: none;\n            transition: border-color 0.2s;\n        }\n        input:focus {\n            border-color: var(--primary);\n        }\n        .btn-submit {\n            width: 100%;\n            padding: 12px 18px;\n            background: var(--btn-bg);\n            color: var(--btn-text);\n            border: none;\n            border-radius: 10px;\n            font-size: 0.98rem;\n            font-weight: 700;\n            cursor: pointer;\n            transition: background-color 0.2s, transform 0.1s;\n            margin-top: 10px;\n        }\n        .btn-submit:hover {\n            background: var(--btn-hover);\n        }\n        .btn-submit:active {\n            transform: scale(0.99);\n        }\n        .cancel-link {\n            display: block;\n            margin-top: 16px;\n            font-size: 0.85rem;\n            color: var(--text-muted);\n            text-decoration: none;\n        }\n        .cancel-link:hover {\n            text-decoration: underline;\n        }\n    \u003c/style\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n    \u003cdiv class=\"container\"\u003e\n        \u003cdiv class=\"logo-wrap\"\u003e\n            \u003csvg class=\"logo-icon\" viewBox=\"0 0 100 100\"\u003e\n                \u003cstyle\u003e\n                    polygon { fill: #000000; }\n                    @media (prefers-color-scheme: dark) { polygon { fill: #ffffff; } }\n                \u003c/style\u003e\n                \u003cpolygon points=\"80.29,50.00 65.06,73.08 35.53,66.00 35.53,34.00 65.06,26.92\" /\u003e\n                \u003cpolygon points=\"82.01,51.24 95.00,51.24 88.99,72.83 71.53,88.94 66.78,74.32\" /\u003e\n                \u003cpolygon points=\"64.33,75.29 69.08,89.92 43.24,94.02 17.82,80.55 34.80,68.21\" /\u003e\n                \u003cpolygon points=\"33.04,66.00 16.06,78.34 5.00,50.00 16.06,21.66 33.04,34.00\" /\u003e\n                \u003cpolygon points=\"34.80,31.79 17.82,19.45 43.24,5.98 69.08,10.08 64.33,24.71\" /\u003e\n                \u003cpolygon points=\"66.78,25.68 71.53,11.06 88.99,27.17 95.00,48.76 82.01,48.76\" /\u003e\n            \u003c/svg\u003e\n        \u003c/div\u003e\n\n        \u003ch1\u003eAuthorize Access\u003c/h1\u003e\n        \u003cp class=\"subtitle\"\u003e\u003cstrong\u003eGoogle Gemini\u003c/strong\u003e is requesting authorization to connect to your moul-dev MCP Server.\u003c/p\u003e\n\n        \u003cdiv class=\"scope-badge\"\u003eScope: mcp\u003c/div\u003e\n\n        \n\n        \u003cform method=\"POST\" action=\"\"\u003e\n            \u003cinput type=\"hidden\" name=\"client_id\" value=\"moul_client_S2gpZW2agZ2luPJe\"\u003e\n            \u003cinput type=\"hidden\" name=\"redirect_uri\" value=\"https://vertexaisearch.cloud.google.com/oauth-redirect\"\u003e\n            \u003cinput type=\"hidden\" name=\"response_type\" value=\"code\"\u003e\n            \u003cinput type=\"hidden\" name=\"scope\" value=\"mcp\"\u003e\n            \u003cinput type=\"hidden\" name=\"state\" value=\"xyz123\"\u003e\n            \u003cinput type=\"hidden\" name=\"code_challenge\" value=\"E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\"\u003e\n            \u003cinput type=\"hidden\" name=\"code_challenge_method\" value=\"S256\"\u003e\n\n            \u003cdiv class=\"form-group\"\u003e\n                \u003clabel for=\"identity\"\u003eRoot Administrator Email or Username\u003c/label\u003e\n                \u003cinput type=\"text\" id=\"identity\" name=\"identity\" value=\"\" placeholder=\"e.g. admin@moul.dev\" required autofocus\u003e\n            \u003c/div\u003e\n\n            \u003cdiv class=\"form-group\"\u003e\n                \u003clabel for=\"password\"\u003ePassword\u003c/label\u003e\n                \u003cinput type=\"password\" id=\"password\" name=\"password\" placeholder=\"••••••••\" required\u003e\n            \u003c/div\u003e\n\n            \u003cbutton type=\"submit\" class=\"btn-submit\"\u003eAuthorize Google Gemini\u003c/button\u003e\n        \u003c/form\u003e\n\n        \u003ca class=\"cancel-link\" href=\"https://vertexaisearch.cloud.google.com/oauth-redirect?error=access_denied\u0026amp;state=xyz123\"\u003eCancel\u003c/a\u003e\n    \u003c/div\u003e\n\u003c/body\u003e\n\u003c/html\u003e"
+            },
+            "headers": {
+              "Content-Type": [
+                "text/html; charset=UTF-8"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 8286,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/oauth2/authorize",
+          "request": {
+            "body": {
+              "text": "client_id=moul_client_S2gpZW2agZ2luPJe\u0026code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\u0026code_challenge_method=S256\u0026identity=gemini%40moul.dev\u0026password=GeminiRootPassword123%21\u0026redirect_uri=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Foauth-redirect\u0026response_type=code\u0026scope=mcp\u0026state=xyz123"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "303"
+              ],
+              "Content-Type": [
+                "application/x-www-form-urlencoded"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/authorize",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Location": [
+                "https://vertexaisearch.cloud.google.com/oauth-redirect?code=4iB54H08Gvpu6zCUTTNA3jsPdFG7pkuB\u0026state=xyz123"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 302
+          }
+        },
+        {
+          "route": "/api/oauth2/token",
+          "request": {
+            "body": {
+              "text": "client_id=moul_client_S2gpZW2agZ2luPJe\u0026client_secret=moul_sec_xFakBZWVvf8t59yjrtmVDhdyoa0baxf2\u0026code=4iB54H08Gvpu6zCUTTNA3jsPdFG7pkuB\u0026code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\u0026grant_type=authorization_code\u0026redirect_uri=https%3A%2F%2Fvertexaisearch.cloud.google.com%2Foauth-redirect"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "296"
+              ],
+              "Content-Type": [
+                "application/x-www-form-urlencoded"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/token",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QtdXNlci1nZW1pbmkiLCJlbWFpbCI6ImdlbWluaUBtb3VsLmRldiIsInVzZXJuYW1lIjoiZ2VtaW5pYWRtaW4iLCJtb3VsIjoiX3Jvb3RVc2VycyIsImV4cCI6MTc5NTA0ODM2NSwiaWF0IjoxNzk0OTYxOTY1LCJqdGkiOiJiZDM0NTBmYTQ1YTY2ZDM4NzM5YzM2ZTc4MzBhNTFjMCJ9.2Ll3SYS1I_anJ8CaxRfw46wApUuVCWsM4J4fUUkNJJE",
+                "expires_in": 86400,
+                "refresh_token": "JrXMJtqwUzxvDjiy0HP2DM91bZamRYP1S00G2X83",
+                "scope": "mcp",
+                "token_type": "Bearer"
+              }
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-store"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Pragma": [
+                "no-cache"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 443,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "gemini-test",
+                    "version": "1.0"
+                  },
+                  "protocolVersion": "2024-11-05"
+                }
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QtdXNlci1nZW1pbmkiLCJlbWFpbCI6ImdlbWluaUBtb3VsLmRldiIsInVzZXJuYW1lIjoiZ2VtaW5pYWRtaW4iLCJtb3VsIjoiX3Jvb3RVc2VycyIsImV4cCI6MTc5NTA0ODM2NSwiaWF0IjoxNzk0OTYxOTY1LCJqdGkiOiJiZDM0NTBmYTQ1YTY2ZDM4NzM5YzM2ZTc4MzBhNTFjMCJ9.2Ll3SYS1I_anJ8CaxRfw46wApUuVCWsM4J4fUUkNJJE"
+              ],
+              "Content-Length": [
+                "158"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "result": {
+                  "capabilities": {
+                    "logging": {},
+                    "tools": {
+                      "listChanged": true
+                    }
+                  },
+                  "protocolVersion": "2024-11-05",
+                  "serverInfo": {
+                    "name": "moul-dev",
+                    "version": "dev"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Mcp-Session-Id": [
+                "mcp-session-100086c2-c061-4c4f-a861-23e53f8914a4"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 175,
+            "status": 200
+          }
+        },
+        {
+          "route": "/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "gemini-test",
+                    "version": "1.0"
+                  },
+                  "protocolVersion": "2024-11-05"
+                }
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QtdXNlci1nZW1pbmkiLCJlbWFpbCI6ImdlbWluaUBtb3VsLmRldiIsInVzZXJuYW1lIjoiZ2VtaW5pYWRtaW4iLCJtb3VsIjoiX3Jvb3RVc2VycyIsImV4cCI6MTc5NTA0ODM2NSwiaWF0IjoxNzk0OTYxOTY1LCJqdGkiOiJiZDM0NTBmYTQ1YTY2ZDM4NzM5YzM2ZTc4MzBhNTFjMCJ9.2Ll3SYS1I_anJ8CaxRfw46wApUuVCWsM4J4fUUkNJJE"
+              ],
+              "Content-Length": [
+                "158"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "result": {
+                  "capabilities": {
+                    "logging": {},
+                    "tools": {
+                      "listChanged": true
+                    }
+                  },
+                  "protocolVersion": "2024-11-05",
+                  "serverInfo": {
+                    "name": "moul-dev",
+                    "version": "dev"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Mcp-Session-Id": [
+                "mcp-session-ae81ad2f-018a-43de-97f5-fc4efed17426"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 175,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestGeminiMCPOAuthFlow"
+}

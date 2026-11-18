@@ -1,0 +1,191 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "940a68e3c9c74954",
+      "exchanges": [
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": {
+              "json": {
+                "default_value": "false",
+                "enabled": true,
+                "gates": {
+                  "actors": {
+                    "vip": true
+                  }
+                },
+                "key": "beta"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "default_value": "false",
+                "description": "",
+                "enabled": true,
+                "gates": {
+                  "actors": {
+                    "vip": true
+                  }
+                },
+                "id": "ff_1794961963028294000",
+                "key": "beta",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 203,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key/eval",
+          "request": {
+            "body": {
+              "json": {
+                "context": {
+                  "user_id": "vip"
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags/beta/eval",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "reason": "TARGETING_MATCH (Actor)",
+                "value": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 50,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key/eval",
+          "request": {
+            "body": {
+              "json": {
+                "context": {
+                  "user_id": "vip"
+                }
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiN2IwODI2M2IzMjg3NjhjZjVlZWJhOGFlNTk1MDcyODkifQ.fDeHWgH8hwON9Tacr8VUTqNZynQSgqn-SYzZaG3dsVg"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags/beta/eval",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "reason": "DEFAULT",
+                "value": false
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 35,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key/eval",
+          "request": {
+            "body": {
+              "json": {
+                "context": {
+                  "org_id": "vip"
+                }
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im1lbWJlcjEiLCJlbWFpbCI6Im1lbWJlcjFAZXhhbXBsZS5jb20iLCJ1c2VybmFtZSI6Im1lbWJlcjEiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNmViNDRlZjgzOGJmODJmMDQ1ZjYwOTkwODcwNDU2ODUifQ.3XQ5Moff6CTNervCJeqcuzCaLc8D_DGSCzjehfV9Oh4"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags/beta/eval",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "reason": "DEFAULT",
+                "value": false
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 35,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestFeatureFlagEval_MemberIdentityIsPinned"
+}

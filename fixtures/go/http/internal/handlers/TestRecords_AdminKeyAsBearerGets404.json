@@ -1,0 +1,43 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "7be5da2e73182703",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records/missing",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Record not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 31,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRecords_AdminKeyAsBearerGets404"
+}

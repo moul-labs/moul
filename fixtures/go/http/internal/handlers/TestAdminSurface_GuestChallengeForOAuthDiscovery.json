@@ -1,0 +1,48 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "fa24e213afe91f78",
+      "exchanges": [
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {}
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAdminSurface_GuestChallengeForOAuthDiscovery"
+}

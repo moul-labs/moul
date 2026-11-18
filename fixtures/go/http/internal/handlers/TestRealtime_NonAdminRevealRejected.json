@@ -1,0 +1,120 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "88fa4de08d406579",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": "reveal=all"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "The reveal parameter is not permitted on realtime broadcast streams"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 82,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/subscribe",
+            "query": "reveal=all"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "The reveal parameter is not permitted on realtime broadcast streams"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 82,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl9yZWd1bGFyIiwiZW1haWwiOiJyZWd1bGFyQG1vdWwuZGV2IiwidXNlcm5hbWUiOiJyZWd1bGFydXNlciIsIm1vdWwiOiJ1c2VycyIsImV4cCI6MTc5NTA0ODM2MywiaWF0IjoxNzk0OTYxOTYzLCJqdGkiOiIyNmNlNThjYzYxNTFkMDk5OTVmM2I4YmFjOWQxNGQ0OCJ9.hr7OdTGg2FNDc3M4Y0ru-tEFBs7yolOqtt0xzi2FNUs"
+              ],
+              "Content-Length": [
+                "0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": "reveal=all"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "The reveal parameter is not permitted on realtime broadcast streams"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 82,
+            "status": 400
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtime_NonAdminRevealRejected"
+}

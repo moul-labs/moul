@@ -1,0 +1,364 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "882e5f4ba1a661fe",
+      "exchanges": [
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS03YWIwMzk4NzQxN2E0NzRkYzFkMThlMmJkZGZjYzYzNjBhYjc4ZDEyMTliYTJjZTIyMGZkNmRkZGQ0ZGENCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJidWlsZC5wbmciDQpDb250ZW50LVR5cGU6IGltYWdlL3BuZw0KDQqJUE5HDQoaCgAAAA1JSERSAAAABAAAAAQIBgAAAKnxnn4AAAAYSURBVHicYmJAA2CB/2CEA2BoAQQAAP//WfsCBbqiS4UAAAAASUVORK5CYIINCi0tN2FiMDM5ODc0MTdhNDc0ZGMxZDE4ZTJiZGRmY2M2MzYwYWI3OGQxMjE5YmEyY2UyMjBmZDZkZGRkNGRhLS0NCg=="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=7ab03987417a474dc1d18e2bddfcc6360ab78d1219ba2ce220fd6dddd4da"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "build.png",
+                  "height": 4,
+                  "id": "qVU9VhLQorNZc7C",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/qVU9VhLQorNZc7C/original.png?sig=1794967200.JXpSn8Tema-P_esNXis34z6-IpYPRDFB2rB-Grtld7E",
+                    "md": "/storage/qVU9VhLQorNZc7C/original.png?sig=1794967200.JXpSn8Tema-P_esNXis34z6-IpYPRDFB2rB-Grtld7E",
+                    "sm": "/storage/qVU9VhLQorNZc7C/original.png?sig=1794967200.JXpSn8Tema-P_esNXis34z6-IpYPRDFB2rB-Grtld7E"
+                  },
+                  "url": "/storage/qVU9VhLQorNZc7C/original.png?sig=1794967200.JXpSn8Tema-P_esNXis34z6-IpYPRDFB2rB-Grtld7E",
+                  "width": 4
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 595,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  "https://evil.example.com/x.png"
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" must contain file objects"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 57,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "url": "https://evil.example.com/x.png"
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" file url must point to uploaded storage"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 71,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "url": "/storage/qVU9VhLQorNZc7C/../../moul-local.db"
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" file url must point to uploaded storage"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 71,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "onload": "alert(1)",
+                    "url": "/storage/qVU9VhLQorNZc7C/original.png"
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" unknown file attribute \"onload\""
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "filename": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "url": "/storage/qVU9VhLQorNZc7C/original.png"
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" filename must be a string of at most 512 bytes"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 78,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "id": "ZZZZZZZZZZZZZZZ",
+                    "url": "/storage/qVU9VhLQorNZc7C/original.png"
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" file url does not belong to file \"ZZZZZZZZZZZZZZZ\""
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 84,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "url": "/storage/ZZZZZZZZZZZZZZZ/original.png"
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYTVkODNmMDVmZWM5YzdkMjAwZDYxZWMzODgzODJhNWQifQ.Nm31ZnVSlsYe0FVdi1CDsnAXJPDeTlZOCnd9TxUx-eE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"images\" references a file you did not upload"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 68,
+            "status": 400
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestFiles_FieldValuesMustBeOwnUploads"
+}

@@ -31,6 +31,36 @@ cargo build --workspace
 cargo build --workspace --target wasm32-unknown-unknown
 ```
 
+## Testing
+
+```sh
+cargo test --workspace
+```
+
+Browser tests run the workspace's `wasm-bindgen-test` targets in Chromium,
+Firefox and WebKit through Playwright. They need `wasm-bindgen-test-runner` at
+the `wasm-bindgen` version in `Cargo.lock`:
+
+```sh
+cargo install wasm-bindgen-cli --version 0.2.130 --locked
+cd browser-tests && npm ci && npx playwright install chromium firefox webkit
+node run.mjs                       # all three engines
+node run.mjs --browsers webkit     # one engine
+```
+
+## Fixtures from the Go engine
+
+The Go engine ([moul-dev/moul-dev](https://github.com/moul-dev/moul-dev)) is the
+reference for the port. `fixtures/go` holds HTTP exchanges, rule evaluations and
+the database states they ran against, recorded from its test suite. To refresh
+them from a clean checkout:
+
+```sh
+scripts/export-go-fixtures.sh ../../moul-dev/moul-dev
+```
+
+See [`fixtures/go/README.md`](fixtures/go/README.md) for the format.
+
 ## Publishing the placeholders
 
 `scripts/reserve-names.sh` publishes every crate at the workspace version and

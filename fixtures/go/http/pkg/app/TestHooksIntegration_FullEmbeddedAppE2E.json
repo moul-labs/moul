@@ -1,0 +1,58 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "11f9eda8867eaf8c",
+      "exchanges": [
+        {
+          "route": "/api/orders",
+          "request": {
+            "body": {
+              "json": {
+                "id": "ord-999",
+                "item": "Embedded Framework License"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "52"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/orders",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "id": "ord-999",
+                "status": "PENDING"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 36,
+            "status": 201
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestHooksIntegration_FullEmbeddedAppE2E"
+}

@@ -1,0 +1,247 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "b04509495570ea31",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/auth-with-otp",
+          "request": {
+            "body": {
+              "json": {
+                "code": "000000",
+                "email": "alice@example.com"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Forwarded-For": [
+                "198.51.100.0"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-otp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid email or OTP code"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 40,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/auth-with-otp",
+          "request": {
+            "body": {
+              "json": {
+                "code": "000001",
+                "email": "alice@example.com"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Forwarded-For": [
+                "198.51.100.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-otp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid email or OTP code"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 40,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/auth-with-otp",
+          "request": {
+            "body": {
+              "json": {
+                "code": "000002",
+                "email": "alice@example.com"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Forwarded-For": [
+                "198.51.100.2"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-otp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid email or OTP code"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 40,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/auth-with-otp",
+          "request": {
+            "body": {
+              "json": {
+                "code": "000003",
+                "email": "alice@example.com"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Forwarded-For": [
+                "198.51.100.3"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-otp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid email or OTP code"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 40,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/auth-with-otp",
+          "request": {
+            "body": {
+              "json": {
+                "code": "000004",
+                "email": "alice@example.com"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Forwarded-For": [
+                "198.51.100.4"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-otp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid email or OTP code"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 40,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/auth-with-otp",
+          "request": {
+            "body": {
+              "json": {
+                "code": "123456",
+                "email": "alice@example.com"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/auth-with-otp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Too many sign-in attempts. Request a new code or try again later.",
+                "reason": "code"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Retry-After": [
+                "61"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 96,
+            "status": 429
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAuthWithOTP_GuessesAreBounded"
+}

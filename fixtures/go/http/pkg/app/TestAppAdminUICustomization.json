@@ -1,0 +1,99 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "e7e86e6f9623660e",
+      "exchanges": [
+        {
+          "route": "/custom-console/",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/custom-console/",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "\u003c!DOCTYPE html\u003e\u003chtml\u003e\u003cbody\u003eMy Custom Embedded App Console\u003c/body\u003e\u003c/html\u003e"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache, no-store, must-revalidate"
+              ],
+              "Content-Type": [
+                "text/html; charset=utf-8"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 71,
+            "status": 200
+          }
+        },
+        {
+          "route": "",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/admin",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not Found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        }
+      ]
+    },
+    {
+      "db_before": "1c152a24a22c1f23",
+      "exchanges": [
+        {
+          "route": "",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/_moul_/",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not Found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAppAdminUICustomization"
+}

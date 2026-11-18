@@ -1,0 +1,622 @@
+{
+  "schema": [
+    {
+      "type": "trigger",
+      "name": "_moul_version_after_delete",
+      "table": "_moul",
+      "sql": "CREATE TRIGGER _moul_version_after_delete AFTER DELETE ON _moul\n\t\tBEGIN UPDATE _moul_version SET version = version + 1 WHERE id = 1; END"
+    },
+    {
+      "type": "trigger",
+      "name": "_moul_version_after_insert",
+      "table": "_moul",
+      "sql": "CREATE TRIGGER _moul_version_after_insert AFTER INSERT ON _moul\n\t\tBEGIN UPDATE _moul_version SET version = version + 1 WHERE id = 1; END"
+    },
+    {
+      "type": "trigger",
+      "name": "_moul_version_after_update",
+      "table": "_moul",
+      "sql": "CREATE TRIGGER _moul_version_after_update AFTER UPDATE ON _moul\n\t\tBEGIN UPDATE _moul_version SET version = version + 1 WHERE id = 1; END"
+    },
+    {
+      "type": "table",
+      "name": "_certmagic",
+      "table": "_certmagic",
+      "sql": "CREATE TABLE _certmagic (\n\t\t\tkey TEXT PRIMARY KEY,\n\t\t\tvalue BLOB,\n\t\t\tmodified TEXT NOT NULL,\n\t\t\tis_dir INTEGER NOT NULL DEFAULT 0\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_feature_flags",
+      "table": "_feature_flags",
+      "sql": "CREATE TABLE _feature_flags (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tkey TEXT UNIQUE NOT NULL,\n\t\t\tdescription TEXT NOT NULL DEFAULT '',\n\t\t\tenabled INTEGER NOT NULL DEFAULT 1,\n\t\t\tdefault_value TEXT NOT NULL DEFAULT 'false',\n\t\t\tgates TEXT NOT NULL DEFAULT '{}',\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_file_refs",
+      "table": "_file_refs",
+      "sql": "CREATE TABLE _file_refs (\n\t\t\tfileId TEXT NOT NULL,\n\t\t\tmoul TEXT NOT NULL,\n\t\t\trecordId TEXT NOT NULL,\n\t\t\tfield TEXT NOT NULL,\n\t\t\tPRIMARY KEY (fileId, moul, recordId, field)\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_files",
+      "table": "_files",
+      "sql": "CREATE TABLE _files (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\townerMoul TEXT NOT NULL DEFAULT '',\n\t\t\townerId TEXT NOT NULL DEFAULT '',\n\t\t\tcreatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_moul",
+      "table": "_moul",
+      "sql": "CREATE TABLE _moul (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tname TEXT UNIQUE NOT NULL,\n\t\t\ttype TEXT NOT NULL,\n\t\t\tfields TEXT NOT NULL,\n\t\t\trules TEXT NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL\n\t\t, `email_templates` TEXT, `webhooks` TEXT)"
+    },
+    {
+      "type": "table",
+      "name": "_moul_version",
+      "table": "_moul_version",
+      "sql": "CREATE TABLE _moul_version (\n\t\t\tid INTEGER PRIMARY KEY CHECK (id = 1),\n\t\t\tversion INTEGER NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_realtime_tickets",
+      "table": "_realtime_tickets",
+      "sql": "CREATE TABLE _realtime_tickets (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tauthRecord TEXT,\n\t\t\tisAdmin INTEGER NOT NULL DEFAULT 0,\n\t\t\ttokenHash TEXT,\n\t\t\ttokenExpiresAt TEXT,\n\t\t\trevealFields TEXT,\n\t\t\texpiresAt TEXT NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_requests",
+      "table": "_requests",
+      "sql": "CREATE TABLE _requests (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tvisit_id TEXT,\n\t\t\tmethod TEXT NOT NULL,\n\t\t\tpath TEXT NOT NULL,\n\t\t\tstatus_code INTEGER NOT NULL,\n\t\t\tresponse_time_ms INTEGER NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_revoked_tokens",
+      "table": "_revoked_tokens",
+      "sql": "CREATE TABLE _revoked_tokens (\n\t\t\ttoken_hash TEXT PRIMARY KEY,\n\t\t\texpires_at TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_rootUsers",
+      "table": "_rootUsers",
+      "sql": "CREATE TABLE _rootUsers (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tusername TEXT UNIQUE NOT NULL,\n\t\t\temail TEXT UNIQUE NOT NULL,\n\t\t\tname TEXT NOT NULL DEFAULT '',\n\t\t\tpasswordHash TEXT NOT NULL,\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_settings",
+      "table": "_settings",
+      "sql": "CREATE TABLE _settings (\n\t\t\tkey TEXT PRIMARY KEY,\n\t\t\tvalue TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_visits",
+      "table": "_visits",
+      "sql": "CREATE TABLE _visits (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tvisitor_token TEXT NOT NULL,\n\t\t\tuser_id TEXT,\n\t\t\tip TEXT,\n\t\t\tuser_agent TEXT,\n\t\t\treferrer TEXT,\n\t\t\treferring_domain TEXT,\n\t\t\tlanding_page TEXT,\n\t\t\tbrowser TEXT,\n\t\t\tos TEXT,\n\t\t\tdevice_type TEXT,\n\t\t\tcountry TEXT,\n\t\t\tregion TEXT,\n\t\t\tcity TEXT,\n\t\t\tutm_source TEXT,\n\t\t\tutm_medium TEXT,\n\t\t\tutm_term TEXT,\n\t\t\tutm_content TEXT,\n\t\t\tutm_campaign TEXT,\n\t\t\tstarted_at TEXT NOT NULL\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "_workers",
+      "table": "_workers",
+      "sql": "CREATE TABLE _workers (\n\t\t\tid TEXT PRIMARY KEY,\n\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\tupdatedAt TEXT NOT NULL,\n\t\t\tstate TEXT NOT NULL DEFAULT 'available',\n\t\t\tqueue TEXT NOT NULL DEFAULT 'default',\n\t\t\tworker TEXT NOT NULL,\n\t\t\targs TEXT NOT NULL DEFAULT '{}',\n\t\t\tmeta TEXT NOT NULL DEFAULT '{}',\n\t\t\ttags TEXT NOT NULL DEFAULT '[]',\n\t\t\terrors TEXT NOT NULL DEFAULT '[]',\n\t\t\tattempt INTEGER NOT NULL DEFAULT 0,\n\t\t\tmax_attempts INTEGER NOT NULL DEFAULT 20,\n\t\t\tpriority INTEGER NOT NULL DEFAULT 0,\n\t\t\tinserted_at TEXT NOT NULL,\n\t\t\tscheduled_at TEXT NOT NULL,\n\t\t\tattempted_at TEXT,\n\t\t\tattempted_by TEXT,\n\t\t\tcancelled_at TEXT,\n\t\t\tcompleted_at TEXT,\n\t\t\tdiscarded_at TEXT\n\t\t)"
+    },
+    {
+      "type": "table",
+      "name": "users",
+      "table": "users",
+      "sql": "CREATE TABLE `users` (\n\t\t\t\tid TEXT PRIMARY KEY,\n\t\t\t\tcreatedAt TEXT NOT NULL,\n\t\t\t\tupdatedAt TEXT NOT NULL,\n\t\t\t\tusername TEXT UNIQUE NOT NULL,\n\t\t\t\temail TEXT UNIQUE NOT NULL,\n\t\t\t\tpasswordHash TEXT,\n\t\t\t\totpCode TEXT,\n\t\t\t\totpExpiresAt TEXT,\n\t\t\t\tpasskeys TEXT,\n\t\t\t\tresetToken TEXT,\n\t\t\t\tresetTokenExpiresAt TEXT,\n\t\t\t\toauthProviders TEXT\n\t\t\t\t, `displayName` TEXT\n\t\t\t)"
+    },
+    {
+      "type": "index",
+      "name": "idx_feature_flags_key",
+      "table": "_feature_flags",
+      "sql": "CREATE INDEX idx_feature_flags_key ON _feature_flags(key)"
+    },
+    {
+      "type": "index",
+      "name": "idx_file_refs_record",
+      "table": "_file_refs",
+      "sql": "CREATE INDEX idx_file_refs_record ON _file_refs (moul, recordId)"
+    },
+    {
+      "type": "index",
+      "name": "idx_realtime_tickets_expires",
+      "table": "_realtime_tickets",
+      "sql": "CREATE INDEX idx_realtime_tickets_expires ON _realtime_tickets(expiresAt)"
+    },
+    {
+      "type": "index",
+      "name": "idx_requests_createdAt",
+      "table": "_requests",
+      "sql": "CREATE INDEX idx_requests_createdAt ON _requests (createdAt)"
+    },
+    {
+      "type": "index",
+      "name": "idx_requests_path",
+      "table": "_requests",
+      "sql": "CREATE INDEX idx_requests_path ON _requests (path)"
+    },
+    {
+      "type": "index",
+      "name": "idx_requests_visit_id",
+      "table": "_requests",
+      "sql": "CREATE INDEX idx_requests_visit_id ON _requests (visit_id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_revoked_tokens_expires",
+      "table": "_revoked_tokens",
+      "sql": "CREATE INDEX idx_revoked_tokens_expires ON _revoked_tokens(expires_at)"
+    },
+    {
+      "type": "index",
+      "name": "idx_visits_started_at",
+      "table": "_visits",
+      "sql": "CREATE INDEX idx_visits_started_at ON _visits (started_at)"
+    },
+    {
+      "type": "index",
+      "name": "idx_visits_user",
+      "table": "_visits",
+      "sql": "CREATE INDEX idx_visits_user ON _visits (user_id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_visits_visitor",
+      "table": "_visits",
+      "sql": "CREATE INDEX idx_visits_visitor ON _visits (visitor_token)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_job_processing",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_job_processing ON _workers (state, queue, priority, scheduled_at, id)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_scheduled_at",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_scheduled_at ON _workers (scheduled_at)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_state",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_state ON _workers (state)"
+    },
+    {
+      "type": "index",
+      "name": "idx_workers_worker",
+      "table": "_workers",
+      "sql": "CREATE INDEX idx_workers_worker ON _workers (worker)"
+    }
+  ],
+  "tables": {
+    "_certmagic": {
+      "columns": [
+        "key",
+        "value",
+        "modified",
+        "is_dir"
+      ],
+      "rows": null
+    },
+    "_feature_flags": {
+      "columns": [
+        "id",
+        "key",
+        "description",
+        "enabled",
+        "default_value",
+        "gates",
+        "createdAt",
+        "updatedAt"
+      ],
+      "rows": null
+    },
+    "_file_refs": {
+      "columns": [
+        "fileId",
+        "moul",
+        "recordId",
+        "field"
+      ],
+      "rows": null
+    },
+    "_files": {
+      "columns": [
+        "id",
+        "ownerMoul",
+        "ownerId",
+        "createdAt"
+      ],
+      "rows": null
+    },
+    "_moul": {
+      "columns": [
+        "id",
+        "name",
+        "type",
+        "fields",
+        "rules",
+        "createdAt",
+        "updatedAt",
+        "email_templates",
+        "webhooks"
+      ],
+      "rows": [
+        [
+          "moul_users",
+          "users",
+          "auth",
+          "[{\"name\":\"displayName\",\"type\":\"text\"}]",
+          "{\"listRule\":\"\",\"viewRule\":\"\",\"createRule\":\"\",\"updateRule\":\"id = @request.auth.id\",\"deleteRule\":\"id = @request.auth.id\"}",
+          "2026-11-18T00:32:43Z",
+          "2026-11-18T00:32:43Z",
+          "{\"verification\":{\"subject\":\"Confirm your email address\",\"body\":\"Hello,\\n\\nPlease verify your email by clicking on the link below:\\n\\n{{.Link}}\\n\\nRegards,\\nSupport Team\"},\"password_reset\":{\"subject\":\"Reset your password\",\"body\":\"Hello,\\n\\nYou requested a password reset. Please use the link below to set a new password:\\n\\n{{.Link}}\\n\\nIf you did not request this, you can ignore this email.\\n\\nRegards,\\nSupport Team\"},\"confirm_email_change\":{\"subject\":\"Confirm email change\",\"body\":\"Hello,\\n\\nPlease confirm your email address change by clicking on the link below:\\n\\n{{.Link}}\\n\\nRegards,\\nSupport Team\"},\"otp\":{\"subject\":\"Your OTP Code\",\"body\":\"Hello,\\n\\nYour one-time password (OTP) code is:\\n\\n{{.OTP}}\\n\\nThis code will expire in 10 minutes.\\n\\nRegards,\\nSupport Team\"},\"login_alert\":{\"subject\":\"New Login Alert\",\"body\":\"Hello,\\n\\nA new login was detected on your account.\\n\\nIf this was not you, please secure your account immediately.\\n\\nRegards,\\nSupport Team\"}}",
+          "[]"
+        ]
+      ]
+    },
+    "_moul_version": {
+      "columns": [
+        "id",
+        "version"
+      ],
+      "rows": [
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    "_realtime_tickets": {
+      "columns": [
+        "id",
+        "authRecord",
+        "isAdmin",
+        "tokenHash",
+        "tokenExpiresAt",
+        "revealFields",
+        "expiresAt",
+        "createdAt"
+      ],
+      "rows": null
+    },
+    "_requests": {
+      "columns": [
+        "id",
+        "visit_id",
+        "method",
+        "path",
+        "status_code",
+        "response_time_ms",
+        "createdAt"
+      ],
+      "rows": null
+    },
+    "_revoked_tokens": {
+      "columns": [
+        "token_hash",
+        "expires_at"
+      ],
+      "rows": null
+    },
+    "_rootUsers": {
+      "columns": [
+        "id",
+        "username",
+        "email",
+        "name",
+        "passwordHash",
+        "createdAt",
+        "updatedAt"
+      ],
+      "rows": null
+    },
+    "_settings": {
+      "columns": [
+        "key",
+        "value"
+      ],
+      "rows": [
+        [
+          "file_s3_enabled",
+          "false"
+        ],
+        [
+          "file_s3_bucket",
+          ""
+        ],
+        [
+          "litestream_enabled",
+          "false"
+        ],
+        [
+          "rate_limiting_enabled",
+          "true"
+        ],
+        [
+          "email_domain",
+          ""
+        ],
+        [
+          "oauth_github_client_secret",
+          ""
+        ],
+        [
+          "oauth_google_enabled",
+          "false"
+        ],
+        [
+          "request_log_retention_days",
+          "30"
+        ],
+        [
+          "file_s3_force_path_style",
+          "false"
+        ],
+        [
+          "litestream_s3_bucket",
+          ""
+        ],
+        [
+          "litestream_access_key_id",
+          ""
+        ],
+        [
+          "tls_https_port",
+          "443"
+        ],
+        [
+          "litestream_s3_force_path_style",
+          "false"
+        ],
+        [
+          "email_api_key",
+          ""
+        ],
+        [
+          "tls_domains",
+          ""
+        ],
+        [
+          "tls_email",
+          ""
+        ],
+        [
+          "app_name",
+          "moul-dev"
+        ],
+        [
+          "litestream_s3_endpoint",
+          ""
+        ],
+        [
+          "litestream_replica_path",
+          ""
+        ],
+        [
+          "rate_limiting_rules",
+          "[{\"label\":\"*:auth\",\"maxRequests\":10,\"interval\":3,\"targetedUsers\":\"all\"},{\"label\":\"/\",\"maxRequests\":300,\"interval\":5,\"targetedUsers\":\"all\"}]"
+        ],
+        [
+          "email_from_name",
+          ""
+        ],
+        [
+          "tls_use_staging",
+          "false"
+        ],
+        [
+          "oauth_google_client_secret",
+          ""
+        ],
+        [
+          "oauth_redirect_url",
+          ""
+        ],
+        [
+          "file_s3_endpoint",
+          ""
+        ],
+        [
+          "file_s3_access_key",
+          ""
+        ],
+        [
+          "litestream_s3_region",
+          ""
+        ],
+        [
+          "litestream_secret_access_key",
+          ""
+        ],
+        [
+          "root_user_allowed_ips",
+          ""
+        ],
+        [
+          "tls_enabled",
+          "false"
+        ],
+        [
+          "oauth_github_enabled",
+          "false"
+        ],
+        [
+          "oauth_github_client_id",
+          ""
+        ],
+        [
+          "file_s3_secret_key",
+          ""
+        ],
+        [
+          "file_thumbs_async",
+          "false"
+        ],
+        [
+          "email_region",
+          "us-east-1"
+        ],
+        [
+          "oauth_google_client_id",
+          ""
+        ],
+        [
+          "oauth_apple_client_id",
+          ""
+        ],
+        [
+          "request_log_enabled",
+          "true"
+        ],
+        [
+          "request_log_sample_rate",
+          "1"
+        ],
+        [
+          "visit_retention_days",
+          "30"
+        ],
+        [
+          "root_user_ip_enabled",
+          "false"
+        ],
+        [
+          "email_from_address",
+          ""
+        ],
+        [
+          "email_api_secret",
+          ""
+        ],
+        [
+          "email_endpoint",
+          ""
+        ],
+        [
+          "tls_http_port",
+          "80"
+        ],
+        [
+          "oauth_apple_enabled",
+          "false"
+        ],
+        [
+          "oauth_apple_team_id",
+          ""
+        ],
+        [
+          "oauth_apple_key_id",
+          ""
+        ],
+        [
+          "file_s3_region",
+          ""
+        ],
+        [
+          "email_enabled",
+          "false"
+        ],
+        [
+          "email_provider",
+          "console"
+        ],
+        [
+          "oauth_apple_client_secret",
+          ""
+        ],
+        [
+          "oauth_apple_private_key",
+          ""
+        ],
+        [
+          "request_log_exclude_paths",
+          ""
+        ]
+      ]
+    },
+    "_visits": {
+      "columns": [
+        "id",
+        "visitor_token",
+        "user_id",
+        "ip",
+        "user_agent",
+        "referrer",
+        "referring_domain",
+        "landing_page",
+        "browser",
+        "os",
+        "device_type",
+        "country",
+        "region",
+        "city",
+        "utm_source",
+        "utm_medium",
+        "utm_term",
+        "utm_content",
+        "utm_campaign",
+        "started_at"
+      ],
+      "rows": null
+    },
+    "_workers": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "state",
+        "queue",
+        "worker",
+        "args",
+        "meta",
+        "tags",
+        "errors",
+        "attempt",
+        "max_attempts",
+        "priority",
+        "inserted_at",
+        "scheduled_at",
+        "attempted_at",
+        "attempted_by",
+        "cancelled_at",
+        "completed_at",
+        "discarded_at"
+      ],
+      "rows": null
+    },
+    "users": {
+      "columns": [
+        "id",
+        "createdAt",
+        "updatedAt",
+        "username",
+        "email",
+        "passwordHash",
+        "otpCode",
+        "otpExpiresAt",
+        "passkeys",
+        "resetToken",
+        "resetTokenExpiresAt",
+        "oauthProviders",
+        "displayName"
+      ],
+      "rows": [
+        [
+          "alice",
+          "2026-01-01T00:00:00Z",
+          "2026-01-01T00:00:00Z",
+          "alice",
+          "alice@example.com",
+          null,
+          null,
+          null,
+          null,
+          "reset-alice",
+          "2099-01-01T00:00:00Z",
+          "{\"github\":\"gh-alice\"}",
+          null
+        ]
+      ]
+    }
+  }
+}

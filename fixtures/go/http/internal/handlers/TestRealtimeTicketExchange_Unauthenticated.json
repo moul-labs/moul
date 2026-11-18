@@ -1,0 +1,49 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "b22b9a3420a7b44c",
+      "exchanges": [
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to request a realtime ticket"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 401
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeTicketExchange_Unauthenticated"
+}

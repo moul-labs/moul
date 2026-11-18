@@ -1,0 +1,318 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "34621de5253a8e75",
+      "exchanges": [
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags",
+          "request": {
+            "body": {
+              "json": {
+                "default_value": "false",
+                "description": "Enable new stripe checkout flow",
+                "enabled": true,
+                "gates": {
+                  "actors": {
+                    "user:101": true
+                  },
+                  "groups": {
+                    "beta_testers": true
+                  }
+                },
+                "key": "new-billing-flow"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "222"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "default_value": "false",
+                "description": "Enable new stripe checkout flow",
+                "enabled": true,
+                "gates": {
+                  "actors": {
+                    "user:101": true
+                  },
+                  "groups": {
+                    "beta_testers": true
+                  }
+                },
+                "id": "ff_1794961964840689000",
+                "key": "new-billing-flow",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 282,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/feature-flags/new-billing-flow",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "default_value": "false",
+                "description": "Enable new stripe checkout flow",
+                "enabled": true,
+                "gates": {
+                  "actors": {
+                    "user:101": true
+                  },
+                  "groups": {
+                    "beta_testers": true
+                  }
+                },
+                "id": "ff_1794961964840689000",
+                "key": "new-billing-flow",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 282,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key/eval",
+          "request": {
+            "body": {
+              "json": {
+                "context": {
+                  "user_id": "101"
+                }
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "43"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/feature-flags/new-billing-flow/eval",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "reason": "TARGETING_MATCH (Actor)",
+                "value": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 50,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key",
+          "request": {
+            "body": {
+              "json": {
+                "enabled": false
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "20"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/feature-flags/new-billing-flow",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:44Z",
+                "default_value": "false",
+                "description": "Enable new stripe checkout flow",
+                "enabled": false,
+                "gates": {
+                  "actors": {
+                    "user:101": true
+                  },
+                  "groups": {
+                    "beta_testers": true
+                  }
+                },
+                "id": "ff_1794961964840689000",
+                "key": "new-billing-flow",
+                "updatedAt": "2026-11-18T00:32:44Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 283,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/feature-flags/:key",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/feature-flags/new-billing-flow",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Flag deleted successfully"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 40,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestFeatureFlagsAPI"
+}

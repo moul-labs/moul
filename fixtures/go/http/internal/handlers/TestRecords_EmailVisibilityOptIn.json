@@ -1,0 +1,59 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "a909fb3050c22969",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/moul/people/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [
+                  {
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "emailVisibility": false,
+                    "id": "priv",
+                    "updatedAt": "2026-01-01T00:00:00Z",
+                    "username": "priv"
+                  },
+                  {
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "email": "pub@example.com",
+                    "emailVisibility": true,
+                    "id": "pub",
+                    "updatedAt": "2026-01-01T00:00:00Z",
+                    "username": "pub"
+                  }
+                ],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 2,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 339,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRecords_EmailVisibilityOptIn"
+}

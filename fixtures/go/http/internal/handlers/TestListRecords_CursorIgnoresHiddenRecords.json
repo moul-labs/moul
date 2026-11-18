@@ -1,0 +1,82 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "bb392848ab5d7185",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOGMxNjM4NWM0NmY2YjVhY2Y2MDcxOTBlMjY1OGI3ZDcifQ.UIzRfLzjPRhI2pZT-tQP1K_nOqdsUV3JHpm7fdqBhuM"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records",
+            "query": "sort=odometer\u0026after=g_bob"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 2,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOGMxNjM4NWM0NmY2YjVhY2Y2MDcxOTBlMjY1OGI3ZDcifQ.UIzRfLzjPRhI2pZT-tQP1K_nOqdsUV3JHpm7fdqBhuM"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records",
+            "query": "sort=odometer\u0026after=zzz_missing"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 2,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestListRecords_CursorIgnoresHiddenRecords"
+}

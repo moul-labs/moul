@@ -1,0 +1,39 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "ba8bc5237b67ae94",
+      "exchanges": [
+        {
+          "route": "",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/_moul_/",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not Found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRouterDisableAdminUI"
+}

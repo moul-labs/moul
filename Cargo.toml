@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*"]
+members = ["crates/*", "tools/moul-fixtures"]
 
 [workspace.package]
 version = "0.0.1"
@@ -23,6 +23,18 @@ moul-web = { version = "0.0.1", path = "crates/moul-web" }
 moul-server = { version = "0.0.1", path = "crates/moul-server" }
 moul-hub = { version = "0.0.1", path = "crates/moul-hub" }
 moul-cli = { version = "0.0.1", path = "crates/moul-cli" }
+
+# Test-only crate that loads fixtures/go; never published.
+moul-fixtures = { path = "tools/moul-fixtures" }
+
+# Third-party crates. Members opt in with `<name>.workspace = true`.
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+wasm-bindgen = "=0.2.130"
+wasm-bindgen-futures = "0.4.80"
+wasm-bindgen-test = "0.3.80"
+js-sys = "0.3.107"
+web-sys = "0.3.107"
 
 [workspace.lints.rust]
 missing_docs = "warn"

@@ -1,0 +1,54 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "91b562cad6ffb6d8",
+      "exchanges": [
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl90ZXN0XzEiLCJlbWFpbCI6InRlc3RAbW91bC5kZXYiLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwibW91bCI6InVzZXJzIiwiZXhwIjoxNzk1MDQ4MzYzLCJpYXQiOjE3OTQ5NjE5NjMsImp0aSI6IjIzZGM5NzcyOTEyOGRhODQ3ZDE2Zjk5NzQ3ZTRlOGM0In0.lWXjR0v6fznV-qwPv_NVlkunIuMlw4s6g0t3CVFRu3U"
+              ],
+              "Content-Length": [
+                "0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "expiresAt": "2026-11-18T00:33:13Z",
+                "expiresIn": 30,
+                "ticket": "tkt_3d63b44b9348a67373e4d68eef68ad4769fa12d145d3ba8f"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 116,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeTicketExchange_BearerAuth"
+}

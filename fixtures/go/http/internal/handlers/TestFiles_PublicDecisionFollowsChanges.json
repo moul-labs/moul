@@ -1,0 +1,450 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "192c81da234ca01e",
+      "exchanges": [
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS1mNTk4NWEwZWRhNGFkMjZhNWU3MTE0YWRiM2U3MGQ1OTI2ZTZlY2NkZWU5MDlmMzNjZjBlNmQ5ZjI5NjENCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJidWlsZC5wbmciDQpDb250ZW50LVR5cGU6IGltYWdlL3BuZw0KDQqJUE5HDQoaCgAAAA1JSERSAAAABAAAAAQIBgAAAKnxnn4AAAAYSURBVHicYmJAA2CB/2CEA2BoAQQAAP//WfsCBbqiS4UAAAAASUVORK5CYIINCi0tZjU5ODVhMGVkYTRhZDI2YTVlNzExNGFkYjNlNzBkNTkyNmU2ZWNjZGVlOTA5ZjMzY2YwZTZkOWYyOTYxLS0NCg=="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYzEzNTQyZjhhYWE0MjVhY2QxN2Q3ODg2YjVkN2Y2ZDUifQ.9OjXFJ8A-V7hFzlwByL2fYtxcfEE3-yJTzUD1g1qatE"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=f5985a0eda4ad26a5e7114adb3e70d5926e6eccdee909f33cf0e6d9f2961"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "build.png",
+                  "height": 4,
+                  "id": "WEKmnEAbQG3IaOP",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI",
+                    "md": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI",
+                    "sm": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI"
+                  },
+                  "url": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI",
+                  "width": 4
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 595,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "createdAt": "2026-11-18T00:32:43Z",
+                    "filename": "build.png",
+                    "height": 4,
+                    "id": "WEKmnEAbQG3IaOP",
+                    "size": 81,
+                    "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                    "thumbs": {
+                      "lg": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI",
+                      "md": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI",
+                      "sm": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI"
+                    },
+                    "url": "/storage/WEKmnEAbQG3IaOP/original.png?sig=1794967200.mKEV9s0lHiBP9ntkafl1rmuwFde9uUE_x-MnelPCCbI",
+                    "width": 4
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYzEzNTQyZjhhYWE0MjVhY2QxN2Q3ODg2YjVkN2Y2ZDUifQ.9OjXFJ8A-V7hFzlwByL2fYtxcfEE3-yJTzUD1g1qatE"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "createdAt": "2026-11-18T00:32:43Z",
+                "id": "build-C2mBg3i7Y0en5FX",
+                "images": [
+                  {
+                    "createdAt": "2026-11-18T00:32:43Z",
+                    "filename": "build.png",
+                    "height": 4,
+                    "id": "WEKmnEAbQG3IaOP",
+                    "size": 81,
+                    "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                    "thumbs": {
+                      "lg": "/storage/WEKmnEAbQG3IaOP/original.png",
+                      "md": "/storage/WEKmnEAbQG3IaOP/original.png",
+                      "sm": "/storage/WEKmnEAbQG3IaOP/original.png"
+                    },
+                    "url": "/storage/WEKmnEAbQG3IaOP/original.png",
+                    "width": 4
+                  }
+                ],
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 486,
+            "status": 201
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/WEKmnEAbQG3IaOP/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "base64": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGJiQANggf9ghANgaAEEAAD//1n7AgW6okuFAAAAAElFTkSuQmCC"
+            },
+            "headers": {
+              "Accept-Ranges": [
+                "bytes"
+              ],
+              "Cache-Control": [
+                "public, max-age=300"
+              ],
+              "Content-Length": [
+                "81"
+              ],
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "image/png"
+              ],
+              "Last-Modified": [
+                "Wed, 18 Nov 2026 00:32:43 GMT"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 81,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/builds/records/build-C2mBg3i7Y0en5FX",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 204
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/WEKmnEAbQG3IaOP/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS0zNjRiOGZmOTBkOTM5ZTI3NjU5MmQ1OTRkYTQ0ODg3MDBjOTliOWNjYzY3MDY3OWFlZThlNGZkYmM5NzgNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJkb2MucG5nIg0KQ29udGVudC1UeXBlOiBpbWFnZS9wbmcNCg0KiVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGJiQANggf9ghANgaAEEAAD//1n7AgW6okuFAAAAAElFTkSuQmCCDQotLTM2NGI4ZmY5MGQ5MzllMjc2NTkyZDU5NGRhNDQ4ODcwMGM5OWI5Y2NjNjcwNjc5YWVlOGU0ZmRiYzk3OC0tDQo="
+            },
+            "headers": {
+              "Content-Type": [
+                "multipart/form-data; boundary=364b8ff90d939e276592d594da4488700c99b9ccc670679aee8e4fdbc978"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "doc.png",
+                  "height": 4,
+                  "id": "BxQ9qRbNL6ltzWf",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                    "md": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                    "sm": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8"
+                  },
+                  "url": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                  "width": 4
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 593,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "doc": {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "doc.png",
+                  "height": 4,
+                  "id": "BxQ9qRbNL6ltzWf",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                    "md": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                    "sm": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8"
+                  },
+                  "url": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                  "width": 4
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/shared/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "doc": {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "doc.png",
+                  "height": 4,
+                  "id": "BxQ9qRbNL6ltzWf",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                    "md": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                    "sm": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8"
+                  },
+                  "url": "/storage/BxQ9qRbNL6ltzWf/original.png?sig=1794967200.rrkMQloaKrUtkLh-u1LzbviA3csfeJJ0YgoPLkoRbD8",
+                  "width": 4
+                },
+                "id": "shared-H3aOnDAZ7qZ3Bos",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 699,
+            "status": 201
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Share": [
+                "yes"
+              ]
+            },
+            "method": "GET",
+            "path": "/storage/BxQ9qRbNL6ltzWf/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/BxQ9qRbNL6ltzWf/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/moul/shared",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 204
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestFiles_PublicDecisionFollowsChanges"
+}

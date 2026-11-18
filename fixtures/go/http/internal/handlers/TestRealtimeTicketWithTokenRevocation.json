@@ -1,0 +1,95 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "c2682701dab96654",
+      "exchanges": [
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl90aWNrZXRfcmV2IiwiZW1haWwiOiJ0aWNrZXRyZXZAbW91bC5kZXYiLCJ1c2VybmFtZSI6InRpY2tldHVzZXIiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiZDUzMGU1ZTkwOTY2YjA0ZGJiZGYzN2Y4NTVkZDU0N2IifQ.2FHix6RgW0UBnpbDDMkfM9Xrow5h-0GZ3LK355FaDcw"
+              ],
+              "Content-Length": [
+                "0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "expiresAt": "2026-11-18T00:33:13Z",
+                "expiresIn": 30,
+                "ticket": "tkt_5d7a496041ac056ea47434831469912eb0a221f5567064e1"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 116,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": "ticket=tkt_5d7a496041ac056ea47434831469912eb0a221f5567064e1"
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"69b017a98975d9e6\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\nevent: auth_expired\ndata: {\"message\":\"Token has expired or was revoked\",\"reason\":\"auth_expired\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 195,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeTicketWithTokenRevocation"
+}

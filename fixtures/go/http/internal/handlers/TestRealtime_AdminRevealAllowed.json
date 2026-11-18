@@ -1,0 +1,95 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "68491dbe11a5187e",
+      "exchanges": [
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "admin-secret-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": "reveal=all"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "expiresAt": "2026-11-18T00:33:13Z",
+                "expiresIn": 30,
+                "ticket": "tkt_0b5ca08172afe1b2fa5a754afe661f5978931aee1268dcab"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 116,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": "ticket=tkt_0b5ca08172afe1b2fa5a754afe661f5978931aee1268dcab"
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"d38a14318a013541\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 97,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtime_AdminRevealAllowed"
+}

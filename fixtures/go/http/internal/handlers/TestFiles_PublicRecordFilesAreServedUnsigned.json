@@ -1,0 +1,180 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "b80b69e091e9ce8b",
+      "exchanges": [
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS0zZGU3OWRiYTk0Y2Q0MTdkYWUyNDVmNDViMDIzZmI4MjRjYmI0NzNjY2IwM2NjN2JlMmY3ZjJhY2JlYzQNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJidWlsZC5wbmciDQpDb250ZW50LVR5cGU6IGltYWdlL3BuZw0KDQqJUE5HDQoaCgAAAA1JSERSAAAABAAAAAQIBgAAAKnxnn4AAAAYSURBVHicYmJAA2CB/2CEA2BoAQQAAP//WfsCBbqiS4UAAAAASUVORK5CYIINCi0tM2RlNzlkYmE5NGNkNDE3ZGFlMjQ1ZjQ1YjAyM2ZiODI0Y2JiNDczY2NiMDNjYzdiZTJmN2YyYWNiZWM0LS0NCg=="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzIyNmQyNzcwYTNjMTAyOTExYTVhZTBkNzZhZjBlMTcifQ.vvxvcAf01HZwMHFkL2ER9g4rpRt0JQD2SFlaKPyxJE4"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=3de79dba94cd417dae245f45b023fb824cbb473ccb03cc7be2f7f2acbec4"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "build.png",
+                  "height": 4,
+                  "id": "0EvfJdTCCooXEs0",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ",
+                    "md": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ",
+                    "sm": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ"
+                  },
+                  "url": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ",
+                  "width": 4
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 595,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "images": [
+                  {
+                    "createdAt": "2026-11-18T00:32:43Z",
+                    "filename": "build.png",
+                    "height": 4,
+                    "id": "0EvfJdTCCooXEs0",
+                    "size": 81,
+                    "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                    "thumbs": {
+                      "lg": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ",
+                      "md": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ",
+                      "sm": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ"
+                    },
+                    "url": "/storage/0EvfJdTCCooXEs0/original.png?sig=1794967200.fTsELzpZubAXjnEnOft4dqZqULSIZE6_isWeZKieNzQ",
+                    "width": 4
+                  }
+                ]
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzIyNmQyNzcwYTNjMTAyOTExYTVhZTBkNzZhZjBlMTcifQ.vvxvcAf01HZwMHFkL2ER9g4rpRt0JQD2SFlaKPyxJE4"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/builds/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "author": "alice",
+                "createdAt": "2026-11-18T00:32:43Z",
+                "id": "build-8iG1ya70a8DwW9u",
+                "images": [
+                  {
+                    "createdAt": "2026-11-18T00:32:43Z",
+                    "filename": "build.png",
+                    "height": 4,
+                    "id": "0EvfJdTCCooXEs0",
+                    "size": 81,
+                    "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                    "thumbs": {
+                      "lg": "/storage/0EvfJdTCCooXEs0/original.png",
+                      "md": "/storage/0EvfJdTCCooXEs0/original.png",
+                      "sm": "/storage/0EvfJdTCCooXEs0/original.png"
+                    },
+                    "url": "/storage/0EvfJdTCCooXEs0/original.png",
+                    "width": 4
+                  }
+                ],
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 486,
+            "status": 201
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/0EvfJdTCCooXEs0/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "base64": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGJiQANggf9ghANgaAEEAAD//1n7AgW6okuFAAAAAElFTkSuQmCC"
+            },
+            "headers": {
+              "Accept-Ranges": [
+                "bytes"
+              ],
+              "Cache-Control": [
+                "public, max-age=300"
+              ],
+              "Content-Length": [
+                "81"
+              ],
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "image/png"
+              ],
+              "Last-Modified": [
+                "Wed, 18 Nov 2026 00:32:43 GMT"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 81,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestFiles_PublicRecordFilesAreServedUnsigned"
+}

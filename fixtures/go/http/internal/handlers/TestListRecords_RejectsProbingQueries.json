@@ -1,0 +1,418 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "3e57458ffecf5c75",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "sort=author.username%29+DESC%2C+%28SELECT+1"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid sort parameter: invalid sort field \"author.username) DESC\""
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 83,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "sort=garage.vin"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid sort parameter: sorting by \"garage.vin\" is not allowed: garages records are not public"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 111,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "filter=%40collection._rootUsers.passwordHash+~+%27%242a%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid filter parameter: @collection references are not allowed in filters"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 90,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "filter=%40collection.garages.vin+%3D+%27VIN-BOB%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid filter parameter: @collection references are not allowed in filters"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 90,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/records",
+            "query": "filter=passwordHash+~+%27%242a%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid filter parameter: filtering by \"passwordHash\" is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 85,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/records",
+            "query": "filter=email+~+%27bob%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid filter parameter: filtering by \"email\" is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 78,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/records",
+            "query": "sort=email"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid sort parameter: sorting by \"email\" is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 74,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "filter=author.email+~+%27alice%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid filter parameter: filtering by \"author.email\" is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 85,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMjE0YjNhZWUzOTk5MTYwYzJjZGY0MGNmZGUyOGU2MWQifQ.G6tvmlMD3fJGQPseUgVv0p-xnOtu_3cz5TJ8qibeBYs"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "filter=garage.vin+%3D+%27VIN-ALICE%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/builds/records",
+            "query": "filter=garage.vin+%3D+%27VIN-ALICE%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [
+                  {
+                    "author": "alice",
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "garage": "g_alice",
+                    "id": "b_alice",
+                    "title": "Alice build",
+                    "updatedAt": "2026-01-01T00:00:00Z"
+                  }
+                ],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 1,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 209,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNzEzNWYwMmQ3M2U2YTJlM2I0MmVjYzk1NDdiN2Q1MWMifQ.rysQM8gOGCSfOL-xuRqZn8fBHTG0oixXwUyddUJBSRU"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/records",
+            "query": "search=bob%40example"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/users/records",
+            "query": "sort=email\u0026filter=email+~+%27bob%27"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [
+                  {
+                    "createdAt": "2026-01-01T00:00:00Z",
+                    "displayName": null,
+                    "email": "bob@example.com",
+                    "id": "bob",
+                    "updatedAt": "2026-01-01T00:00:00Z",
+                    "username": "bob"
+                  }
+                ],
+                "page": 1,
+                "perPage": 30,
+                "totalItems": 1,
+                "totalPages": 1
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 209,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestListRecords_RejectsProbingQueries"
+}

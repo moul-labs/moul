@@ -1,0 +1,3 @@
+# Recorded from the Go engine by scripts/export-go-fixtures.sh.
+fixtures/go/** linguist-generated=true
+fixtures/** text eol=lf

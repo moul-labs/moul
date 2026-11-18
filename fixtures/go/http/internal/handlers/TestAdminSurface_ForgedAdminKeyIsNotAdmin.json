@@ -1,0 +1,131 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "c1aec7b219f845bb",
+      "exchanges": [
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "not-the-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/settings",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"example.com\", error=\"unauthorized\", resource_metadata=\"http://example.com/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "not-the-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication required to request a realtime ticket"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/settings",
+            "query": "adminKey=security-test-admin-key"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication via URL query parameters is disabled for security reasons. Provide your admin key via the X-Admin-Key header or request a single-use ticket via POST /api/realtime/ticket."
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 200,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/settings",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/api/settings",
+            "query": "admin_key=security-test-admin-key"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Authentication via URL query parameters is disabled for security reasons. Provide your admin key via the X-Admin-Key header or request a single-use ticket via POST /api/realtime/ticket."
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 200,
+            "status": 400
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAdminSurface_ForgedAdminKeyIsNotAdmin"
+}

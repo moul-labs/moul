@@ -1,0 +1,284 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "930b19c66372d950",
+      "exchanges": [
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "text": "--4e53c77d6dddeb1764d38cdf049a7ede3c890ffe466234bf2a5aed5b41b3\r\nContent-Disposition: form-data; name=\"file\"; filename=\"page.html\"\r\nContent-Type: text/html\r\n\r\n\u003chtml\u003e\u003cscript\u003ealert(1)\u003c/script\u003e\u003c/html\u003e\r\n--4e53c77d6dddeb1764d38cdf049a7ede3c890ffe466234bf2a5aed5b41b3--\r\n"
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNDU1MmRlZDNjZWJiNzgwMTk2NTExYjAxZTZhOTg2ZDgifQ.CoCVAO4oioCBdkauVk7gLrDe8zbdV1haq9Dsvbq7CMY"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=4e53c77d6dddeb1764d38cdf049a7ede3c890ffe466234bf2a5aed5b41b3"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "this file type is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "text": "--5ddd3b985c888e6f547ec2a83839467bfe2e895b236e28e45b7bd5a46fdb\r\nContent-Disposition: form-data; name=\"file\"; filename=\"logo.svg\"\r\nContent-Type: image/svg+xml\r\n\r\n\u003csvg xmlns=\"http://www.w3.org/2000/svg\"\u003e\u003cscript\u003ealert(1)\u003c/script\u003e\u003c/svg\u003e\r\n--5ddd3b985c888e6f547ec2a83839467bfe2e895b236e28e45b7bd5a46fdb--\r\n"
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNDU1MmRlZDNjZWJiNzgwMTk2NTExYjAxZTZhOTg2ZDgifQ.CoCVAO4oioCBdkauVk7gLrDe8zbdV1haq9Dsvbq7CMY"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=5ddd3b985c888e6f547ec2a83839467bfe2e895b236e28e45b7bd5a46fdb"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "this file type is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "text": "--ebee243b18489c390eccc722362184b614632f023faecb9092c4396ac094\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.png\"\r\nContent-Type: image/png\r\n\r\n\u003c!DOCTYPE html\u003e\u003cscript\u003ealert(1)\u003c/script\u003e\r\n--ebee243b18489c390eccc722362184b614632f023faecb9092c4396ac094--\r\n"
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNDU1MmRlZDNjZWJiNzgwMTk2NTExYjAxZTZhOTg2ZDgifQ.CoCVAO4oioCBdkauVk7gLrDe8zbdV1haq9Dsvbq7CMY"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=ebee243b18489c390eccc722362184b614632f023faecb9092c4396ac094"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "this file type is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS1mZWI3Nzc4NGM5NTRjYTVmMDc5MjIwZjhmMWEwZGMwYTJkZjlhN2ZkYmFlODIzMjM3NWZiNTRlMTk1Y2MNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJwaG90by5wbmciDQpDb250ZW50LVR5cGU6IHRleHQvaHRtbA0KDQqJUE5HDQoaCgAAAA1JSERSAAAABAAAAAQIBgAAAKnxnn4AAAAYSURBVHicYmJAA2CB/2CEA2BoAQQAAP//WfsCBbqiS4UAAAAASUVORK5CYIINCi0tZmViNzc3ODRjOTU0Y2E1ZjA3OTIyMGY4ZjFhMGRjMGEyZGY5YTdmZGJhZTgyMzIzNzVmYjU0ZTE5NWNjLS0NCg=="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNDU1MmRlZDNjZWJiNzgwMTk2NTExYjAxZTZhOTg2ZDgifQ.CoCVAO4oioCBdkauVk7gLrDe8zbdV1haq9Dsvbq7CMY"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=feb77784c954ca5f079220f8f1a0dc0a2df9a7fdbae8232375fb54e195cc"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "this file type is not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 400
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "text": "--9c2e1701e1b55b670f553f7e9fbd83b9c2aff745c39ee9ef78709c459c5a\r\nContent-Disposition: form-data; name=\"file\"; filename=\"page.html\"\r\nContent-Type: text/html\r\n\r\n\u003chtml\u003e\u003c/html\u003e\r\n--9c2e1701e1b55b670f553f7e9fbd83b9c2aff745c39ee9ef78709c459c5a--\r\n"
+            },
+            "headers": {
+              "Content-Type": [
+                "multipart/form-data; boundary=9c2e1701e1b55b670f553f7e9fbd83b9c2aff745c39ee9ef78709c459c5a"
+              ],
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "page.html",
+                  "id": "efBl6gAup0L57Ym",
+                  "size": 13,
+                  "url": "/storage/efBl6gAup0L57Ym/original.html?sig=1794967200.uf8gLuaL2yZkrqtvKvZ3jpD8tT-zbIpR_P9fD9Vv964"
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 201,
+            "status": 200
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "security-test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/storage/efBl6gAup0L57Ym/original.html",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "\u003chtml\u003e\u003c/html\u003e"
+            },
+            "headers": {
+              "Accept-Ranges": [
+                "bytes"
+              ],
+              "Cache-Control": [
+                "private, max-age=3600"
+              ],
+              "Content-Disposition": [
+                "attachment; filename=\"original.html\""
+              ],
+              "Content-Length": [
+                "13"
+              ],
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "text/html; charset=utf-8"
+              ],
+              "Last-Modified": [
+                "Wed, 18 Nov 2026 00:32:43 GMT"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 13,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS01NzU2NmRkZDA2YTJhNTBmOWVmYjgzNDQyNzBhOWJhNTI0MDNkYmI4MzYxZjVmN2VjZGY5OWUwMTVhMTkNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJwaG90by5wbmciDQpDb250ZW50LVR5cGU6IGltYWdlL3BuZw0KDQqJUE5HDQoaCgAAAA1JSERSAAAABAAAAAQIBgAAAKnxnn4AAAAYSURBVHicYmJAA2CB/2CEA2BoAQQAAP//WfsCBbqiS4UAAAAASUVORK5CYIINCi0tNTc1NjZkZGQwNmEyYTUwZjllZmI4MzQ0MjcwYTliYTUyNDAzZGJiODM2MWY1ZjdlY2RmOTllMDE1YTE5LS0NCg=="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNDU1MmRlZDNjZWJiNzgwMTk2NTExYjAxZTZhOTg2ZDgifQ.CoCVAO4oioCBdkauVk7gLrDe8zbdV1haq9Dsvbq7CMY"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=57566ddd06a2a50f9efb8344270a9ba52403dbb8361f5f7ecdf99e015a19"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "files of type image/png are not allowed"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 54,
+            "status": 400
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestUploads_MembersCannotStoreActiveContent"
+}

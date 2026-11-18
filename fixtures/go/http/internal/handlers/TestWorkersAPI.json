@@ -1,0 +1,501 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "efc7e5b2ce80a528",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/_workers/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Collection not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 35,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required (root user token or admin key)"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "Www-Authenticate": [
+                "Bearer realm=\"127.0.0.1:50015\", error=\"unauthorized\", resource_metadata=\"http://127.0.0.1:50015/.well-known/oauth-protected-resource\""
+              ]
+            },
+            "size": 75,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "items": [],
+                "page": 1,
+                "perPage": 50,
+                "totalItems": 0,
+                "totalPages": 0
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 65,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers",
+          "request": {
+            "body": {
+              "json": {
+                "args": {
+                  "amount": 99.5,
+                  "order_id": "ord_123"
+                },
+                "priority": 10,
+                "queue": "orders",
+                "worker": "process-order"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "124"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/workers",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "args": {
+                  "amount": 99.5,
+                  "order_id": "ord_123"
+                },
+                "attempt": 0,
+                "attempted_at": null,
+                "attempted_by": null,
+                "cancelled_at": null,
+                "completed_at": null,
+                "createdAt": "2026-11-18T00:32:47Z",
+                "discarded_at": null,
+                "errors": [],
+                "id": "_worker-Sye6V1obrgRodGy",
+                "inserted_at": "2026-11-18T00:32:47Z",
+                "max_attempts": 20,
+                "meta": {},
+                "priority": 10,
+                "queue": "orders",
+                "scheduled_at": "2026-11-18T00:32:47Z",
+                "state": "available",
+                "tags": [],
+                "updatedAt": "2026-11-18T00:32:47Z",
+                "worker": "process-order"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 460,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/workers/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers/_worker-Sye6V1obrgRodGy",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "args": "{\"amount\":99.5,\"order_id\":\"ord_123\"}",
+                "attempt": "0",
+                "attempted_at": null,
+                "attempted_by": null,
+                "cancelled_at": null,
+                "completed_at": null,
+                "createdAt": "2026-11-18T00:32:47Z",
+                "discarded_at": null,
+                "errors": "[]",
+                "id": "_worker-Sye6V1obrgRodGy",
+                "inserted_at": "2026-11-18T00:32:47Z",
+                "max_attempts": "20",
+                "meta": "{}",
+                "priority": "10",
+                "queue": "orders",
+                "scheduled_at": "2026-11-18T00:32:47Z",
+                "state": "available",
+                "tags": "[]",
+                "updatedAt": "2026-11-18T00:32:47Z",
+                "worker": "process-order"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 480,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers/:id",
+          "request": {
+            "body": {
+              "json": {
+                "state": "discarded"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "24"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/workers/_worker-Sye6V1obrgRodGy",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "args": "{\"amount\":99.5,\"order_id\":\"ord_123\"}",
+                "attempt": "0",
+                "attempted_at": null,
+                "attempted_by": null,
+                "cancelled_at": null,
+                "completed_at": null,
+                "createdAt": "2026-11-18T00:32:47Z",
+                "discarded_at": "2026-11-18T00:32:47Z",
+                "errors": "[]",
+                "id": "_worker-Sye6V1obrgRodGy",
+                "inserted_at": "2026-11-18T00:32:47Z",
+                "max_attempts": "20",
+                "meta": "{}",
+                "priority": "10",
+                "queue": "orders",
+                "scheduled_at": "2026-11-18T00:32:47Z",
+                "state": "discarded",
+                "tags": "[]",
+                "updatedAt": "2026-11-18T00:32:47Z",
+                "worker": "process-order"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 498,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers/retry",
+          "request": {
+            "body": {
+              "json": {
+                "ids": [
+                  "_worker-Sye6V1obrgRodGy"
+                ]
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "38"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/workers/retry",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "rows_affected": 1,
+                "success": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 35,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers/_worker-Sye6V1obrgRodGy",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "args": "{\"amount\":99.5,\"order_id\":\"ord_123\"}",
+                "attempt": "0",
+                "attempted_at": null,
+                "attempted_by": null,
+                "cancelled_at": null,
+                "completed_at": null,
+                "createdAt": "2026-11-18T00:32:47Z",
+                "discarded_at": "2026-11-18T00:32:47Z",
+                "errors": "[]",
+                "id": "_worker-Sye6V1obrgRodGy",
+                "inserted_at": "2026-11-18T00:32:47Z",
+                "max_attempts": "20",
+                "meta": "{}",
+                "priority": "10",
+                "queue": "orders",
+                "scheduled_at": "2026-11-18T00:32:47Z",
+                "state": "available",
+                "tags": "[]",
+                "updatedAt": "2026-11-18T00:32:47Z",
+                "worker": "process-order"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 498,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "DELETE",
+            "path": "/api/workers/_worker-Sye6V1obrgRodGy",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "success": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 17,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/workers/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/workers/_worker-Sye6V1obrgRodGy",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Worker job not found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 35,
+            "status": 404
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestWorkersAPI"
+}

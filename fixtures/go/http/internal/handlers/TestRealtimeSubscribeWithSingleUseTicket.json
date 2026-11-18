@@ -1,0 +1,129 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "e000b7c5f7404ab8",
+      "exchanges": [
+        {
+          "route": "/api/realtime/ticket",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzcl90aWNrZXRfMSIsImVtYWlsIjoidGlja2V0QG1vdWwuZGV2IiwidXNlcm5hbWUiOiJ0aWNrZXR1c2VyIiwibW91bCI6InVzZXJzIiwiZXhwIjoxNzk1MDQ4MzYzLCJpYXQiOjE3OTQ5NjE5NjMsImp0aSI6ImQ3NDAxMWQ5MDdmZTI3NThhMWI1ZDQ1YWMzM2RiNWJmIn0.kpwTaxDzzipN1GE1ET5x6q2ILzSaoOSw1DhUE-AGHWo"
+              ],
+              "Content-Length": [
+                "0"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/realtime/ticket",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "expiresAt": "2026-11-18T00:33:13Z",
+                "expiresIn": 30,
+                "ticket": "tkt_fbc805a30bad38c7347cdb1ddc65969d9205f5666a4e68ef"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 116,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": "ticket=tkt_fbc805a30bad38c7347cdb1ddc65969d9205f5666a4e68ef"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Invalid or expired realtime ticket"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 49,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": "ticket=tkt_fbc805a30bad38c7347cdb1ddc65969d9205f5666a4e68ef"
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"e408bd2d0f78bcae\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 97,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeSubscribeWithSingleUseTicket"
+}

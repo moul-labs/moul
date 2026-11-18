@@ -1,0 +1,215 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "0dcf49030bd72e0d",
+      "exchanges": [
+        {
+          "route": "/api/oauth2/register",
+          "request": {
+            "body": {
+              "json": {
+                "client_name": "Claude Code",
+                "redirect_uris": [
+                  "https://claude.ai/oauth-callback"
+                ]
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "82"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/register",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "client_id": "moul_client_lb0SXonrdqFOBZ3p",
+                "client_id_issued_at": 1794961966,
+                "client_name": "Claude Code",
+                "client_secret": "moul_sec_m0anT3h1hfIx8QmarSWjp1x1R8J9Ii8b",
+                "grant_types": [
+                  "authorization_code",
+                  "refresh_token"
+                ],
+                "redirect_uris": [
+                  "https://claude.ai/oauth-callback"
+                ],
+                "response_types": [
+                  "code"
+                ],
+                "token_endpoint_auth_method": "client_secret_post"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 348,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/oauth2/authorize",
+          "request": {
+            "body": {
+              "text": "client_id=moul_client_lb0SXonrdqFOBZ3p\u0026code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM\u0026code_challenge_method=S256\u0026identity=rootboss\u0026password=StrongRootPassword123%21\u0026redirect_uri=https%3A%2F%2Fclaude.ai%2Foauth-callback\u0026response_type=code\u0026scope=mcp\u0026state=claude_state"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "278"
+              ],
+              "Content-Type": [
+                "application/x-www-form-urlencoded"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/authorize",
+            "query": ""
+          },
+          "response": {
+            "body": null,
+            "headers": {
+              "Location": [
+                "https://claude.ai/oauth-callback?code=uT6g2bCCcHSOohPhhvD4nqSV34XfjMLd\u0026state=claude_state"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 0,
+            "status": 302
+          }
+        },
+        {
+          "route": "/api/oauth2/token",
+          "request": {
+            "body": {
+              "text": "client_id=moul_client_lb0SXonrdqFOBZ3p\u0026client_secret=moul_sec_m0anT3h1hfIx8QmarSWjp1x1R8J9Ii8b\u0026code=uT6g2bCCcHSOohPhhvD4nqSV34XfjMLd\u0026code_verifier=dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk\u0026grant_type=authorization_code\u0026redirect_uri=https%3A%2F%2Fclaude.ai%2Foauth-callback"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "274"
+              ],
+              "Content-Type": [
+                "application/x-www-form-urlencoded"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/token",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QtdXNlci11dWlkLTEiLCJlbWFpbCI6InJvb3Rib3NzQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290Ym9zcyIsIm1vdWwiOiJfcm9vdFVzZXJzIiwiZXhwIjoxNzk1MDQ4MzY2LCJpYXQiOjE3OTQ5NjE5NjYsImp0aSI6ImM3YTNkNTAzMDNkOWQ4NWNiNzA0MWFiOTMyYmIwZjY4In0.L6IVvbUePUB49BRhrAXFkemOwJRYowaPatBeghTs8_s",
+                "expires_in": 86400,
+                "refresh_token": "JMz7W7pxHk7sdZWyV4paosisJ2iReQsem9VFwCmM",
+                "scope": "mcp",
+                "token_type": "Bearer"
+              }
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-store"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Pragma": [
+                "no-cache"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 446,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/oauth2/token",
+          "request": {
+            "body": {
+              "text": "client_id=moul_client_lb0SXonrdqFOBZ3p\u0026grant_type=refresh_token\u0026refresh_token=JMz7W7pxHk7sdZWyV4paosisJ2iReQsem9VFwCmM"
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "118"
+              ],
+              "Content-Type": [
+                "application/x-www-form-urlencoded"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/oauth2/token",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InJvb3QtdXNlci11dWlkLTEiLCJlbWFpbCI6InJvb3Rib3NzQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJyb290Ym9zcyIsIm1vdWwiOiJfcm9vdFVzZXJzIiwiZXhwIjoxNzk1MDQ4MzY2LCJpYXQiOjE3OTQ5NjE5NjYsImp0aSI6ImQ5YjQyNDRmNzY4YTNiNjIwMDQ3Y2UxZGYyM2FhOWIwIn0.sD8u5TRvrTq_idZUbH7oumusAhWZSiwUiTAxSHeO7Eo",
+                "expires_in": 86400,
+                "refresh_token": "JMz7W7pxHk7sdZWyV4paosisJ2iReQsem9VFwCmM",
+                "scope": "mcp",
+                "token_type": "Bearer"
+              }
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-store"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Pragma": [
+                "no-cache"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 446,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestOAuthAuthorizeWithRootUserAndRefreshToken"
+}

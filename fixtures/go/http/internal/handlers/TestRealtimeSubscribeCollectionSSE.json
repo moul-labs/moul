@@ -1,0 +1,53 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "0988e4b99d0aee7a",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/sse_posts/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"b2e8bcd24fe4af71\",\"moul\":\"sse_posts\",\"status\":\"connected\"}\n\nevent: create\ndata: {\"action\":\"create\",\"moul\":\"sse_posts\",\"record\":{\"id\":\"rec_sse_1\",\"title\":\"Realtime SSE Post\"},\"timestamp\":\"2026-11-18T00:32:43Z\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 248,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtimeSubscribeCollectionSSE"
+}

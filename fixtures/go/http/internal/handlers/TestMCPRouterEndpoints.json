@@ -1,0 +1,86 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "2c5e1baac9ff2d64",
+      "exchanges": [
+        {
+          "route": "/api/mcp*",
+          "request": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "method": "initialize",
+                "params": {
+                  "capabilities": {},
+                  "clientInfo": {
+                    "name": "test-client",
+                    "version": "1.0"
+                  },
+                  "protocolVersion": "2024-11-05"
+                }
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "158"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "test-admin-key-1234"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/mcp",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "id": 1,
+                "jsonrpc": "2.0",
+                "result": {
+                  "capabilities": {
+                    "logging": {},
+                    "tools": {
+                      "listChanged": true
+                    }
+                  },
+                  "protocolVersion": "2024-11-05",
+                  "serverInfo": {
+                    "name": "moul-dev",
+                    "version": "dev"
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Mcp-Session-Id": [
+                "mcp-session-e7101c53-b0dd-441c-8aab-b032a558a846"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 175,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestMCPRouterEndpoints"
+}

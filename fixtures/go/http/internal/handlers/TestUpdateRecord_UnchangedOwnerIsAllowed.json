@@ -1,0 +1,95 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "485aa63e2036f33c",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "coowner": "bob",
+                "owner": "alice",
+                "title": "x"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMTcyOGNlMmU5NWQxZGRjMjVjYzQ5YWEyZDU5ODE1NTEifQ.w39vDIvGIWZlbnaZd2pDB6EcQ1RllE6I-nyYzTEK7lg"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/docs/records/d1",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "coowner": "bob",
+                "createdAt": "2026-01-01T00:00:00Z",
+                "id": "d1",
+                "owner": "alice",
+                "title": "x",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 126,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": {
+              "json": {
+                "owner": "mallory"
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMTcyOGNlMmU5NWQxZGRjMjVjYzQ5YWEyZDU5ODE1NTEifQ.w39vDIvGIWZlbnaZd2pDB6EcQ1RllE6I-nyYzTEK7lg"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "PATCH",
+            "path": "/api/moul/docs/records/d1",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "You are not allowed to set \"owner\" to another user"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 403
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestUpdateRecord_UnchangedOwnerIsAllowed"
+}

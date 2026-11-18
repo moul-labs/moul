@@ -1,0 +1,149 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "2f44603ae44fd1bd",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "fullName": "Alice Smith",
+                "ssn": "987-65-4321"
+              }
+            },
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "Content-Length": [
+                "46"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "admin-secret-key"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/patients/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "fullName": "Alice Smith",
+                "id": "patient-NTUnhnPQ0C2zC5a",
+                "ssn": "987-65-4321",
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 148,
+            "status": 201
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ],
+              "X-Admin-Key": [
+                "admin-secret-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/patients/subscribe",
+            "query": "reveal=all"
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"019677bb1fdb432e\",\"moul\":\"patients\",\"status\":\"connected\"}\n\nevent: create\ndata: {\"action\":\"create\",\"moul\":\"patients\",\"record\":{\"createdAt\":\"2026-11-18T00:32:43Z\",\"fullName\":\"Alice Smith\",\"id\":\"patient-NTUnhnPQ0C2zC5a\",\"ssn\":\"987-65-4321\",\"updatedAt\":\"2026-11-18T00:32:43Z\"},\"timestamp\":\"2026-11-18T00:32:43Z\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 347,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/subscribe",
+          "request": {
+            "body": null,
+            "headers": {
+              "Accept-Encoding": [
+                "gzip"
+              ],
+              "User-Agent": [
+                "Go-http-client/1.1"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/patients/subscribe",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "text": "event: connected\ndata: {\"client_id\":\"dab56cfaf9d63e61\",\"moul\":\"patients\",\"status\":\"connected\"}\n\nevent: create\ndata: {\"action\":\"create\",\"moul\":\"patients\",\"record\":{\"createdAt\":\"2026-11-18T00:32:43Z\",\"fullName\":\"Alice Smith\",\"id\":\"patient-NTUnhnPQ0C2zC5a\",\"ssn\":\"••••4321\",\"updatedAt\":\"2026-11-18T00:32:43Z\"},\"timestamp\":\"2026-11-18T00:32:43Z\"}\n\n"
+            },
+            "headers": {
+              "Cache-Control": [
+                "no-cache"
+              ],
+              "Connection": [
+                "keep-alive"
+              ],
+              "Content-Type": [
+                "text/event-stream"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Accel-Buffering": [
+                "no"
+              ]
+            },
+            "size": 352,
+            "status": 200
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRealtime_CloakFieldMaskingEndToEnd"
+}

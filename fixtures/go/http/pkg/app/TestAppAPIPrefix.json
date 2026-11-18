@@ -1,0 +1,242 @@
+{
+  "outcome": "pass",
+  "package": "pkg/app",
+  "sessions": [
+    {
+      "db_before": "14314b6d66768fd8",
+      "exchanges": [
+        {
+          "route": "/api/setup",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/setup",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "needsSetup": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 20,
+            "status": 200
+          }
+        },
+        {
+          "route": "",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/setup",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not Found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        }
+      ]
+    },
+    {
+      "db_before": "848a73eae64482bd",
+      "exchanges": [
+        {
+          "route": "/v1/setup",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/v1/setup",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "needsSetup": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 20,
+            "status": 200
+          }
+        },
+        {
+          "route": "",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/setup",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Not Found"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 24,
+            "status": 404
+          }
+        }
+      ]
+    },
+    {
+      "db_before": "7ac0d85af6adf055",
+      "exchanges": [
+        {
+          "route": "/setup",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/setup",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "needsSetup": true
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 20,
+            "status": 200
+          }
+        },
+        {
+          "route": "/moul",
+          "request": {
+            "body": null,
+            "headers": {
+              "X-Admin-Key": [
+                "test-admin-key"
+              ]
+            },
+            "method": "GET",
+            "path": "/moul",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": []
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 3,
+            "status": 200
+          }
+        },
+        {
+          "route": "/admin/login",
+          "request": {
+            "body": {
+              "json": {
+                "identity": "admin",
+                "password": "password"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/admin/login",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Admin authentication required"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 44,
+            "status": 401
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestAppAPIPrefix"
+}

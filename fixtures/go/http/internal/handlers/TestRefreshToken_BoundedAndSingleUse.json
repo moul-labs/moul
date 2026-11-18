@@ -1,0 +1,206 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "2463089731a01ae1",
+      "exchanges": [
+        {
+          "route": "/api/moul/:name/refresh",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTQ5NTgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOWFmYzAzODVmNTViYzRlZTFhY2MxNmQ3NzJkOTcyNmEifQ.hp7vpnMyzVUvEGIugYWn1HMnfKICEmOSE9gbu6D_mFk"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/refresh",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "record": {
+                  "createdAt": "2026-01-01T00:00:00Z",
+                  "displayName": null,
+                  "email": "alice@example.com",
+                  "id": "alice",
+                  "updatedAt": "2026-01-01T00:00:00Z",
+                  "username": "alice"
+                },
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYzE2ZmJiMTE1NjI4ZWFhZmRiNjEwZjY5YzMwYjk5MDIifQ._MkCePn7Etl4OjqyiRvq2bjQIfo8u9kFI5QTjIZAkII"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 456,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/refresh",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTQ5NTgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOWFmYzAzODVmNTViYzRlZTFhY2MxNmQ3NzJkOTcyNmEifQ.hp7vpnMyzVUvEGIugYWn1HMnfKICEmOSE9gbu6D_mFk"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/refresh",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Token has been revoked"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 37,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/refresh",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTQzNTM1NjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiYjg0ZmM1MWNhNTZkYjYxNWE5M2EwMTM5MWVlYzZiNmIifQ.0rAiSKbqoZB2gPgebCF4UT-G9RiHV_j-rj_aO349i60"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/refresh",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Token expired too long ago; sign in again"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 56,
+            "status": 401
+          }
+        },
+        {
+          "route": "/api/moul/:name/logout",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTQ5NjE5MDMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMmE4NzAwYTU5YWYwOTdmNjgxYTM3ZWJhODAxM2VkMzkifQ.JM1pg3wnbzVFFDC10y7qisST95Z00nSO1Pp-0zkGBFY"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/logout",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Logged out successfully"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 38,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/logout",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTQ5NjE5MDMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMmE4NzAwYTU5YWYwOTdmNjgxYTM3ZWJhODAxM2VkMzkifQ.JM1pg3wnbzVFFDC10y7qisST95Z00nSO1Pp-0zkGBFY"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/logout",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Logged out successfully"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 38,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/moul/:name/refresh",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTQ5NjE5MDMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiMmE4NzAwYTU5YWYwOTdmNjgxYTM3ZWJhODAxM2VkMzkifQ.JM1pg3wnbzVFFDC10y7qisST95Z00nSO1Pp-0zkGBFY"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/users/refresh",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Token has been revoked"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 37,
+            "status": 401
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestRefreshToken_BoundedAndSingleUse"
+}

@@ -1,0 +1,610 @@
+{
+  "outcome": "pass",
+  "package": "internal/handlers",
+  "sessions": [
+    {
+      "db_before": "3164391ab2308ccf",
+      "exchanges": [
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS0xOTI2ODk2OGMzYzllNGQ3MGFlZjRlOTllZmM4NjY2ODM3ZWY4ZjhmNWFhZjBmYmRjNjhjZDNmYjc0MmINCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJnYXJhZ2UucG5nIg0KQ29udGVudC1UeXBlOiBpbWFnZS9wbmcNCg0KiVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGJiQANggf9ghANgaAEEAAD//1n7AgW6okuFAAAAAElFTkSuQmCCDQotLTE5MjY4OTY4YzNjOWU0ZDcwYWVmNGU5OWVmYzg2NjY4MzdlZjhmOGY1YWFmMGZiZGM2OGNkM2ZiNzQyYi0tDQo="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOThlMzY0ODI3OTBmZjFhYjg5YTU5NjM0MzFjZjU2N2MifQ.9mZ4kwh6sEPyNqwmicALlEiSnjMVl9qhUbZork6Z2PI"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=19268968c3c9e4d70aef4e99efc8666837ef8f8f5aaf0fbdc68cd3fb742b"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "garage.png",
+                  "height": 4,
+                  "id": "fIA7cGPAv4US6yd",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "md": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "sm": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+                  },
+                  "url": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                  "width": 4
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 596,
+            "status": 200
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": "sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+          },
+          "response": {
+            "body": {
+              "base64": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGJiQANggf9ghANgaAEEAAD//1n7AgW6okuFAAAAAElFTkSuQmCC"
+            },
+            "headers": {
+              "Accept-Ranges": [
+                "bytes"
+              ],
+              "Cache-Control": [
+                "private, max-age=3600"
+              ],
+              "Content-Length": [
+                "81"
+              ],
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "image/png"
+              ],
+              "Last-Modified": [
+                "Wed, 18 Nov 2026 00:32:43 GMT"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 81,
+            "status": 200
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "owner": "alice",
+                "photo": {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "garage.png",
+                  "height": 4,
+                  "id": "fIA7cGPAv4US6yd",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "md": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "sm": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+                  },
+                  "url": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                  "width": 4
+                }
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOThlMzY0ODI3OTBmZjFhYjg5YTU5NjM0MzFjZjU2N2MifQ.9mZ4kwh6sEPyNqwmicALlEiSnjMVl9qhUbZork6Z2PI"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/garages/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "id": "garage-5hOGzQBPyAuHTCC",
+                "owner": "alice",
+                "photo": {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "garage.png",
+                  "height": 4,
+                  "id": "fIA7cGPAv4US6yd",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "md": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "sm": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+                  },
+                  "url": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                  "width": 4
+                },
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 720,
+            "status": 201
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/ZZZZZZZZZZZZZZZ/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNjZkY2Y1N2Q2OWE4NmVhZWFhYjQxZjEyZWU5MGUzZWQifQ.QZoAJfY79RR2ilk6DkcfQsQAYyIC3C6zSuh6lqCZYAQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNjZkY2Y1N2Q2OWE4NmVhZWFhYjQxZjEyZWU5MGUzZWQifQ.QZoAJfY79RR2ilk6DkcfQsQAYyIC3C6zSuh6lqCZYAQ"
+              ]
+            },
+            "method": "GET",
+            "path": "/storage/ZZZZZZZZZZZZZZZ/original.png",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records/:id",
+          "request": {
+            "body": null,
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFsaWNlIiwiZW1haWwiOiJhbGljZUBleGFtcGxlLmNvbSIsInVzZXJuYW1lIjoiYWxpY2UiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiOThlMzY0ODI3OTBmZjFhYjg5YTU5NjM0MzFjZjU2N2MifQ.9mZ4kwh6sEPyNqwmicALlEiSnjMVl9qhUbZork6Z2PI"
+              ]
+            },
+            "method": "GET",
+            "path": "/api/moul/garages/records/garage-5hOGzQBPyAuHTCC",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "createdAt": "2026-11-18T00:32:43Z",
+                "id": "garage-5hOGzQBPyAuHTCC",
+                "owner": "alice",
+                "photo": {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "garage.png",
+                  "height": 4,
+                  "id": "fIA7cGPAv4US6yd",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "md": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "sm": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+                  },
+                  "url": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                  "width": 4
+                },
+                "updatedAt": "2026-11-18T00:32:43Z"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 720,
+            "status": 200
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": "sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+          },
+          "response": {
+            "body": {
+              "base64": "iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAGElEQVR4nGJiQANggf9ghANgaAEEAAD//1n7AgW6okuFAAAAAElFTkSuQmCC"
+            },
+            "headers": {
+              "Accept-Ranges": [
+                "bytes"
+              ],
+              "Cache-Control": [
+                "private, max-age=3600"
+              ],
+              "Content-Length": [
+                "81"
+              ],
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "image/png"
+              ],
+              "Last-Modified": [
+                "Wed, 18 Nov 2026 00:32:43 GMT"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 81,
+            "status": 200
+          }
+        },
+        {
+          "route": "/api/upload",
+          "request": {
+            "body": {
+              "base64": "LS1lYmNjNTdhOWYyY2U1MWYyNmFhMDU1ZjJjYmU3MTZhNjZjZjNlNGFhNzhkOGZhNDI2ZjQzMTZiMGU2OGYNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iZmlsZSI7IGZpbGVuYW1lPSJvdGhlci5wbmciDQpDb250ZW50LVR5cGU6IGltYWdlL3BuZw0KDQqJUE5HDQoaCgAAAA1JSERSAAAABAAAAAQIBgAAAKnxnn4AAAAYSURBVHicYmJAA2CB/2CEA2BoAQQAAP//WfsCBbqiS4UAAAAASUVORK5CYIINCi0tZWJjYzU3YTlmMmNlNTFmMjZhYTA1NWYyY2JlNzE2YTY2Y2YzZTRhYTc4ZDhmYTQyNmY0MzE2YjBlNjhmLS0NCg=="
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNjZkY2Y1N2Q2OWE4NmVhZWFhYjQxZjEyZWU5MGUzZWQifQ.QZoAJfY79RR2ilk6DkcfQsQAYyIC3C6zSuh6lqCZYAQ"
+              ],
+              "Content-Type": [
+                "multipart/form-data; boundary=ebcc57a9f2ce51f26aa055f2cbe716a66cf3e4aa78d8fa426f4316b0e68f"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/upload",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": [
+                {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "other.png",
+                  "height": 4,
+                  "id": "OCDmYCkHcWDciIh",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/OCDmYCkHcWDciIh/original.png?sig=1794967200.qOW3tGFVandqWZ1uIOmAuRLqb5NDJBBmljCya1ecf84",
+                    "md": "/storage/OCDmYCkHcWDciIh/original.png?sig=1794967200.qOW3tGFVandqWZ1uIOmAuRLqb5NDJBBmljCya1ecf84",
+                    "sm": "/storage/OCDmYCkHcWDciIh/original.png?sig=1794967200.qOW3tGFVandqWZ1uIOmAuRLqb5NDJBBmljCya1ecf84"
+                  },
+                  "url": "/storage/OCDmYCkHcWDciIh/original.png?sig=1794967200.qOW3tGFVandqWZ1uIOmAuRLqb5NDJBBmljCya1ecf84",
+                  "width": 4
+                }
+              ]
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 595,
+            "status": 200
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": "sig=1794967200.qOW3tGFVandqWZ1uIOmAuRLqb5NDJBBmljCya1ecf84"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/storage/*",
+          "request": {
+            "body": null,
+            "headers": {},
+            "method": "GET",
+            "path": "/storage/fIA7cGPAv4US6yd/original.png",
+            "query": "sig=9999999999.forged"
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "File not found"
+              }
+            },
+            "headers": {
+              "Content-Security-Policy": [
+                "default-src 'none'; img-src 'self' data:; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+              ],
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ],
+              "X-Content-Type-Options": [
+                "nosniff"
+              ]
+            },
+            "size": 29,
+            "status": 404
+          }
+        },
+        {
+          "route": "/api/moul/:name/records",
+          "request": {
+            "body": {
+              "json": {
+                "owner": "bob",
+                "photo": {
+                  "createdAt": "2026-11-18T00:32:43Z",
+                  "filename": "garage.png",
+                  "height": 4,
+                  "id": "fIA7cGPAv4US6yd",
+                  "size": 81,
+                  "thumbhash": "1fuDBQARSyB3h4YIJ0h2gGQHK3CbVVIMdQ==",
+                  "thumbs": {
+                    "lg": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "md": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                    "sm": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE"
+                  },
+                  "url": "/storage/fIA7cGPAv4US6yd/original.png?sig=1794967200.6kSDI-_WxzHsZ1-lh0LXpzYkDpv3BZhHEmZXrrnTKNE",
+                  "width": 4
+                }
+              }
+            },
+            "headers": {
+              "Authorization": [
+                "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJvYiIsImVtYWlsIjoiYm9iQGV4YW1wbGUuY29tIiwidXNlcm5hbWUiOiJib2IiLCJtb3VsIjoidXNlcnMiLCJleHAiOjE3OTUwNDgzNjMsImlhdCI6MTc5NDk2MTk2MywianRpIjoiNjZkY2Y1N2Q2OWE4NmVhZWFhYjQxZjEyZWU5MGUzZWQifQ.QZoAJfY79RR2ilk6DkcfQsQAYyIC3C6zSuh6lqCZYAQ"
+              ],
+              "Content-Type": [
+                "application/json"
+              ]
+            },
+            "method": "POST",
+            "path": "/api/moul/garages/records",
+            "query": ""
+          },
+          "response": {
+            "body": {
+              "json": {
+                "message": "Field \"photo\" references a file you did not upload"
+              }
+            },
+            "headers": {
+              "Content-Type": [
+                "application/json"
+              ],
+              "Vary": [
+                "Origin"
+              ]
+            },
+            "size": 67,
+            "status": 400
+          }
+        }
+      ]
+    }
+  ],
+  "test": "TestFiles_PrivateRecordFilesNeedASignature"
+}
