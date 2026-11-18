@@ -10,5 +10,16 @@ readme = "README.md"
 keywords = ["rules", "access-control", "sql", "parser", "filter"]
 categories = ["parser-implementations", "authentication", "database"]
 
+[dependencies]
+moul-store.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+moul-fixtures.workspace = true
+rusqlite.workspace = true
+# The parity suite recomputes the Go engine's cloak blind indexes.
+hmac.workspace = true
+sha2.workspace = true
+
 [lints]
 workspace = true

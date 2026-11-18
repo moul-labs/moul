@@ -24,9 +24,18 @@ Usage:
   moul pull <replica> <folder> [--watch] [--every <seconds>]
       Keep a local copy of a replica in <folder>, following its writer.
       <folder>/main.db is a SQLite file other tools can read while moul is
-      not running. --watch keeps pulling until stopped.
+      not running. --watch keeps pulling until stopped, every 3 seconds or
+      every --every seconds (0.2 to 86400).
   moul info <replica>
       Show who writes a replica, how far it reaches and what it holds.
+  moul schema <database> [-o <file>]
+      Write the app definition (collections, fields with their ids, rules)
+      as a schema file, for git, review and agents.
+  moul typegen <schema file | database> [-o <file>]
+      Write TypeScript types for the records of every collection.
+
+A database is a SQLite file (main.db, a Moul export or a Go engine
+database) or a folder holding main.db, such as one `moul pull` keeps.
 
 A replica is a folder (a path or file:///path) or an S3-compatible bucket:
   s3://<bucket>/<prefix>?endpoint=<url>&region=<region>
@@ -52,6 +61,8 @@ pub(crate) fn main() -> ExitCode {
         Some("restore") => restore(&args[1..]),
         Some("pull") => pull(&args[1..]),
         Some("info") => info(&args[1..]),
+        Some("schema") => schema(&args[1..]),
+        Some("typegen") => typegen(&args[1..]),
         Some(other) => Err(format!("unknown command {other:?}; see `moul help`")),
     };
     match result {
@@ -221,10 +232,11 @@ fn parse_txid(s: &str) -> Result<u64> {
         .ok_or_else(|| format!("{s:?} is not a TXID"))
 }
 
+/// Checks the SQLite file at `path`. It opens the file as immutable, so a file
+/// in WAL mode gets no `-wal` or `-shm` file next to it.
 fn check_integrity(path: &Path) -> Result<()> {
-    let uri = format!("file:{}?immutable=1", path.display());
     let conn = rusqlite::Connection::open_with_flags(
-        uri,
+        immutable_uri(path),
         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_URI,
     )
     .map_err(|e| format!("the restored file does not open: {e}"))?;
@@ -237,6 +249,23 @@ fn check_integrity(path: &Path) -> Result<()> {
         ));
     }
     Ok(())
+}
+
+/// The SQLite URI that opens `path` as an immutable file. Every byte but
+/// letters, digits and `-._~` is percent-encoded, slashes too. SQLite decodes
+/// them back, so no `?`, `#`, `%` or leading `//` in the path reads as URI
+/// syntax, and any path, relative or absolute, names the same file.
+fn immutable_uri(path: &Path) -> String {
+    let mut uri = String::from("file:");
+    for &b in path.as_os_str().as_encoded_bytes() {
+        if b.is_ascii_alphanumeric() || b"-._~".contains(&b) {
+            uri.push(char::from(b));
+        } else {
+            uri.push_str(&format!("%{b:02X}"));
+        }
+    }
+    uri.push_str("?immutable=1");
+    uri
 }
 
 /// A pulled folder: the volume, its capture, and a lock so that one process
@@ -274,13 +303,9 @@ fn pull(args: &[String]) -> Result<()> {
     let dir = PathBuf::from(a.positional(1, "the folder to pull into")?);
     a.arity(2)?;
     let watch = a.has("--watch") || a.has("-w");
-    let every: f64 = match a.value(&["--every"]) {
-        Some(s) => s
-            .parse()
-            .ok()
-            .filter(|s: &f64| *s >= 0.2)
-            .ok_or_else(|| format!("--every {s:?}: give seconds, at least 0.2"))?,
-        None => 3.0,
+    let every = match a.value(&["--every"]) {
+        Some(s) => parse_every(s)?,
+        None => Duration::from_secs(3),
     };
     let replica = open_replica(spec)?;
     let mut pulled = open_pulled(&dir)?;
@@ -340,8 +365,24 @@ fn pull(args: &[String]) -> Result<()> {
         if !watch {
             return Ok(());
         }
-        std::thread::sleep(Duration::from_secs_f64(every));
+        std::thread::sleep(every);
     }
+}
+
+/// The shortest pause `moul pull --every` takes, in seconds.
+const EVERY_MIN: f64 = 0.2;
+
+/// The longest pause `moul pull --every` takes, in seconds: a day.
+const EVERY_MAX: f64 = 86_400.0;
+
+/// Reads the seconds `--every` gives. Infinite, NaN, negative and huge values
+/// are refused here, so the pull loop never sleeps on one.
+fn parse_every(s: &str) -> Result<Duration> {
+    s.parse::<f64>()
+        .ok()
+        .filter(|v| (EVERY_MIN..=EVERY_MAX).contains(v))
+        .and_then(|v| Duration::try_from_secs_f64(v).ok())
+        .ok_or_else(|| format!("--every {s:?}: give seconds, from {EVERY_MIN} to {EVERY_MAX}"))
 }
 
 fn info(args: &[String]) -> Result<()> {
@@ -418,4 +459,169 @@ fn info(args: &[String]) -> Result<()> {
         }
         Ok(())
     })
+}
+
+/// Reads the collections of a database file or folder, without changing it.
+fn read_collections(spec: &str) -> Result<Vec<moul_store::schema::Collection>> {
+    let mut path = PathBuf::from(spec);
+    if path.is_dir() {
+        path = path.join("main.db");
+    }
+    let conn = rusqlite::Connection::open_with_flags(
+        &path,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )
+    .map_err(|e| format!("{}: {e}", path.display()))?;
+    let has_moul: bool = conn
+        .query_row(
+            "SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = '_moul'",
+            [],
+            |_| Ok(()),
+        )
+        .is_ok();
+    if !has_moul {
+        return Err(format!(
+            "{} is not a Moul database (no _moul table)",
+            path.display()
+        ));
+    }
+    moul_store::catalog::load_all(&conn).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+fn write_output(out: Option<&str>, text: &str) -> Result<()> {
+    match out {
+        Some(file) => fs::write(file, text).map_err(|e| format!("{file}: {e}")),
+        None => {
+            print!("{text}");
+            Ok(())
+        }
+    }
+}
+
+fn schema(args: &[String]) -> Result<()> {
+    let a = Args::parse(args, &["-o", "--output"], &[])?;
+    let db = a.positional(0, "a database")?;
+    a.arity(1)?;
+    let collections = read_collections(db)?;
+    let file = moul_core::definition::schema_file(&collections);
+    let mut text = serde_json::to_string_pretty(&file).expect("json serialises");
+    text.push('\n');
+    write_output(a.value(&["-o", "--output"]), &text)
+}
+
+fn typegen(args: &[String]) -> Result<()> {
+    let a = Args::parse(args, &["-o", "--output"], &[])?;
+    let input = a.positional(0, "a schema file or a database")?;
+    a.arity(1)?;
+    let collections = if input.ends_with(".json") {
+        let text = fs::read_to_string(input).map_err(|e| format!("{input}: {e}"))?;
+        let file: serde_json::Value =
+            serde_json::from_str(&text).map_err(|e| format!("{input}: {e}"))?;
+        moul_core::definition::read_schema_file(&file).map_err(|e| format!("{input}: {e}"))?
+    } else {
+        read_collections(input)?
+    };
+    write_output(
+        a.value(&["-o", "--output"]),
+        &moul_core::definition::typescript(&collections),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A fresh, empty folder for one test.
+    fn scratch(name: &str) -> PathBuf {
+        let dir = std::env::temp_dir().join(format!("moul-cli-{name}-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    /// Writes a small, valid database in WAL mode at `path`.
+    fn valid_db(path: &Path) {
+        let conn = rusqlite::Connection::open(path).unwrap();
+        conn.execute_batch(
+            "PRAGMA journal_mode = WAL; CREATE TABLE t (x); INSERT INTO t VALUES (1);",
+        )
+        .unwrap();
+    }
+
+    /// Names SQLite would read as URI syntax if they were not escaped.
+    fn awkward_names() -> Vec<&'static str> {
+        let mut names = vec![
+            "a b.db",
+            "c#d.db",
+            "e%41.db",
+            "f%.db",
+            "g%2.db",
+            "~h-i_j.db",
+        ];
+        if cfg!(unix) {
+            names.push("k?immutable=0.db");
+        }
+        names
+    }
+
+    #[test]
+    fn immutable_uri_escapes_the_path() {
+        assert_eq!(
+            immutable_uri(Path::new("/d b/c#d?e%41~-_.db")),
+            "file:%2Fd%20b%2Fc%23d%3Fe%2541~-_.db?immutable=1"
+        );
+        assert_eq!(immutable_uri(Path::new("//x")), "file:%2F%2Fx?immutable=1");
+    }
+
+    #[test]
+    fn check_integrity_reads_the_file_it_is_given() {
+        let dir = scratch("check-wrong-file");
+        // A valid database sits where an unescaped URI would stop or decode
+        // the path; the file to check next to it is garbage.
+        let mut pairs = vec![("db", "db#2.tmp"), ("dbA.tmp", "db%41.tmp")];
+        if cfg!(unix) {
+            pairs.push(("dc", "dc?x.tmp"));
+        }
+        for (decoy, name) in pairs {
+            valid_db(&dir.join(decoy));
+            fs::write(dir.join(name), vec![0xab; 4096]).unwrap();
+            assert!(check_integrity(&dir.join(name)).is_err(), "{name}");
+        }
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn check_integrity_opens_awkward_names() {
+        let dir = scratch("check-awkward");
+        valid_db(&dir.join("good.db"));
+        let good = fs::read(dir.join("good.db")).unwrap();
+        for name in awkward_names() {
+            fs::write(dir.join(name), &good).unwrap();
+            check_integrity(&dir.join(name)).unwrap_or_else(|e| panic!("{name}: {e}"));
+        }
+        // Immutable: no -wal or -shm file appears next to any of them.
+        let mut left: Vec<String> = fs::read_dir(&dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        left.sort();
+        let mut want: Vec<String> = awkward_names().into_iter().map(String::from).collect();
+        want.push("good.db".into());
+        want.sort();
+        assert_eq!(left, want);
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn parse_every_takes_seconds_from_a_fifth_to_a_day() {
+        assert_eq!(parse_every("0.2").unwrap(), Duration::from_millis(200));
+        assert_eq!(parse_every("3").unwrap(), Duration::from_secs(3));
+        assert_eq!(parse_every("86400").unwrap(), Duration::from_secs(86_400));
+        for bad in [
+            "inf", "infinity", "-inf", "NaN", "1e20", "86401", "-1", "0", "0.1", "", "soon",
+        ] {
+            let e = parse_every(bad).unwrap_err();
+            assert!(e.contains("from 0.2 to 86400"), "{bad}: {e}");
+        }
+    }
 }

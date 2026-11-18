@@ -22,7 +22,8 @@ moul info <replica>
   restores an earlier state still in the replica's history.
 - **`pull`** keeps a local copy in a folder, following the replica's writer.
   `./notes/main.db` is byte for byte the writer's file and any SQLite tool can
-  read it while `moul` is not running. `--watch` keeps following. A folder that
+  read it while `moul` is not running. `--watch` keeps following, every 3
+  seconds or every `--every` seconds (0.2 to 86400). A folder that
   held other data keeps it in `./notes/conflicts/` before taking the
   replica's.
 - **`info`** shows who writes, how far the replica reaches, its files by

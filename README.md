@@ -9,7 +9,12 @@ apps are deployed as data.
 hold the names. In this repository, storage, LTX and sync work: a database in a
 browser tab syncs to an S3-compatible bucket as a Litestream replica, and
 `moul restore` and `moul pull` read it back. `demo/` is a SQL console that
-shows it.
+shows it. The engine (`moul-core`, with `moul-rules` and `moul-store`) serves
+collections, records, rules, auth with a local inbox, files, realtime, import
+and export, and the schema file, and converts a Go engine database on first
+open. `moul schema` and `moul typegen` read a database or schema file. The
+browser host still exposes Phase 3's SQL console; it serves engine requests
+from Phase 5.
 
 ## Crates
 
@@ -88,6 +93,11 @@ scripts/export-go-fixtures.sh ../../moul-dev/moul-dev
 ```
 
 See [`fixtures/go/README.md`](fixtures/go/README.md) for the format.
+
+The parity suite replays them: `crates/moul-rules/tests/go_parity.rs` for
+rule evaluation and SQL, `crates/moul-core/tests/go_parity.rs` for the HTTP
+API (run it with `--nocapture` for a table by route), and
+`crates/moul-store/tests/convert.rs` converts every recorded database.
 
 ## Publishing the placeholders
 

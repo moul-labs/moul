@@ -15,13 +15,22 @@
 //! Each file is marked with its own SQLite `application_id`, so a store can
 //! never be opened in another's place. Page size is 4,096 bytes everywhere.
 //!
-//! System tables and migrations arrive with the engine port in Phase 4,
-//! including converting a Go engine database, which keeps everything in one
+//! [`schema`] is the app definition (collections, fields, rules),
+//! [`catalog`] stores it and keeps each collection's table in line with it,
+//! and [`system`] holds the system tables of each store, their migrations,
+//! and the conversion of a Go engine database, which keeps everything in one
 //! file, into three stores.
 
 use std::fmt;
 
+pub mod catalog;
+pub mod schema;
+pub mod system;
+
+pub use system::{FORMAT, GoConversion, Migrated};
+
 use moul_vfs::{CommitSeq, MemoryStorage, PAGE_SIZE, Volume};
+use rusqlite::hooks::{AuthContext, Authorization};
 use rusqlite::{Connection, OpenFlags, TransactionBehavior};
 
 /// One of the three files of a Moul database.
@@ -108,6 +117,16 @@ pub enum Error {
     },
     /// A file to import is not acceptable. The message says why.
     BadImport(String),
+    /// Stored data cannot be read. The message says what.
+    Corrupt(String),
+    /// A change conflicts with the data, such as a unique index over
+    /// duplicate values. The message is meant for the builder.
+    Conflict(String),
+    /// The database was written by a newer engine.
+    TooNew(String),
+    /// The stores could not be opened again after an import or a replica
+    /// apply. The message says why. [`Store::ensure_open`] tries again.
+    Closed(String),
 }
 
 impl fmt::Display for Error {
@@ -128,6 +147,8 @@ impl fmt::Display for Error {
                 found: None,
             } => write!(f, "{} is not a Moul {expected}", expected.file_name()),
             Error::BadImport(why) => write!(f, "cannot import: {why}"),
+            Error::Corrupt(why) | Error::Conflict(why) | Error::TooNew(why) => f.write_str(why),
+            Error::Closed(why) => write!(f, "the store is closed: {why}"),
         }
     }
 }
@@ -157,17 +178,33 @@ impl From<moul_vfs::Error> for Error {
 /// Result type of this crate.
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
+/// Per-connection settings the owner puts on each new connection. See
+/// [`Store::on_connect`].
+type ConnectHook = Box<dyn FnMut(&mut Connection) -> rusqlite::Result<()> + Send>;
+
 /// A Moul database: three stores on one volume, behind one connection.
 pub struct Store {
-    // Declared before `volume` so the connection closes first.
-    conn: Option<Connection>,
+    // Declared before `volume` so the connection closes first. While
+    // `closed` is set, this is a stand-in that refuses every statement.
+    conn: Connection,
+    closed: Option<Closed>,
+    on_connect: Option<ConnectHook>,
     volume: Volume,
+}
+
+/// Why the stores are closed, and how to open them again.
+#[derive(Debug)]
+struct Closed {
+    adopt: bool,
+    why: String,
 }
 
 impl fmt::Debug for Store {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Store")
             .field("volume", &self.volume)
+            .field("closed", &self.closed)
+            .field("on_connect", &self.on_connect.is_some())
             .finish_non_exhaustive()
     }
 }
@@ -177,7 +214,9 @@ impl Store {
     pub fn open(volume: Volume) -> Result<Store> {
         let conn = connect(&volume, true)?;
         Ok(Store {
-            conn: Some(conn),
+            conn,
+            closed: None,
+            on_connect: None,
             volume,
         })
     }
@@ -189,22 +228,125 @@ impl Store {
     pub fn open_follower(volume: Volume) -> Result<Store> {
         let conn = connect(&volume, false)?;
         Ok(Store {
-            conn: Some(conn),
+            conn,
+            closed: None,
+            on_connect: None,
             volume,
         })
+    }
+
+    /// Runs `hook` on the connection now, and on every new connection when
+    /// the stores are opened again: by [`import`](Self::import),
+    /// [`reopen_around`](Self::reopen_around) or
+    /// [`ensure_open`](Self::ensure_open). A new connection starts without
+    /// any per-connection setting, such as an authorizer, so the owner puts
+    /// those here. It replaces a hook set before.
+    ///
+    /// If `hook` fails now, it is not kept. If it fails on a new connection,
+    /// that connection is closed and the stores stay closed, so no
+    /// connection is ever handed out without it. While the stores are
+    /// closed, `hook` only runs once they open.
+    pub fn on_connect(
+        &mut self,
+        mut hook: impl FnMut(&mut Connection) -> rusqlite::Result<()> + Send + 'static,
+    ) -> Result<()> {
+        if self.closed.is_none() {
+            hook(&mut self.conn)?;
+        }
+        self.on_connect = Some(Box::new(hook));
+        Ok(())
     }
 
     /// Closes the connection, runs `f` on the volume, then opens the
     /// connection again without writing to the shared store, so SQLite
     /// rereads everything. For changes made underneath SQLite that it might
     /// not notice, such as replacing `main.db` with a replica's snapshot.
+    ///
+    /// If opening again fails, the store stays closed: see
+    /// [`is_open`](Self::is_open).
     pub fn reopen_around<T>(&mut self, f: impl FnOnce(&Volume) -> T) -> Result<T> {
-        if let Some(conn) = self.conn.take() {
-            conn.close().map_err(|(_, e)| e)?;
-        }
+        self.disconnect(false)?;
         let value = f(&self.volume);
-        self.conn = Some(connect(&self.volume, false)?);
+        self.reconnect(false)?;
         Ok(value)
+    }
+
+    /// Whether the stores are open. They are closed only when opening them
+    /// again failed after an import or a replica apply, for example on a
+    /// volume that a failed commit left unusable. A closed store answers
+    /// errors instead: [`write`](Self::write), [`migrate`](Self::migrate),
+    /// [`migrate_local`](Self::migrate_local) and [`format`](Self::format)
+    /// return [`Error::Closed`], and [`conn`](Self::conn) refuses every
+    /// statement. None of them opens the stores again behind the owner's
+    /// back; only [`ensure_open`](Self::ensure_open) does.
+    pub fn is_open(&self) -> bool {
+        self.closed.is_none()
+    }
+
+    /// Opens the stores again if they are closed, and runs the
+    /// [`on_connect`](Self::on_connect) hook on the new connection. Does
+    /// nothing if they are open.
+    pub fn ensure_open(&mut self) -> Result<()> {
+        match &self.closed {
+            None => Ok(()),
+            Some(closed) => {
+                let adopt = closed.adopt;
+                self.reconnect(adopt)
+            }
+        }
+    }
+
+    /// [`Error::Closed`] if the stores are closed.
+    fn check_open(&self) -> Result<()> {
+        match &self.closed {
+            None => Ok(()),
+            Some(closed) => Err(Error::Closed(closed.why.clone())),
+        }
+    }
+
+    /// Puts a stand-in in place of the connection and closes the
+    /// connection. If closing fails, the connection stays.
+    fn disconnect(&mut self, adopt: bool) -> Result<()> {
+        let conn = std::mem::replace(&mut self.conn, stand_in()?);
+        if let Err((conn, e)) = conn.close() {
+            self.conn = conn;
+            return Err(e.into());
+        }
+        // Until reconnect succeeds, for example if `f` of reopen_around
+        // panics.
+        self.closed = Some(Closed {
+            adopt,
+            why: "the stores are being reopened".into(),
+        });
+        Ok(())
+    }
+
+    /// Opens the stores in place of the stand-in and runs the
+    /// [`on_connect`](Self::on_connect) hook. On failure they stay closed,
+    /// and the error is kept for [`Error::Closed`].
+    fn reconnect(&mut self, adopt: bool) -> Result<()> {
+        let hook = &mut self.on_connect;
+        let connected = connect(&self.volume, adopt).and_then(|mut conn| {
+            if let Some(hook) = hook {
+                // On failure the new connection is dropped, which closes it.
+                hook(&mut conn)?;
+            }
+            Ok(conn)
+        });
+        match connected {
+            Ok(conn) => {
+                self.conn = conn;
+                self.closed = None;
+                Ok(())
+            }
+            Err(e) => {
+                self.closed = Some(Closed {
+                    adopt,
+                    why: e.to_string(),
+                });
+                Err(e)
+            }
+        }
     }
 
     /// Opens a store that lives only in memory, for a private window or a
@@ -213,11 +355,21 @@ impl Store {
         Store::open(Volume::open(MemoryStorage::new())?)
     }
 
-    /// The connection, with `writer` and `device` attached.
+    /// The connection, with `writer` and `device` attached. While the
+    /// stores are closed (see [`is_open`](Self::is_open)), a stand-in that
+    /// refuses every statement.
     pub fn conn(&self) -> &Connection {
-        self.conn
-            .as_ref()
-            .expect("the connection is only absent during import")
+        &self.conn
+    }
+
+    /// The connection, mutably, for settings that need it such as SQLite's
+    /// progress handler. A stand-in while the stores are closed, as for
+    /// [`conn`](Self::conn): it is read-only, so it still refuses writes
+    /// if its authorizer is replaced. A setting that must hold on every
+    /// connection belongs in [`on_connect`](Self::on_connect), because the
+    /// connection is replaced when the stores are opened again.
+    pub fn conn_mut(&mut self) -> &mut Connection {
+        &mut self.conn
     }
 
     /// The volume underneath.
@@ -226,7 +378,10 @@ impl Store {
     }
 
     /// Runs `f` in one write transaction across all three stores. It commits
-    /// if `f` returns `Ok` and rolls back otherwise.
+    /// if `f` returns `Ok` and rolls back otherwise. If the stores are
+    /// closed, it fails with [`Error::Closed`], given as an SQLite error
+    /// (`SQLITE_CANTOPEN`); the owner opens them again with
+    /// [`ensure_open`](Self::ensure_open).
     pub fn write<T, E>(
         &mut self,
         f: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T, E>,
@@ -234,8 +389,10 @@ impl Store {
     where
         E: From<rusqlite::Error>,
     {
-        let conn = self.conn.as_mut().expect("connection present");
-        let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        self.check_open().map_err(|e| E::from(as_sqlite_error(e)))?;
+        let tx = self
+            .conn
+            .transaction_with_behavior(TransactionBehavior::Immediate)?;
         let value = f(&tx)?;
         tx.commit()?;
         Ok(value)
@@ -253,23 +410,48 @@ impl Store {
     /// The file is checked in a scratch volume first: it must pass SQLite's
     /// integrity check and must not be another kind of Moul store. Then it
     /// lands as one commit, so a crash leaves either the old or the new data.
+    ///
+    /// The stores are opened again whether or not the import landed. If
+    /// that fails too, they stay closed: see [`is_open`](Self::is_open).
     pub fn import(&mut self, bytes: &[u8]) -> Result<CommitSeq> {
         check_import(bytes)?;
         // Close the connection so that SQLite rereads everything afterwards.
-        self.conn = None;
+        self.disconnect(true)?;
         let imported = self.volume.import(StoreKind::Shared.file_name(), bytes);
-        let reopened = connect(&self.volume, true);
+        let reopened = self.reconnect(true);
         let seq = imported?;
-        self.conn = Some(reopened?);
+        reopened?;
         Ok(seq)
     }
 
     /// Closes the connection and returns the volume.
-    pub fn close(mut self) -> Result<Volume> {
-        if let Some(conn) = self.conn.take() {
-            conn.close().map_err(|(_, e)| e)?;
-        }
+    pub fn close(self) -> Result<Volume> {
+        self.conn.close().map_err(|(_, e)| e)?;
         Ok(self.volume)
+    }
+}
+
+/// A connection to an empty database in memory that refuses every
+/// statement. It stands in for the stores while they are closed. It is
+/// read-only as well, so it still refuses writes if a caller replaces its
+/// authorizer through [`Store::conn_mut`].
+fn stand_in() -> Result<Connection> {
+    let mut conn = Connection::open_in_memory_with_flags(
+        OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )?;
+    conn.authorizer(Some(|_: AuthContext<'_>| Authorization::Deny))?;
+    Ok(conn)
+}
+
+/// `e` as an SQLite error, for [`Store::write`], whose callers convert
+/// from those.
+fn as_sqlite_error(e: Error) -> rusqlite::Error {
+    match e {
+        Error::Sqlite(e) => e,
+        other => rusqlite::Error::SqliteFailure(
+            rusqlite::ffi::Error::new(rusqlite::ffi::SQLITE_CANTOPEN),
+            Some(other.to_string()),
+        ),
     }
 }
 

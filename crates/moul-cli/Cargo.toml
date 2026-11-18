@@ -18,9 +18,13 @@ path = "src/main.rs"
 moul-ltx.workspace = true
 moul-vfs.workspace = true
 moul-store.workspace = true
+moul-core.workspace = true
 moul-sync.workspace = true
 rusqlite.workspace = true
 serde_json.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+moul-fixtures.workspace = true
 
 [lints]
 workspace = true

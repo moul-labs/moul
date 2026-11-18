@@ -204,6 +204,109 @@ pub struct SchemaObject {
     pub sql: String,
 }
 
+impl DbState {
+    /// Recreates this state in the `main` schema of `conn`, which should be
+    /// empty: tables, then rows, then indexes, triggers and views. Blobs
+    /// recorded as `{"$bytes": base64}` are decoded.
+    pub fn load_into(&self, conn: &rusqlite::Connection) -> rusqlite::Result<()> {
+        let order = |k: &str| match k {
+            "table" => 0,
+            "index" => 1,
+            "trigger" => 2,
+            _ => 3,
+        };
+        let mut objects: Vec<&SchemaObject> = self.schema.iter().collect();
+        objects.sort_by_key(|o| order(&o.kind));
+        for o in objects.iter().filter(|o| o.kind == "table") {
+            conn.execute_batch(&o.sql)?;
+        }
+        for (table, data) in &self.tables {
+            let columns: Vec<String> = data["columns"]
+                .as_array()
+                .map(|c| {
+                    c.iter()
+                        .filter_map(|v| v.as_str().map(str::to_owned))
+                        .collect()
+                })
+                .unwrap_or_default();
+            let Some(rows) = data["rows"].as_array() else {
+                continue;
+            };
+            if columns.is_empty() {
+                continue;
+            }
+            let quoted: Vec<String> = columns
+                .iter()
+                .map(|c| format!("\"{}\"", c.replace('"', "\"\"")))
+                .collect();
+            let marks: Vec<String> = (1..=columns.len()).map(|i| format!("?{i}")).collect();
+            let sql = format!(
+                "INSERT INTO \"{}\" ({}) VALUES ({})",
+                table.replace('"', "\"\""),
+                quoted.join(", "),
+                marks.join(", ")
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            for row in rows {
+                let values: Vec<rusqlite::types::Value> = row
+                    .as_array()
+                    .map(|r| r.iter().map(sql_value).collect())
+                    .unwrap_or_default();
+                stmt.execute(rusqlite::params_from_iter(values))?;
+            }
+        }
+        for o in objects.iter().filter(|o| o.kind != "table") {
+            conn.execute_batch(&o.sql)?;
+        }
+        Ok(())
+    }
+}
+
+fn sql_value(v: &Value) -> rusqlite::types::Value {
+    use rusqlite::types::Value as V;
+    match v {
+        Value::Null => V::Null,
+        Value::Bool(b) => V::Integer(*b as i64),
+        Value::Number(n) => match n.as_i64() {
+            Some(i) => V::Integer(i),
+            None => V::Real(n.as_f64().unwrap_or(0.0)),
+        },
+        Value::String(s) => V::Text(s.clone()),
+        Value::Object(o) => match o.get("$bytes").and_then(|b| b.as_str()) {
+            Some(b64) => V::Blob(decode_base64(b64)),
+            None => V::Text(v.to_string()),
+        },
+        Value::Array(_) => V::Text(v.to_string()),
+    }
+}
+
+/// Decodes standard base64 with or without padding.
+pub fn decode_base64(s: &str) -> Vec<u8> {
+    let val = |c: u8| -> Option<u32> {
+        Some(match c {
+            b'A'..=b'Z' => c - b'A',
+            b'a'..=b'z' => c - b'a' + 26,
+            b'0'..=b'9' => c - b'0' + 52,
+            b'+' | b'-' => 62,
+            b'/' | b'_' => 63,
+            _ => return None,
+        } as u32)
+    };
+    let mut out = Vec::with_capacity(s.len() * 3 / 4);
+    let mut acc = 0u32;
+    let mut bits = 0;
+    for c in s.bytes().filter_map(val) {
+        acc = (acc << 6) | c;
+        bits += 6;
+        if bits >= 8 {
+            bits -= 8;
+            out.push((acc >> bits) as u8);
+            acc &= (1 << bits) - 1;
+        }
+    }
+    out
+}
+
 /// A fixtures directory.
 #[derive(Debug, Clone)]
 pub struct Fixtures {
