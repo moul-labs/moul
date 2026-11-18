@@ -35,6 +35,12 @@ wasm-bindgen-futures = "0.4.80"
 wasm-bindgen-test = "0.3.80"
 js-sys = "0.3.107"
 web-sys = "0.3.107"
+# SQLite. Native builds compile the bundled amalgamation; the browser build gets
+# SQLite from sqlite-wasm-rs, whose `wasm-bindgen` feature supplies the host
+# functions it needs.
+rusqlite = { version = "0.43.0", features = ["bundled"] }
+sqlite-wasm-rs = { version = "0.6.3", default-features = false }
+rsqlite-vfs = "0.2.0"
 
 [workspace.lints.rust]
 missing_docs = "warn"
@@ -42,3 +48,8 @@ unsafe_op_in_unsafe_fn = "deny"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+
+# SQLite's C code and other dependencies run optimised in debug builds, so the
+# crash-safety suite, which reopens a database thousands of times, stays quick.
+[profile.dev.package."*"]
+opt-level = 2

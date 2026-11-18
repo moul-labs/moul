@@ -1,0 +1,4 @@
+[env]
+# See scripts/llvm-ar: the browser build needs an archiver that understands
+# WebAssembly objects.
+AR_wasm32_unknown_unknown = { value = "scripts/llvm-ar", relative = true }

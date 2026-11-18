@@ -31,10 +31,22 @@ cargo build --workspace
 cargo build --workspace --target wasm32-unknown-unknown
 ```
 
+On macOS, the browser build needs an `llvm-ar` that understands WebAssembly
+objects; Apple's `ar` silently produces an empty SQLite archive.
+`rust-toolchain.toml` installs the `llvm-tools` component and
+`scripts/llvm-ar` finds it (or a Homebrew LLVM).
+
 ## Testing
 
 ```sh
 cargo test --workspace
+```
+
+The storage crash-safety suite samples crash points in debug builds; run every
+one with:
+
+```sh
+cargo test -p moul-vfs --release --test crash -- --nocapture
 ```
 
 Browser tests run the workspace's `wasm-bindgen-test` targets in Chromium,
@@ -46,6 +58,7 @@ cargo install wasm-bindgen-cli --version 0.2.130 --locked
 cd browser-tests && npm ci && npx playwright install chromium firefox webkit
 node run.mjs                       # all three engines
 node run.mjs --browsers webkit     # one engine
+MOUL_BROWSER_TEST_CONSOLE=1 node run.mjs   # also print the browser console
 ```
 
 ## Fixtures from the Go engine

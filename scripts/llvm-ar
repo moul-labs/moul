@@ -1,0 +1,19 @@
+#!/bin/sh
+# Archiver for the browser build. SQLite's C code is compiled to WebAssembly
+# objects, which Apple's ar cannot index: the archive comes out empty and the
+# wasm then imports every sqlite3_* function instead of containing it.
+# .cargo/config.toml points AR_wasm32_unknown_unknown here.
+for c in llvm-ar /opt/homebrew/opt/llvm/bin/llvm-ar /usr/local/opt/llvm/bin/llvm-ar; do
+  if command -v "$c" >/dev/null 2>&1; then exec "$c" "$@"; fi
+done
+for c in $(ls -r /usr/bin/llvm-ar-* 2>/dev/null); do
+  exec "$c" "$@"
+done
+# The llvm-tools component, which rust-toolchain.toml installs.
+rustc="${RUSTC:-rustc}"
+sysroot=$("$rustc" --print sysroot)
+host=$("$rustc" -vV | sed -n 's/^host: //p')
+c="$sysroot/lib/rustlib/$host/bin/llvm-ar"
+if [ -x "$c" ]; then exec "$c" "$@"; fi
+echo "llvm-ar not found: run 'rustup component add llvm-tools' or install LLVM" >&2
+exit 1

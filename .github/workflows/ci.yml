@@ -46,6 +46,17 @@ jobs:
       - run: cargo test --workspace --all-targets
       - run: cargo test --workspace --doc
 
+  crash-safety:
+    name: Crash safety
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+      # Every crash point of the storage workload, and of recovery after it.
+      # Debug builds sample every few points; this runs them all.
+      - run: cargo test -p moul-vfs --release --test crash -- --nocapture
+
   wasm-build:
     name: Browser target builds
     runs-on: ubuntu-latest

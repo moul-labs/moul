@@ -115,6 +115,12 @@ async function runIn(engine, url) {
     const page = context.pages()[0] ?? (await context.newPage());
     const errors = [];
     page.on("pageerror", (e) => errors.push(String(e)));
+    // MOUL_BROWSER_TEST_CONSOLE=1 prints the console, including panics in
+    // callbacks that run outside a test and so never reach its output.
+    if (process.env.MOUL_BROWSER_TEST_CONSOLE) {
+      page.on("console", (m) => console.log(`    [${engine} console.${m.type()}] ${m.text()}`));
+      page.on("worker", (w) => w.on("console", (m) => console.log(`    [${engine} worker console.${m.type()}] ${m.text()}`)));
+    }
     await page.goto(url);
     const output = page.locator("#output");
     try {

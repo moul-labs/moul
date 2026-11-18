@@ -10,5 +10,15 @@ readme = "README.md"
 keywords = ["sqlite", "storage", "migrations", "database", "wasm"]
 categories = ["database"]
 
+[dependencies]
+moul-vfs.workspace = true
+rusqlite.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+sqlite-wasm-rs = { workspace = true, features = ["wasm-bindgen"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test.workspace = true
+
 [lints]
 workspace = true
