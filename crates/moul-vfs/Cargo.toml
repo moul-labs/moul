@@ -11,6 +11,7 @@ keywords = ["sqlite", "vfs", "opfs", "wasm", "storage"]
 categories = ["database-implementations", "filesystem", "wasm"]
 
 [dependencies]
+moul-ltx.workspace = true
 rsqlite-vfs.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

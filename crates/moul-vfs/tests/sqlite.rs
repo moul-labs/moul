@@ -93,7 +93,10 @@ fn a_transaction_across_stores_is_one_commit() {
     let volume = Volume::open(MemoryStorage::new()).unwrap();
     let commits: Arc<Mutex<Vec<Commit>>> = Arc::default();
     let seen = commits.clone();
-    volume.set_observer(move |c| seen.lock().unwrap().push(c.clone()));
+    volume.set_observer(move |c: &Commit, _: &mut moul_vfs::Before<'_>| {
+        seen.lock().unwrap().push(c.clone());
+        Ok(())
+    });
     let conn = connect(&volume).unwrap();
     conn.execute_batch(
         "BEGIN;

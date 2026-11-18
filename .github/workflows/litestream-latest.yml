@@ -1,0 +1,36 @@
+name: Litestream latest
+
+# LTX files carry no version field and Litestream is at 0.5, so run the
+# compatibility suite against the newest Litestream and LTX releases every
+# night. A failure here means a release changed something Moul depends on.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  MOUL_REQUIRE_LITESTREAM: "1"
+
+jobs:
+  latest:
+    name: Compatibility with the newest Litestream
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Move the harness to the newest releases
+        working-directory: tools/litestream-compat
+        run: |
+          go get github.com/benbjohnson/litestream@latest github.com/superfly/ltx@latest
+          go mod tidy
+          go list -m github.com/benbjohnson/litestream github.com/superfly/ltx
+      - run: cargo test -p litestream-compat

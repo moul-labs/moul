@@ -17,9 +17,10 @@ SQLite as a VFS. SQLite's pages never go straight to a database file:
 1. While SQLite writes a transaction, its pages stay in memory.
 2. When SQLite releases its write locks, the volume appends every changed page
    of every file to `commit.log` and flushes. **That flush is the commit.**
-3. The commit goes to an observer (Phase 2 turns it into an LTX file), then the
-   pages are copied into the database files and the log is cut back.
-4. On open, any commit in the log that was not copied in yet is copied again.
+3. The commit goes to an observer, then the pages are copied into the
+   database files and the log is cut back.
+4. On open, any commit in the log that was not copied in yet is copied again,
+   and handed to the observer again.
 
 So a transaction that spans `main.db` and an attached `writer.db` commits
 atomically, and the database files only ever hold whole commits. SQLite runs
@@ -35,6 +36,30 @@ Rules for the connection: one connection per volume (attach the other stores
 to it), `journal_mode=MEMORY`, `locking_mode=NORMAL`, and a fixed page size.
 WAL is refused.
 
+## Commit capture
+
+[`Capture`] is the observer that builds the replica. Every commit that changes
+`main.db` becomes one level-0 LTX file, `<txid>-<txid>.ltx`, in its own
+storage (the `ltx/` folder), and `capture.state` records the last TXID and
+the commit it came from:
+
+```rust,ignore
+let capture = Capture::open(ltx_storage, "main.db")?;
+let volume = Volume::open_observed(storage, capture.clone())?;
+capture.snapshot_existing(&volume)?; // a database from before capture
+```
+
+- The file is flushed before the state, so the state never counts a file that
+  is not durable. A crash between the two leaves the commit in the log, and
+  reopening hands it over again.
+- If capture fails, the volume takes no more commits until it is reopened,
+  and the commit is handed over again then. The replica is never silently
+  behind.
+- TXID 1 holds every page, as LTX requires. So does the file after any commit
+  capture did not see, which the page-1 change counter shows.
+- Commits to the other stores write nothing here; the writer-only store gets
+  its own capture later.
+
 ## Crash safety
 
 `tests/crash.rs` runs a workload (cache spills, a rollback, `VACUUM`, a
@@ -42,7 +67,9 @@ transaction across two files) on `MemoryStorage`, fails it at every storage
 step, then crashes the disk: unflushed writes are dropped, kept, or kept in
 part with the last one torn. After reopening, the database must pass
 `integrity_check` and hold exactly the transactions that reported success,
-plus at most the one in flight. The same is done to recovery itself.
+plus at most the one in flight. The same is done to recovery itself. Both run
+again with capture attached, and then the level-0 files must also restore to
+exactly the database that was recovered.
 
 ```sh
 cargo test -p moul-vfs --release --test crash -- --nocapture

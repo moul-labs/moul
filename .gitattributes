@@ -1,3 +1,6 @@
 # Recorded from the Go engine by scripts/export-go-fixtures.sh.
 fixtures/go/** linguist-generated=true
 fixtures/** text eol=lf
+# Written by Litestream; bytes must not be touched.
+fixtures/litestream/**/*.ltx binary
+fixtures/litestream/*.db binary

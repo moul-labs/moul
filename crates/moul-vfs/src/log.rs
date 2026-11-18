@@ -25,9 +25,9 @@
 
 use std::collections::BTreeMap;
 
-use crate::crc64::Crc64;
 use crate::storage::{StorageFile, read_exact_at};
 use crate::{Error, Result};
+use moul_ltx::Crc64;
 
 pub(crate) const HEADER_LEN: u64 = 128;
 const SLOT_LEN: usize = 64;

@@ -28,7 +28,9 @@
 //!
 //! 1. Append one record with every page and the new sizes to `commit.log`,
 //!    and flush. **This is the commit point.**
-//! 2. Hand the commit to the observer (Phase 2 packs it into LTX).
+//! 2. Hand the commit to the observer, which packs it into LTX (see
+//!    [`Capture`](crate::Capture)). If the observer fails, the volume stops
+//!    here and keeps the record, so the next open hands it over again.
 //! 3. Copy the pages into the database files and flush them.
 //! 4. Record the commit as applied in the log header, then cut the log back to
 //!    its header.
@@ -357,13 +359,63 @@ struct LogFile {
     end: u64,
 }
 
-type Observer = Box<dyn FnMut(&Commit) + 'static>;
+/// Receives every commit once it is durable, before its pages are copied into
+/// the database files.
+///
+/// It runs while the volume is locked, so it must not call back into the
+/// volume or into SQLite; [`Before`] gives it the files as they were before
+/// the commit. An error stops the volume: the commit stays durable in the
+/// log, every later call fails, and the next [`Volume::open_observed`] hands
+/// the same commit to its observer again. So an observer sees every commit at
+/// least once, in order, and must ignore one it has already handled.
+pub trait Observer: MaybeSend + 'static {
+    /// Handles one commit.
+    fn commit(&mut self, commit: &Commit, before: &mut Before<'_>) -> Result<()>;
+}
+
+impl<F> Observer for F
+where
+    F: FnMut(&Commit, &mut Before<'_>) -> Result<()> + MaybeSend + 'static,
+{
+    fn commit(&mut self, commit: &Commit, before: &mut Before<'_>) -> Result<()> {
+        self(commit, before)
+    }
+}
+
+/// The committed content of the volume's files as it was just before the
+/// commit an [`Observer`] is handling.
+pub struct Before<'a> {
+    state: &'a mut State,
+}
+
+impl std::fmt::Debug for Before<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Before").finish_non_exhaustive()
+    }
+}
+
+impl Before<'_> {
+    /// The size of file `name` in bytes. A file that does not exist is empty.
+    pub fn size(&mut self, name: &str) -> Result<u64> {
+        check_name(name)?;
+        Ok(self.state.page_file(name)?.size(View::Committed))
+    }
+
+    /// Reads file `name` at `offset` and returns how many bytes were read.
+    /// Fewer than asked means the file ended.
+    pub fn read(&mut self, name: &str, buf: &mut [u8], offset: u64) -> Result<usize> {
+        check_name(name)?;
+        self.state
+            .page_file(name)?
+            .read(View::Committed, buf, offset)
+    }
+}
 
 /// Holds the observer. On native targets it must be `Send`, like the rest of
-/// the volume; the bound lives here so the closure type stays simple.
-struct ObserverSlot(Option<Observer>);
-// SAFETY: `set_observer` only accepts closures that are `MaybeSend`, which is
-// `Send` on native targets, and the slot is only reached through the state mutex.
+/// the volume; the bound lives here so the trait object stays simple.
+struct ObserverSlot(Option<Box<dyn Observer>>);
+// SAFETY: `Observer` requires `MaybeSend`, which is `Send` on native targets,
+// and the slot is only reached through the state mutex.
 #[cfg(not(target_arch = "wasm32"))]
 unsafe impl Send for ObserverSlot {}
 
@@ -385,7 +437,7 @@ pub(crate) struct State {
 }
 
 impl State {
-    fn recover(storage: Box<dyn Storage>) -> Result<Self> {
+    fn recover(storage: Box<dyn Storage>, observer: Option<Box<dyn Observer>>) -> Result<Self> {
         let mut log_file = storage.open(LOG_NAME)?;
         let len = log_file.size()?;
         let (header, slot) = match log::read_header(log_file.as_mut())? {
@@ -422,7 +474,7 @@ impl State {
             next_seq: header.applied + 1,
             unapplied: None,
             poisoned: None,
-            observer: ObserverSlot(None),
+            observer: ObserverSlot(observer),
             open_handles: 0,
         };
 
@@ -445,6 +497,9 @@ impl State {
             if commit.seq.0 <= header.applied {
                 continue;
             }
+            // The files hold everything before this record, so the observer
+            // sees the same `Before` it saw, or would have seen, live.
+            state.observe(&commit)?;
             for fc in commit.files {
                 let name = fc.name.clone();
                 check_name(&name)?;
@@ -536,6 +591,16 @@ impl State {
         }
     }
 
+    /// Hands `commit` to the observer, if there is one.
+    fn observe(&mut self, commit: &Commit) -> Result<()> {
+        let Some(mut observer) = self.observer.0.take() else {
+            return Ok(());
+        };
+        let result = observer.commit(commit, &mut Before { state: self });
+        self.observer.0 = Some(observer);
+        result
+    }
+
     /// Turns everything staged into one durable commit.
     fn commit_staged(&mut self) -> Result<Option<CommitSeq>> {
         if let Some(e) = self.group_failed.take() {
@@ -586,15 +651,22 @@ impl State {
         self.next_seq += 1;
 
         let commit = Commit { seq, files };
-        if let Some(observer) = self.observer.0.as_mut() {
-            observer(&commit);
-        }
+        let observed = self.observe(&commit);
         for fc in commit.files {
             let pf = self
                 .files
                 .get_mut(&fc.name)
                 .expect("staged files are loaded");
             pf.pending = Some(Overlay::merge(pf.pending.take(), Overlay::from_commit(fc)));
+        }
+        if let Err(e) = observed {
+            // The commit is durable, but whatever the observer keeps (the
+            // replica) is behind. Keep the record in the log, so the next open
+            // hands it over again, and take no more commits until then.
+            self.poisoned = Some(format!(
+                "the commit observer failed on commit {seq}: {e}; reopen the volume"
+            ));
+            return Err(e);
         }
         self.try_apply();
         Ok(Some(seq))
@@ -727,7 +799,18 @@ impl Volume {
     /// Opens the volume in `storage`, repairs it after a crash, and registers
     /// it with SQLite under a fresh VFS name.
     pub fn open(storage: impl Storage + 'static) -> Result<Self> {
-        let state = State::recover(Box::new(storage))?;
+        Self::open_with(Box::new(storage), None)
+    }
+
+    /// Opens the volume like [`open`](Self::open), with `observer` attached
+    /// from the start. Commits that recovery copies in are handed to it too,
+    /// so it misses none. Fails if the observer fails on one of them.
+    pub fn open_observed(storage: impl Storage + 'static, observer: impl Observer) -> Result<Self> {
+        Self::open_with(Box::new(storage), Some(Box::new(observer)))
+    }
+
+    fn open_with(storage: Box<dyn Storage>, observer: Option<Box<dyn Observer>>) -> Result<Self> {
+        let state = State::recover(storage, observer)?;
         // In the browser there is one thread and storage handles are not
         // `Send`; the `Arc` is shared with SQLite's callbacks, not threads.
         #[cfg_attr(target_arch = "wasm32", allow(clippy::arc_with_non_send_sync))]
@@ -748,24 +831,33 @@ impl Volume {
         CommitSeq(self.shared.state().next_seq - 1)
     }
 
-    /// Calls `observer` with every commit, after it is durable and before its
-    /// pages are copied into the database files. It runs while the volume is
-    /// locked, so it must not call back into the volume or into SQLite.
-    pub fn set_observer(&self, observer: impl FnMut(&Commit) + MaybeSend + 'static) {
+    /// Replaces the [`Observer`]. Commits that recovery copied in before this
+    /// call are not handed to it; use [`open_observed`](Self::open_observed)
+    /// for an observer that must see every commit.
+    pub fn set_observer(&self, observer: impl Observer) {
         self.shared.state().observer = ObserverSlot(Some(Box::new(observer)));
     }
 
-    /// The committed content of database file `name`: a plain SQLite file any
-    /// tool can open. A transaction still in progress is not included.
-    pub fn export(&self, name: &str) -> Result<Vec<u8>> {
+    /// The committed content of file `name`, with the commit it is current
+    /// as of. Unlike calling [`last_commit`](Self::last_commit) and
+    /// [`export`](Self::export) one after the other, no commit can land
+    /// between the two.
+    pub fn snapshot(&self, name: &str) -> Result<(CommitSeq, Vec<u8>)> {
         check_name(name)?;
         let mut state = self.shared.state();
+        let seq = CommitSeq(state.next_seq - 1);
         let pf = state.page_file(name)?;
         let size = pf.size(View::Committed);
         let mut out = vec![0u8; size as usize];
         let n = pf.read(View::Committed, &mut out, 0)?;
         out.truncate(n);
-        Ok(out)
+        Ok((seq, out))
+    }
+
+    /// The committed content of database file `name`: a plain SQLite file any
+    /// tool can open. A transaction still in progress is not included.
+    pub fn export(&self, name: &str) -> Result<Vec<u8>> {
+        Ok(self.snapshot(name)?.1)
     }
 
     /// Replaces database file `name` with `bytes`, a SQLite database file, as

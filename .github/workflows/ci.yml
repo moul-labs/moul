@@ -39,6 +39,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    env:
+      # The runners have Go; the Litestream suite runs in its own job.
+      MOUL_SKIP_LITESTREAM: "1"
     steps:
       - uses: actions/checkout@v5
       - run: rustup show
@@ -56,6 +59,28 @@ jobs:
       # Every crash point of the storage workload, and of recovery after it.
       # Debug builds sample every few points; this runs them all.
       - run: cargo test -p moul-vfs --release --test crash -- --nocapture
+
+  litestream:
+    name: Litestream compatibility
+    runs-on: ubuntu-latest
+    env:
+      MOUL_REQUIRE_LITESTREAM: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: tools/litestream-compat/go.mod
+          cache-dependency-path: tools/litestream-compat/go.sum
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+        working-directory: tools/litestream-compat
+      - run: go vet ./...
+        working-directory: tools/litestream-compat
+      # Litestream 0.5.13 restores Moul's replicas and Moul restores
+      # Litestream's, compared page by page.
+      - run: cargo test -p litestream-compat
 
   wasm-build:
     name: Browser target builds

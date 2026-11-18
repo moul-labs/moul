@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "tools/moul-fixtures"]
+members = ["crates/*", "tools/moul-fixtures", "tools/litestream-compat"]
 
 [workspace.package]
 version = "0.0.1"
@@ -52,4 +52,9 @@ all = { level = "warn", priority = -1 }
 # SQLite's C code and other dependencies run optimised in debug builds, so the
 # crash-safety suite, which reopens a database thousands of times, stays quick.
 [profile.dev.package."*"]
+opt-level = 2
+
+# LTX encoding and checksums run over every page of a database; the
+# compatibility and lock-page suites restore more than a gigabyte.
+[profile.dev.package.moul-ltx]
 opt-level = 2

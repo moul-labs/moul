@@ -1,0 +1,20 @@
+[package]
+name = "litestream-compat"
+description = "The Litestream compatibility suite: Moul and Litestream 0.5 read each other's replicas. Test support only."
+version = "0.0.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+moul-ltx.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+moul-vfs.workspace = true
+rusqlite.workspace = true
+
+[lints]
+workspace = true
