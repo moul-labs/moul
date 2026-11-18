@@ -75,3 +75,11 @@ referenced by id.
 
 `tools/moul-fixtures` loads these files with types, and its tests check that every
 file parses and every referenced database state exists.
+
+## Rule edge cases
+
+`crates/moul-rules/tests/data` holds more rule calls, ones the Go test suite never
+makes. `scripts/export-rules-edge-cases.sh` records them: `tools/rules-edge-cases`
+adds a recorder to the Go checkout's `internal/rules` with the same kind of
+overlay and feeds it the inputs in `tools/rules-edge-cases/cases.py`. See
+`crates/moul-rules/README.md`.

@@ -62,6 +62,20 @@ itself (type errors, folding, odd spacing, database functions, relation and
 cloak SQL, numbers out of range). The Go package's own tests are ported in
 `tests/go_unit.rs`.
 
+The edge cases are listed in `tools/rules-edge-cases/cases.py`. After adding
+one, or when the Go engine changes, answer them again:
+
+```sh
+scripts/export-rules-edge-cases.sh [path to a clean moul-dev checkout]
+```
+
+This rewrites the three files in `tests/data` with answers from the engine's
+own `internal/rules`, built with a `go test -overlay` that leaves the checkout
+untouched. It needs `go` and `python3`. The recording differs from a running
+engine in two ways. Cloak's keyed hash becomes `hash(<text>)`. The database
+cases run on plain modernc SQLite, built by the file's `setup` and then by the
+engine's `db.EnsureSystemTables`.
+
 As in the Go engine, a rule of more than expr-lang's 10,000 nodes is
 refused, with its message and position. One limit is new: a filter or rule
 nested more than [`MAX_DEPTH`] deep is refused too. The Go engine's stacks
