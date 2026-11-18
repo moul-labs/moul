@@ -6,7 +6,10 @@ Litestream-compatible LTX replica. The same engine later runs on Moul Hub, where
 apps are deployed as data.
 
 **Status:** early development. The crates on crates.io are placeholders that
-hold the names; none has a usable API yet.
+hold the names. In this repository, storage, LTX and sync work: a database in a
+browser tab syncs to an S3-compatible bucket as a Litestream replica, and
+`moul restore` and `moul pull` read it back. `demo/` is a SQL console that
+shows it.
 
 ## Crates
 
@@ -60,6 +63,18 @@ node run.mjs                       # all three engines
 node run.mjs --browsers webkit     # one engine
 MOUL_BROWSER_TEST_CONSOLE=1 node run.mjs   # also print the browser console
 ```
+
+The sync suite's S3 tests run when `MOUL_S3_ENDPOINT` points at an
+S3-compatible store; see [`crates/moul-sync`](crates/moul-sync/README.md).
+
+## Demo
+
+```sh
+scripts/build-demo.sh
+python3 -m http.server 8787 --directory demo
+```
+
+See [`demo/README.md`](demo/README.md) for the bucket and its CORS rule.
 
 ## Fixtures from the Go engine
 

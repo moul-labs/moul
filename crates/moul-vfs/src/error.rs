@@ -16,6 +16,9 @@ pub enum ErrorKind {
     Invalid,
     /// The file is in use, for example open by SQLite while an import runs.
     Busy,
+    /// What was asked for is not held, such as a level-0 file already
+    /// released to the replica.
+    NotFound,
     /// An earlier failure left the volume in a state it cannot trust. Reopen
     /// the volume: recovery puts the files back in order.
     Poisoned,
@@ -70,6 +73,7 @@ impl fmt::Display for Error {
             ErrorKind::Corrupt => "corrupt file",
             ErrorKind::Invalid => "invalid request",
             ErrorKind::Busy => "file busy",
+            ErrorKind::NotFound => "not found",
             ErrorKind::Poisoned => "volume poisoned",
         };
         write!(f, "{kind}: {}", self.message)

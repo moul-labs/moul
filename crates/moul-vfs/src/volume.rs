@@ -371,6 +371,12 @@ struct LogFile {
 pub trait Observer: MaybeSend + 'static {
     /// Handles one commit.
     fn commit(&mut self, commit: &Commit, before: &mut Before<'_>) -> Result<()>;
+
+    /// Called once when [`Volume::open_observed`] has finished recovery:
+    /// every commit that was durable before the open has been handed over.
+    fn recovered(&mut self) -> Result<()> {
+        Ok(())
+    }
 }
 
 impl<F> Observer for F
@@ -511,6 +517,9 @@ impl State {
         }
         state.next_seq = last + 1;
         state.log.end = offset;
+        if let Some(observer) = state.observer.0.as_mut() {
+            observer.recovered()?;
+        }
         if replayed {
             state.mark_applied()?;
         } else if len > HEADER_LEN {
@@ -700,7 +709,20 @@ impl State {
     }
 
     pub(crate) fn read(&mut self, name: &str, buf: &mut [u8], offset: u64) -> Result<usize> {
-        self.loaded(name)?.read(View::All, buf, offset)
+        let n = self.loaded(name)?.read(View::All, buf, offset)?;
+        // A file written in WAL mode (as Litestream's are) says so in bytes
+        // 18 and 19 of its header. This layer runs SQLite with a rollback
+        // journal, so show SQLite such a file as a rollback-journal file. The
+        // stored bytes are left alone: a follower's file must stay byte for
+        // byte the writer's. SQLite writes the header back as it sees it.
+        if offset <= 18 && offset + n as u64 >= 20 {
+            let at = (18 - offset) as usize;
+            if buf[at] == 2 && buf[at + 1] == 2 {
+                buf[at] = 1;
+                buf[at + 1] = 1;
+            }
+        }
+        Ok(n)
     }
 
     pub(crate) fn write(&mut self, name: &str, buf: &[u8], offset: u64) -> Result<()> {
@@ -934,6 +956,91 @@ impl Volume {
         pf.page_size = Some(ps);
         let seq = state.commit_staged()?;
         Ok(seq.expect("an import stages a page"))
+    }
+
+    /// Writes `commit`'s pages into its file as one commit, exactly as given:
+    /// how a follower applies a file from the replica, so that its database
+    /// stays byte for byte the writer's. Pages past
+    /// [`truncated_to`](FileCommit::truncated_to) that `commit` does not hold
+    /// read as zeros afterwards.
+    ///
+    /// The file ends up `size` pages long. Pass `truncated_to` equal to `size`
+    /// to keep the pages the commit does not hold, or 0 to replace the whole
+    /// file; the volume never keeps a page past the file's current end.
+    ///
+    /// Unlike [`import`](Self::import), page 1 is not touched. An open
+    /// connection sees the new content at its next read only if the change
+    /// counter in page 1 differs from the one it read; when that is not
+    /// certain (replacing the whole file), close the connection first.
+    pub fn apply_pages(&self, commit: FileCommit) -> Result<CommitSeq> {
+        check_name(&commit.name)?;
+        let ps = commit.page_size;
+        if !moul_ltx::is_valid_page_size(ps) {
+            return Err(Error::invalid(format!("{ps} is not a valid page size")));
+        }
+        if commit.size == 0 {
+            return Err(Error::invalid(format!(
+                "a commit cannot leave {} empty",
+                commit.name
+            )));
+        }
+        if let Some((&last, _)) = commit.pages.last_key_value()
+            && last > commit.size
+        {
+            return Err(Error::invalid(format!(
+                "page {last} is past the end of a {}-page file",
+                commit.size
+            )));
+        }
+        if commit.pages.values().any(|p| p.len() != ps as usize) {
+            return Err(Error::invalid(format!("every page must be {ps} bytes")));
+        }
+        let mut state = self.shared.state();
+        state.check_poisoned()?;
+        if state.writers > 0 {
+            return Err(Error::new(
+                ErrorKind::Busy,
+                "a write transaction is in progress",
+            ));
+        }
+        let name = commit.name.clone();
+        let pf = state.page_file(&name)?;
+        if pf.lock > Lock::None {
+            return Err(Error::new(
+                ErrorKind::Busy,
+                format!("{name} is in a transaction; finish it before applying pages"),
+            ));
+        }
+        if pf.open && pf.page_size.is_some_and(|p| p != ps) {
+            return Err(Error::new(
+                ErrorKind::Busy,
+                format!("close the connection to {name} before changing its page size"),
+            ));
+        }
+        let mut overlay = Overlay::from_commit(commit);
+        overlay.min_size = overlay.min_size.min(pf.size(View::All));
+        pf.staged = Some(overlay);
+        pf.page_size = Some(ps);
+        let seq = state.commit_staged()?;
+        Ok(seq.expect("applying pages stages a page"))
+    }
+
+    /// The committed size of file `name` in bytes, as
+    /// [`export`](Self::export) sees it.
+    pub fn committed_size(&self, name: &str) -> Result<u64> {
+        check_name(name)?;
+        Ok(self.shared.state().page_file(name)?.size(View::Committed))
+    }
+
+    /// Reads the committed content of file `name` at `offset`, as
+    /// [`export`](Self::export) sees it, and returns how many bytes were
+    /// read. Fewer than asked means the file ended.
+    pub fn read_committed(&self, name: &str, buf: &mut [u8], offset: u64) -> Result<usize> {
+        check_name(name)?;
+        self.shared
+            .state()
+            .page_file(name)?
+            .read(View::Committed, buf, offset)
     }
 
     /// Retries copying durable commits into the database files after an

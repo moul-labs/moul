@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Moul SQL Console</title>
+  <meta name="description" content="A SQLite database in this tab, synced to your own bucket as a Litestream-compatible replica.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◐</span>
+      <span class="name">Moul</span>
+      <span class="sub">SQL console</span>
+    </div>
+    <div class="chips" aria-live="polite">
+      <span class="chip" id="chip-db" title="This database's name. Each name is a separate database, like a separate device.">db: …</span>
+      <span class="chip" id="chip-storage">storage: …</span>
+      <span class="chip" id="chip-role">not syncing</span>
+      <span class="chip mono" id="chip-txid">txid 0</span>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="console" aria-label="SQL console">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>SQL</h2>
+          <div class="actions">
+            <select id="examples" aria-label="Example statements">
+              <option value="">Examples…</option>
+              <option value="create">Create a table</option>
+              <option value="insert">Insert a few rows</option>
+              <option value="select">Select them</option>
+              <option value="tables">List tables</option>
+              <option value="pragma">Page size and count</option>
+            </select>
+            <button id="run" class="primary" title="Run (Ctrl or ⌘ + Enter)">Run</button>
+          </div>
+        </div>
+        <textarea id="sql" spellcheck="false" autocapitalize="off" autocomplete="off"
+          aria-label="SQL to run">SELECT name, type FROM sqlite_schema ORDER BY name;</textarea>
+        <div class="hint">Ctrl/⌘ + Enter runs. Several statements run in order; the last one's rows are shown. <label class="live"><input type="checkbox" id="live" checked> Rerun when data arrives from sync</label></div>
+      </div>
+
+      <div class="panel results">
+        <div class="panel-head">
+          <h2>Result</h2>
+          <span class="meta" id="result-meta"></span>
+        </div>
+        <div id="error" class="error" hidden></div>
+        <div class="table-wrap"><table id="result"></table></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>History</h2><button id="clear-history" class="ghost">Clear</button></div>
+        <ol id="history" class="history"></ol>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="panel">
+        <div class="panel-head"><h2>Database</h2></div>
+        <dl class="facts">
+          <dt>Storage</dt><dd id="fact-storage">…</dd>
+          <dt>Local commits</dt><dd id="fact-commits" class="mono">0</dd>
+        </dl>
+        <div class="row">
+          <button id="export">Download main.db</button>
+          <label class="button">Import a .db<input type="file" id="import" accept=".db,.sqlite,.sqlite3,application/x-sqlite3" hidden></label>
+        </div>
+        <p class="note" id="backup-note">Not backed up: this database lives only in this browser until you turn on sync or download it.</p>
+      </div>
+
+      <div class="panel" id="sync-panel">
+        <div class="panel-head"><h2>Sync</h2><span class="badge" id="role-badge">off</span></div>
+
+        <form id="sync-form" autocomplete="off">
+          <p class="note">Sync writes a Litestream-compatible replica to an S3-compatible bucket you own (Cloudflare R2, Amazon S3, MinIO). Keys stay in this browser's device store and are sent only to the bucket. Use a key scoped to one bucket. The bucket needs a CORS rule for this page; see the README.</p>
+          <label>Endpoint<input name="endpoint" placeholder="https://<account>.r2.cloudflarestorage.com" required></label>
+          <div class="two">
+            <label>Bucket<input name="bucket" required></label>
+            <label>Prefix<input name="prefix" placeholder="notes"></label>
+          </div>
+          <div class="two">
+            <label>Region<input name="region" placeholder="auto / us-east-1"></label>
+            <label>This device<input name="label" placeholder="Laptop"></label>
+          </div>
+          <label>Access key ID<input name="accessKeyId" required></label>
+          <label>Secret access key<input name="secretAccessKey" type="password" required></label>
+          <button class="primary" type="submit" id="connect">Connect</button>
+        </form>
+
+        <div id="sync-state" hidden>
+          <dl class="facts">
+            <dt>Replica</dt><dd id="s-replica" class="mono"></dd>
+            <dt>Writer</dt><dd id="s-writer"></dd>
+            <dt>Here / replica</dt><dd id="s-txids" class="mono"></dd>
+            <dt>Waiting to push</dt><dd id="s-pending" class="mono"></dd>
+            <dt>Last sync</dt><dd id="s-last"></dd>
+          </dl>
+          <div id="s-error" class="error small" hidden></div>
+          <div class="row">
+            <button id="sync-now">Sync now</button>
+            <button id="take-over" class="primary">Take over writing</button>
+            <button id="disconnect" class="ghost">Disconnect</button>
+          </div>
+          <div class="row">
+            <button id="another-device" class="ghost" title="Opens a separate database in a new tab, with these sync settings, so you can watch one follow the other.">Open another device ↗</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="conflicts-panel" hidden>
+        <div class="panel-head"><h2>Conflict copies</h2></div>
+        <p class="note">When this device had changes the replica does not, it kept its database here before taking the replica's. Nothing is discarded silently.</p>
+        <ul id="conflicts" class="conflicts"></ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="foot">
+    The engine and SQLite run in a worker in this tab; nothing is sent anywhere unless you turn on sync.
+    <a href="https://github.com/moul-labs/moul">Source</a>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

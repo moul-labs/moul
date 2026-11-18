@@ -10,5 +10,38 @@ readme = "README.md"
 keywords = ["sync", "litestream", "ltx", "replication", "local-first"]
 categories = ["database", "network-programming"]
 
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+
+[dependencies]
+moul-ltx.workspace = true
+moul-vfs.workspace = true
+moul-store.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hmac.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ureq.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+js-sys.workspace = true
+web-sys = { workspace = true, features = [
+  "Headers",
+  "Request",
+  "RequestCache",
+  "RequestInit",
+  "Response",
+  "WorkerGlobalScope",
+  "Window",
+] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test.workspace = true
+
 [lints]
 workspace = true

@@ -31,7 +31,8 @@ use crate::js;
 /// The message of the error a request fails with when its leader goes away.
 pub const LEADER_LOST: &str = "the leading tab went away before answering";
 
-/// Answers requests while this tab leads.
+/// Answers requests while this tab leads. A handler that answers later
+/// returns a `Promise`, which settles the request when it settles.
 pub type Handler = Box<dyn FnMut(JsValue) -> Result<JsValue, JsValue>>;
 
 /// A request waiting for its answer.
@@ -180,23 +181,38 @@ impl Inner {
                 }
                 let from = js::get_str(&msg, "from").unwrap_or_default();
                 let id = js::get(&msg, "id");
-                let reply = match self.handle(js::get(&msg, "body")) {
-                    Ok(body) => js::object(&[
-                        ("type", "response".into()),
-                        ("to", from.into()),
-                        ("id", id),
-                        ("ok", true.into()),
-                        ("body", body),
-                    ]),
-                    Err(e) => js::object(&[
-                        ("type", "response".into()),
-                        ("to", from.into()),
-                        ("id", id),
-                        ("ok", false.into()),
-                        ("body", js::message(&e).into()),
-                    ]),
+                let result = self.handle(js::get(&msg, "body"));
+                let channel = self.channel.clone();
+                let reply = move |result: Result<JsValue, JsValue>| {
+                    let msg = match result {
+                        Ok(body) => js::object(&[
+                            ("type", "response".into()),
+                            ("to", from.into()),
+                            ("id", id),
+                            ("ok", true.into()),
+                            ("body", body),
+                        ]),
+                        Err(e) => js::object(&[
+                            ("type", "response".into()),
+                            ("to", from.into()),
+                            ("id", id),
+                            ("ok", false.into()),
+                            ("body", js::message(&e).into()),
+                        ]),
+                    };
+                    let _ = channel.post_message(&msg);
                 };
-                self.post(reply);
+                // A handler answers later by returning a promise; a promise
+                // cannot cross the channel, so wait for it here.
+                match result {
+                    Ok(v) if v.is_instance_of::<js_sys::Promise>() => {
+                        let promise: js_sys::Promise = v.unchecked_into();
+                        wasm_bindgen_futures::spawn_local(async move {
+                            reply(JsFuture::from(promise).await);
+                        });
+                    }
+                    other => reply(other),
+                }
             }
             "response" => {
                 if js::get_str(&msg, "to").as_deref() != Some(self.me.as_str()) {

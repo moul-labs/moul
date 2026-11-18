@@ -27,6 +27,17 @@ Without OPFS (private windows in some browsers) the engine runs in memory and
 The Phase 1 requests are `exec`, `query`, `export`, `import` and `status`.
 They exercise storage end to end and are replaced by named requests in Phase 4.
 
+## Sync
+
+The leading worker syncs the shared store with an S3-compatible bucket
+(`moul-sync`), about once a second while the page is open. The requests are
+`syncConfigure`, `syncStatus`, `syncNow`, `takeOver`, `syncDisconnect`, and
+`conflicts`, `conflictExport` and `conflictDelete` for the copies kept when a
+device had changes the replica does not (in OPFS, `moul/<db>-conflicts/`).
+They answer with a promise. The settings, keys included, stay in the device
+store. While the device follows another writer, `exec` runs with
+`PRAGMA query_only` and `import` is refused. `demo/` is a page built on it.
+
 ## License
 
 MIT

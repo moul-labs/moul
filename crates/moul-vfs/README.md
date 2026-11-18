@@ -39,9 +39,9 @@ WAL is refused.
 ## Commit capture
 
 [`Capture`] is the observer that builds the replica. Every commit that changes
-`main.db` becomes one level-0 LTX file, `<txid>-<txid>.ltx`, in its own
-storage (the `ltx/` folder), and `capture.state` records the last TXID and
-the commit it came from:
+`main.db` becomes one level-0 LTX file for the next TXID, appended to
+`ltx.pack` in its own storage (the `ltx/` folder), and `capture.state` records
+the last TXID and the commit it came from:
 
 ```rust,ignore
 let capture = Capture::open(ltx_storage, "main.db")?;
@@ -49,9 +49,13 @@ let volume = Volume::open_observed(storage, capture.clone())?;
 capture.snapshot_existing(&volume)?; // a database from before capture
 ```
 
+- The files sit in one pack rather than a file each because the browser back
+  end can only serve files it opened in advance. Sync reads them with
+  `Capture::read` and drops them with `Capture::release` once the replica
+  holds them.
 - The file is flushed before the state, so the state never counts a file that
   is not durable. A crash between the two leaves the commit in the log, and
-  reopening hands it over again.
+  reopening hands it over again; the stale record is overwritten.
 - If capture fails, the volume takes no more commits until it is reopened,
   and the commit is handed over again then. The replica is never silently
   behind.
@@ -59,6 +63,19 @@ capture.snapshot_existing(&volume)?; // a database from before capture
   capture did not see, which the page-1 change counter shows.
 - Commits to the other stores write nothing here; the writer-only store gets
   its own capture later.
+
+A device that follows another writer uses three more calls:
+
+| Call | Does |
+| --- | --- |
+| `Capture::apply` | Writes a replica file's pages into the volume as one commit, exactly as given (`Volume::apply_pages`), and records the writer's TXID instead of writing a file. The expected TXID is recorded durably first, so a crash cannot turn the writer's commit into a local file with the wrong number. |
+| `Capture::fence` | Writes the next TXID as a file that rewrites page 1 unchanged. A device that takes over writing uploads it at once. |
+| `Capture::rebase` | Starts the numbering again at TXID 1 with the whole file, for a new replica. |
+
+A file written in WAL mode (as Litestream's are) says so in its header. The
+volume shows SQLite such a file as a rollback-journal file without changing
+the stored bytes, so a follower can read a Litestream replica and still match
+it byte for byte.
 
 ## Crash safety
 

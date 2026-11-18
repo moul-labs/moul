@@ -17,9 +17,13 @@ targets = ["wasm32-unknown-unknown"]
 crate-type = ["cdylib", "rlib"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+moul-ltx.workspace = true
 moul-vfs.workspace = true
 moul-store.workspace = true
+moul-sync.workspace = true
 rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 js-sys.workspace = true
@@ -34,6 +38,7 @@ web-sys = { workspace = true, features = [
 wasm-bindgen-test.workspace = true
 moul-vfs.workspace = true
 moul-store.workspace = true
+moul-sync.workspace = true
 web-sys = { workspace = true, features = [
   "WorkerGlobalScope",
   "WorkerNavigator",

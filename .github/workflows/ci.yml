@@ -82,6 +82,64 @@ jobs:
       # Litestream's, compared page by page.
       - run: cargo test -p litestream-compat
 
+  sync-s3:
+    name: Sync against MinIO
+    runs-on: ubuntu-latest
+    env:
+      MOUL_REQUIRE_S3: "1"
+      MOUL_S3_ENDPOINT: http://127.0.0.1:9000
+      MOUL_S3_BUCKET: moul-test
+      MOUL_S3_ACCESS_KEY_ID: moul-test
+      MOUL_S3_SECRET_ACCESS_KEY: moul-test-secret
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+      - name: Start MinIO
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/minio" https://dl.min.io/server/minio/release/linux-amd64/minio
+          chmod +x "$RUNNER_TEMP/minio"
+          mkdir -p "$RUNNER_TEMP/minio-data/moul-test"
+          MINIO_ROOT_USER=moul-test MINIO_ROOT_PASSWORD=moul-test-secret \
+            nohup "$RUNNER_TEMP/minio" server "$RUNNER_TEMP/minio-data" --address 127.0.0.1:9000 \
+            > "$RUNNER_TEMP/minio.log" 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fs http://127.0.0.1:9000/minio/health/live && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/minio.log"
+          exit 1
+      # Conditional writes, racing devices, hand-off and conflicts through a
+      # real S3-compatible store.
+      - run: cargo test -p moul-sync --test s3
+
+  demo:
+    name: Demo page
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: demo
+      - name: Read the wasm-bindgen version from Cargo.lock
+        id: wbg
+        run: echo "version=$(grep -A1 '^name = "wasm-bindgen"$' Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')" >> "$GITHUB_OUTPUT"
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@${{ steps.wbg.outputs.version }}
+      - run: scripts/build-demo.sh
+      # The plan's budget: the engine and SQLite under 2 MB gzipped.
+      - name: Check the size budget
+        run: |
+          gz=$(gzip -9 -c demo/pkg/moul_web_bg.wasm | wc -c)
+          echo "engine: $gz bytes gzipped"
+          test "$gz" -le 2097152
+      - uses: actions/upload-artifact@v4
+        with:
+          name: demo
+          path: demo
+
   wasm-build:
     name: Browser target builds
     runs-on: ubuntu-latest

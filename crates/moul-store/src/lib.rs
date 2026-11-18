@@ -175,11 +175,36 @@ impl fmt::Debug for Store {
 impl Store {
     /// Opens the stores in `volume`, creating and marking any that are new.
     pub fn open(volume: Volume) -> Result<Store> {
-        let conn = connect(&volume)?;
+        let conn = connect(&volume, true)?;
         Ok(Store {
             conn: Some(conn),
             volume,
         })
+    }
+
+    /// Opens the stores in `volume` like [`open`](Self::open), but never
+    /// writes to the shared store: a plain SQLite file there is left
+    /// unmarked. A device that follows a replica opens its stores this way,
+    /// because its shared store must stay byte for byte the writer's.
+    pub fn open_follower(volume: Volume) -> Result<Store> {
+        let conn = connect(&volume, false)?;
+        Ok(Store {
+            conn: Some(conn),
+            volume,
+        })
+    }
+
+    /// Closes the connection, runs `f` on the volume, then opens the
+    /// connection again without writing to the shared store, so SQLite
+    /// rereads everything. For changes made underneath SQLite that it might
+    /// not notice, such as replacing `main.db` with a replica's snapshot.
+    pub fn reopen_around<T>(&mut self, f: impl FnOnce(&Volume) -> T) -> Result<T> {
+        if let Some(conn) = self.conn.take() {
+            conn.close().map_err(|(_, e)| e)?;
+        }
+        let value = f(&self.volume);
+        self.conn = Some(connect(&self.volume, false)?);
+        Ok(value)
     }
 
     /// Opens a store that lives only in memory, for a private window or a
@@ -233,7 +258,7 @@ impl Store {
         // Close the connection so that SQLite rereads everything afterwards.
         self.conn = None;
         let imported = self.volume.import(StoreKind::Shared.file_name(), bytes);
-        let reopened = connect(&self.volume);
+        let reopened = connect(&self.volume, true);
         let seq = imported?;
         self.conn = Some(reopened?);
         Ok(seq)
@@ -249,7 +274,9 @@ impl Store {
 }
 
 /// Opens `main.db` on `volume`, attaches the other stores and checks them.
-fn connect(volume: &Volume) -> Result<Connection> {
+/// With `adopt`, an unmarked shared store is marked as one; without it, the
+/// shared store is never written.
+fn connect(volume: &Volume, adopt: bool) -> Result<Connection> {
     let conn = Connection::open_with_flags_and_vfs(
         StoreKind::Shared.file_name(),
         OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE,
@@ -289,8 +316,11 @@ fn connect(volume: &Volume) -> Result<Connection> {
         match id {
             0 if objects == 0 => {
                 conn.execute_batch(&format!("PRAGMA {schema}.page_size = {PAGE_SIZE}"))?;
-                fresh.push(kind);
+                if adopt || kind != StoreKind::Shared {
+                    fresh.push(kind);
+                }
             }
+            0 if kind == StoreKind::Shared && !adopt => {}
             // A plain SQLite file in the shared slot, as imported: adopt it.
             0 if kind == StoreKind::Shared => fresh.push(kind),
             id if id == kind.application_id() => {}

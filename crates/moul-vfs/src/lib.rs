@@ -12,7 +12,7 @@ mod sqlite;
 mod storage;
 mod volume;
 
-pub use capture::{Capture, Clock, Position, STATE_NAME, system_clock};
+pub use capture::{ApplyMode, Capture, Clock, PACK_NAME, Position, STATE_NAME, system_clock};
 #[cfg(not(target_arch = "wasm32"))]
 pub use disk::DiskStorage;
 pub use error::{Error, ErrorKind, Result};

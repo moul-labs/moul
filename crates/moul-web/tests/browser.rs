@@ -371,7 +371,7 @@ mod storage {
         assert!(opened.durable, "{:?}", opened.note);
         let wrote = Rc::new(Cell::new(0));
         let w = wrote.clone();
-        let mut engine = Engine::new(opened, Some(Box::new(move || w.set(w.get() + 1))));
+        let engine = Engine::new(opened, Some(Box::new(move || w.set(w.get() + 1))));
 
         let req = |pairs: &[(&str, JsValue)]| obj(pairs);
         engine
@@ -451,5 +451,67 @@ mod storage {
             .await
             .expect("estimate() works in workers");
         assert!(quota > 0.0 && usage >= 0.0);
+    }
+
+    /// Two devices on OPFS sync through a replica: the writer's level-0
+    /// files come from the pack on OPFS, the follower applies them to its
+    /// own OPFS files, and the two end up byte for byte the same.
+    #[wasm_bindgen_test]
+    async fn two_devices_on_opfs_sync_through_a_replica() {
+        use moul_sync::{MemoryReplica, Options, Role, StoreLocal, Sync};
+        use moul_vfs::{Capture, PACK_NAME, STATE_NAME};
+
+        async fn device(path: &str) -> (Store, Capture) {
+            let storage = OpfsStorage::open(path, &FILES).await.unwrap();
+            let ltx = OpfsStorage::open(&format!("{path}/ltx"), &[STATE_NAME, PACK_NAME])
+                .await
+                .unwrap();
+            let capture = Capture::open(ltx, "main.db").unwrap();
+            let volume = Volume::open_observed(storage, capture.clone()).unwrap();
+            (Store::open_follower(volume).unwrap(), capture)
+        }
+        async fn run(sync: &mut Sync, store: &mut Store, capture: &Capture) {
+            let mut local = StoreLocal {
+                store,
+                capture: capture.clone(),
+                conflicts: None,
+            };
+            sync.sync(&mut local).await.unwrap();
+        }
+
+        let replica = MemoryReplica::new();
+        let (pa, pb) = (
+            format!("moul-tests/{}", unique("sync-a")),
+            format!("moul-tests/{}", unique("sync-b")),
+        );
+        let (mut a, ca) = device(&pa).await;
+        let (mut b, cb) = device(&pb).await;
+        let mut sa = Sync::new(replica.clone(), Options::default());
+        let mut sb = Sync::new(replica.clone(), Options::default());
+
+        a.conn()
+            .execute_batch("CREATE TABLE t (v TEXT); INSERT INTO t VALUES ('one');")
+            .unwrap();
+        run(&mut sa, &mut a, &ca).await;
+        run(&mut sb, &mut b, &cb).await;
+        assert_eq!((sa.role(), sb.role()), (Role::Writer, Role::Follower));
+        for i in 0..10 {
+            a.conn()
+                .execute("INSERT INTO t VALUES (?1)", [format!("row {i}")])
+                .unwrap();
+        }
+        run(&mut sa, &mut a, &ca).await;
+        run(&mut sb, &mut b, &cb).await;
+        let n: i64 = b
+            .conn()
+            .query_row("SELECT count(*) FROM t", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(n, 11);
+        assert!(a.export().unwrap() == b.export().unwrap());
+
+        // Capture keeps the ltx folder's files open; close everything.
+        drop((a, b, ca, cb, sa, sb));
+        OpfsStorage::remove(&pa).await.unwrap();
+        OpfsStorage::remove(&pb).await.unwrap();
     }
 }

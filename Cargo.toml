@@ -41,6 +41,11 @@ web-sys = "0.3.107"
 rusqlite = { version = "0.43.0", features = ["bundled"] }
 sqlite-wasm-rs = { version = "0.6.3", default-features = false }
 rsqlite-vfs = "0.2.0"
+# S3 request signing (SigV4). Pure Rust, so it builds for the browser too.
+sha2 = "0.10.9"
+hmac = "0.12.1"
+# Native HTTP for the S3 transport; the browser uses fetch.
+ureq = { version = "3.5.0", default-features = false, features = ["rustls"] }
 
 [workspace.lints.rust]
 missing_docs = "warn"

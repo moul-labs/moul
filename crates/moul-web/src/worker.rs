@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::DedicatedWorkerGlobalScope;
 
-use crate::host::{self, Engine};
+use crate::host::{self, Engine, WeakEngine};
 use crate::js;
 use crate::leader::{Leadership, lock_name};
 use crate::persist::{self, PERSIST_MESSAGE, Persistence};
@@ -112,7 +112,8 @@ async fn lead(db: String, tabs: Rc<Tabs>, state: Rc<RefCell<State>>) {
                 let durable = opened.durable;
                 let first_write: Option<Box<dyn FnOnce()>> = durable
                     .then(|| Box::new(|| spawn_local(ask_page_to_persist())) as Box<dyn FnOnce()>);
-                let mut engine = Engine::new(opened, first_write);
+                let engine = Engine::new(opened, first_write);
+                spawn_local(sync_in_background(engine.downgrade()));
                 tabs.lead(Box::new(move |req| engine.handle(req)));
                 let mut s = state.borrow_mut();
                 s.error = None;
@@ -126,6 +127,18 @@ async fn lead(db: String, tabs: Rc<Tabs>, state: Rc<RefCell<State>>) {
                 js::sleep_ms(1_000).await;
             }
         }
+    }
+}
+
+/// Pushes and pulls about once a second while the engine is open. Holds the
+/// engine only during a round, so closing it is not held up between rounds.
+async fn sync_in_background(engine: WeakEngine) {
+    loop {
+        js::sleep_ms(1_000).await;
+        let Some(engine) = engine.upgrade() else {
+            return;
+        };
+        engine.tick().await;
     }
 }
 
