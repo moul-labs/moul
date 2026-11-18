@@ -1,0 +1,59 @@
+{
+  "name": "@moul-dev/client",
+  "version": "0.1.0",
+  "description": "The Moul SDK: a backend in the page (database, rules, sign-in, files, realtime and live queries) or a client for a Moul server.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://moul.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moul-labs/moul.git",
+    "directory": "packages/client"
+  },
+  "keywords": [
+    "moul",
+    "local-first",
+    "sqlite",
+    "backend",
+    "wasm",
+    "live-query",
+    "litestream"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./headless": {
+      "types": "./dist/headless.d.ts",
+      "default": "./dist/headless.js"
+    },
+    "./worker": "./dist/worker.js",
+    "./wasm/moul_web_bg.wasm": "./wasm/moul_web_bg.wasm",
+    "./llms.txt": "./llms.txt",
+    "./AGENTS.md": "./AGENTS.md",
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "wasm",
+    "llms.txt",
+    "AGENTS.md",
+    "skills",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/worker.js"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "prepack": "test -f wasm/moul_web_bg.wasm && npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

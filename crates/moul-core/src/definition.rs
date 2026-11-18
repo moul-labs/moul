@@ -3,8 +3,12 @@
 //! The schema file is the app definition (collections, fields with their
 //! ids, rules) as one JSON document, for git, review and agents. Applying it
 //! is a definition request like any other: collections are matched by id,
-//! then by name, and created or changed, all in one transaction and one
-//! change-log row.
+//! then by name in any case (names are unique in any case), and created or
+//! changed, all in one transaction and one change-log row. Two entries may
+//! not match one collection, whatever their order: an entry without an id
+//! that names, in any case, a collection another entry renames by id is
+//! refused, so a new collection under a renamed one's old name needs its own
+//! id.
 //!
 //! ```json
 //! { "format": 1, "collections": [ { "id": "…", "name": "posts", "type": "base",
@@ -55,6 +59,17 @@ pub struct Applied {
     pub unchanged: Vec<String>,
 }
 
+/// Whether the schema file's entry `w` describes the stored collection `c`:
+/// by id, or without one by name. Names match in any case, as collection
+/// names are unique in any case.
+fn describes(w: &Collection, c: &Collection) -> bool {
+    if w.id.is_empty() {
+        c.name.eq_ignore_ascii_case(w.name.trim())
+    } else {
+        c.id == w.id
+    }
+}
+
 fn same_definition(a: &Collection, b: &Collection) -> bool {
     definition_json(a) == definition_json(b)
 }
@@ -84,15 +99,46 @@ pub(crate) fn apply(cx: &mut Cx<'_>, file: &Value, prune: bool) -> ApiResult<App
                 .map_err(|e| ApiError::bad_request(format!("collections[{i}]: {e}")))
         })
         .collect::<ApiResult<_>>()?;
-    let stored = cx.collections()?;
-    let matching = |w: &Collection| {
-        stored
+    // Collections are matched by id, then by name: a second one with the
+    // same name or id would quietly change the first.
+    for (k, w) in wanted.iter().enumerate() {
+        let name = w.name.trim();
+        if let Some(j) = wanted[..k]
             .iter()
-            .find(|c| {
-                (!w.id.is_empty() && c.id == w.id) || (w.id.is_empty() && c.name == w.name.trim())
-            })
-            .cloned()
-    };
+            .position(|o| o.name.trim().eq_ignore_ascii_case(name))
+        {
+            return Err(ApiError::bad_request(format!(
+                "the schema file lists the collection {name:?} twice (collections[{j}] and collections[{k}])"
+            )));
+        }
+        if let Some(j) = wanted[..k]
+            .iter()
+            .position(|o| !w.id.is_empty() && o.id == w.id)
+        {
+            return Err(ApiError::bad_request(format!(
+                "collections[{k}] ({name:?}) has the id {:?} of collections[{j}] ({:?})",
+                w.id,
+                wanted[j].name.trim()
+            )));
+        }
+    }
+    let stored = cx.collections()?;
+    let matching = |w: &Collection| stored.iter().find(|c| describes(w, c)).cloned();
+    // Two entries that match one stored collection, one by id and the other
+    // by name, would quietly change it twice. Checked over every entry
+    // before anything is applied, so the order of the entries does not
+    // matter.
+    let mut claimed: std::collections::HashMap<String, usize> = Default::default();
+    for (k, w) in wanted.iter().enumerate() {
+        if let Some(old) = matching(w)
+            && let Some(j) = claimed.insert(old.id.clone(), k)
+        {
+            return Err(ApiError::bad_request(format!(
+                "collections[{j}] and collections[{k}] both describe the collection {:?}; give each its id",
+                old.name
+            )));
+        }
+    }
     // Every rename the file makes, as one map from old name to new. A
     // relation target in the file that names no collection the file
     // defines, but the old name of a renamed one, follows the rename; a
@@ -132,15 +178,48 @@ pub(crate) fn apply(cx: &mut Cx<'_>, file: &Value, prune: bool) -> ApiResult<App
             w.rules = serde_json::from_value(rules).expect("rules round-trip");
         }
     }
+    // Every relation must point at a collection that exists once the file
+    // is applied: one the file lists, or (without `prune`) one it leaves
+    // as it is.
+    let mut names_after = finals.clone();
+    if !prune {
+        for c in &stored {
+            if !wanted
+                .iter()
+                .any(|w| matching(w).is_some_and(|m| m.id == c.id))
+            {
+                names_after.insert(c.name.clone());
+            }
+        }
+    }
+    for w in &wanted {
+        for f in w.fields.iter().filter(|f| f.kind == FieldType::Relation) {
+            let Some(rel) = f.relation.as_ref() else {
+                continue;
+            };
+            let target = rel.target_moul.trim();
+            if !target.is_empty() && !names_after.contains(target) {
+                return Err(ApiError::bad_request(format!(
+                    "the relation field {:?} of the collection {:?} points at {target:?}, which is not a collection",
+                    f.name,
+                    w.name.trim()
+                )));
+            }
+        }
+    }
     let mut applied = Applied::default();
     let mut touched = Vec::new();
-    let mut kept_ids = Vec::new();
-    // Creating in file order lets later collections point at earlier ones;
-    // relation targets are names and are not checked at definition time.
+    let mut kept_ids: Vec<String> = Vec::new();
+    // Creating in file order lets later collections point at earlier ones.
     for want in wanted {
-        let existing = cx.collections()?.into_iter().find(|c| {
-            (!want.id.is_empty() && c.id == want.id) || (want.id.is_empty() && c.name == want.name)
-        });
+        let existing = cx.collections()?.into_iter().find(|c| describes(&want, c));
+        if let Some(old) = existing.as_ref().filter(|o| kept_ids.contains(&o.id)) {
+            // One entry renamed it and another matched its old name.
+            return Err(ApiError::bad_request(format!(
+                "two collections in the schema file describe the collection {:?}; give each its id",
+                old.name
+            )));
+        }
         match existing {
             None => {
                 let made = collections::create_collection(cx, want)?;
@@ -284,7 +363,9 @@ fn ts_type(f: &Field) -> String {
         | FieldType::Email
         | FieldType::Cloak => "string".into(),
         FieldType::Number => "number".into(),
-        FieldType::Bool => "boolean".into(),
+        // An unset bool reads as null.
+        FieldType::Bool if f.required => "boolean".into(),
+        FieldType::Bool => "boolean | null".into(),
         FieldType::Json => "unknown".into(),
         FieldType::File => "MoulFile | MoulFile[] | null".into(),
         FieldType::Relation if f.relation.as_ref().is_some_and(|r| r.is_many()) => {
@@ -379,12 +460,21 @@ pub fn read_schema_file(file: &Value) -> Result<Vec<Collection>, String> {
         .ok_or("the schema file needs a \"collections\" array")?;
     let mut out = Vec::new();
     for (i, v) in items.iter().enumerate() {
-        let mut c: Collection =
-            serde_json::from_value(v.clone()).map_err(|e| format!("collections[{i}]: {e}"))?;
-        c.validate(None)
-            .map_err(|e| format!("collections[{i}] ({}): {e}", c.name))?;
+        let c = read_definition(v).map_err(|e| match v.get("name").and_then(Value::as_str) {
+            Some(name) => format!("collections[{i}] ({}): {e}", name.trim()),
+            None => format!("collections[{i}]: {e}"),
+        })?;
         out.push(c);
     }
     let _ = Map::<String, Value>::new();
     Ok(out)
+}
+
+/// Reads one collection of a schema file without applying it, checking the
+/// definition as creating the collection would. For `moul check`, which
+/// reports every collection's problem, not only the first.
+pub fn read_definition(v: &Value) -> Result<Collection, String> {
+    let mut c: Collection = serde_json::from_value(v.clone()).map_err(|e| e.to_string())?;
+    c.validate(None).map_err(|e| e.to_string())?;
+    Ok(c)
 }

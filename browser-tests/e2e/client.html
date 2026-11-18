@@ -1,0 +1,10 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>client e2e</title>
+<script type="module">
+  // Loads the built SDK straight from the package, as an app would.
+  import { createClient } from '/packages/client/dist/index.js';
+  const db = new URLSearchParams(location.search).get('db') || 'e2e';
+  window.moul = createClient({ db, owner: true });
+  window.ready = true;
+</script>

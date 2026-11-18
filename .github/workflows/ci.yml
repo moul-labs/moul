@@ -196,3 +196,137 @@ jobs:
         working-directory: tools/go-fixtures
       - run: go vet ./...
         working-directory: tools/go-fixtures
+
+  typescript:
+    name: SDK, Studio and Playground
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: wasm-release
+      - name: Read the wasm-bindgen version from Cargo.lock
+        id: wbg
+        run: echo "version=$(grep -A1 '^name = "wasm-bindgen"$' Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')" >> "$GITHUB_OUTPUT"
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@${{ steps.wbg.outputs.version }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: scripts/build-wasm.sh
+      - name: Check the size budget
+        run: |
+          gz=$(gzip -9 -c packages/client/wasm/moul_web_bg.wasm | wc -c)
+          echo "engine: $gz bytes gzipped"
+          test "$gz" -le 2097152
+      - run: npm ci
+      - run: npm run typecheck
+      # The SDK's tests run on the headless engine in Node.
+      - run: npm test
+      - run: npm run build
+      - run: npm pack --dry-run -w @moul-dev/client -w @moul-dev/studio
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: |
+            packages/client/dist
+            packages/client/wasm
+            packages/studio/dist
+            sites/playground/dist
+
+  e2e:
+    name: End to end (${{ matrix.browser }})
+    needs: typescript
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    runs-on: ubuntu-latest
+    env:
+      MOUL_S3_ENDPOINT: http://127.0.0.1:9000
+      MOUL_S3_BUCKET: moul-test
+      MOUL_S3_ACCESS_KEY_ID: moul-test
+      MOUL_S3_SECRET_ACCESS_KEY: moul-test-secret
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            browser-tests/package-lock.json
+      # The workspace's dependencies: Vite, and what Studio leaves to the app (Lit, Moul UI, TanStack).
+      - run: npm ci
+      - run: npm ci
+        working-directory: browser-tests
+      - name: Install ${{ matrix.browser }}
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+        working-directory: browser-tests
+      - name: Start MinIO
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/minio" https://dl.min.io/server/minio/release/linux-amd64/minio
+          chmod +x "$RUNNER_TEMP/minio"
+          mkdir -p "$RUNNER_TEMP/minio-data/moul-test"
+          MINIO_ROOT_USER=moul-test MINIO_ROOT_PASSWORD=moul-test-secret \
+            nohup "$RUNNER_TEMP/minio" server "$RUNNER_TEMP/minio-data" --address 127.0.0.1:9000 \
+            > "$RUNNER_TEMP/minio.log" 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fs http://127.0.0.1:9000/minio/health/live && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/minio.log"
+          exit 1
+      # The SDK in a worker: tabs sharing a database, live queries, leader hand-off.
+      - run: node e2e.mjs --browsers ${{ matrix.browser }}
+        working-directory: browser-tests
+      # The built Playground under its own CSP, offline, and two devices syncing through MinIO.
+      - run: node playground.mjs --browsers ${{ matrix.browser }}
+        working-directory: browser-tests
+      # Studio's dist build in an app bundled with Vite: the Overview, the SDK's changes, the download.
+      - run: node studio.mjs --browsers ${{ matrix.browser }}
+        working-directory: browser-tests
+
+  budgets:
+    name: Time budgets (native)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: budgets
+      # The plan's budgets beside the size one: opening a database and a commit (on disk and in
+      # memory), and restoring a 50 MB database from a replica. Release builds; the tests print
+      # what they measure.
+      - run: cargo test -p moul-core --release --test budgets -- --ignored --nocapture
+      - run: cargo test -p moul-sync --release --test budgets -- --ignored --nocapture
+
+  budgets-browser:
+    name: Time budgets (browsers)
+    needs: typescript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: browser-tests/package-lock.json
+      - run: npm ci
+        working-directory: browser-tests
+      - run: npx playwright install --with-deps chromium firefox webkit
+        working-directory: browser-tests
+      # Opening a database and creating a record through the SDK: Chromium with its CPU slowed 4x
+      # (the page's main thread; it cannot slow workers), Firefox and WebKit at full speed.
+      - run: node bench.mjs
+        working-directory: browser-tests

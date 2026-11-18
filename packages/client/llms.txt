@@ -1,0 +1,135 @@
+# @moul-dev/client
+
+> The Moul SDK. It runs a backend inside a web page: a database with collections and records,
+> access rules, sign-in, files, record subscriptions and live queries, stored as one SQLite file in
+> the browser (OPFS) and optionally synced to an S3-compatible bucket as a Litestream replica. The
+> same client talks to a Moul server over HTTP.
+
+Docs: https://github.com/moul-labs/moul/tree/main/docs
+
+## Start
+
+```ts
+import { createClient } from '@moul-dev/client';
+import type { MoulSchema } from './moul-types';      // from `moul typegen` or Studio
+import schema from './moul.schema.json';              // collections, fields, rules
+
+const moul = createClient<MoulSchema>({ db: 'myapp', schema });
+```
+
+- `db`: database name, `[A-Za-z0-9_-]+`. One database per name per site; tabs share it.
+- `schema`: applied before the first request (creates and changes collections, deletes none).
+  `await moul.ready` rejects if it did not apply.
+- Vite: `optimizeDeps: { exclude: ['@moul-dev/client'] }` (the worker loads via `new URL(..., import.meta.url)`).
+
+## Records
+
+```ts
+const c = moul.collection('tasks');
+await c.create({ title: 'Mop', owner: moul.user!.id });   // optional `id` to choose it
+await c.update(id, { done: true });                        // partial
+await c.delete(id);
+await c.get(id, { expand: 'project' });
+await c.list({ filter: "done = false && owner = @request.auth.id", sort: '-createdAt', expand: 'project', page: 1, perPage: 50 });
+// → { page, perPage, totalItems, totalPages, items }
+await c.all({ filter }); await c.first(filter);
+```
+
+- `Blob`/`File` values are uploaded and stored as `{ id, url, filename, size }`.
+- Errors throw `MoulError { status, message, data }`. A guest blocked by a rule gets 401/403; a
+  record the caller may not view is 404.
+- Record fields: `id`, `createdAt`, `updatedAt`, then the collection's fields. Unset fields are
+  `null` (bools too). Relation fields hold ids; `expand` puts related records under `expand`.
+
+## Live queries (use these to show data)
+
+```ts
+const q = moul.collection('tasks').live({ filter: 'done = false', sort: 'due' });
+const stop = q.subscribe(({ data, error, loading }) => render(data?.items ?? []));
+```
+
+Refreshes automatically after any commit that touches what it read (this tab, other tabs, other
+devices, sign-in changes). `loading` is true until the first answer, and again after the
+signed-in person changes until the query has read again (`data` is `undefined` meanwhile). Also
+`liveGet(id)` (null when deleted/hidden), `liveAll(opts)`, `await q.value()`,
+`moul.live(async () => ({ data, reads }))`, `moul.onChange(notice => …)` (engine in the page or
+headless only; never fires over HTTP).
+
+## Subscriptions
+
+```ts
+const stop = await moul.collection('tasks').subscribe((e) => {/* e.action, e.record, e.old_record */});
+```
+
+Options: `record`, `events`, `onClose`, `signal`, and `visible` (ids already shown: on a device that
+follows another writer, deletes reach only subscribers that knew the record).
+
+## Sign-in (auth collections, usually `users`)
+
+```ts
+const users = moul.auth('users');
+await users.signUp({ email, password });                 // username made from the email if absent
+await users.signInWithPassword(identity, password);      // email or username
+await users.requestCode(email); await users.signInWithCode(email, code);
+await users.refresh(); await users.signOut();
+moul.user; moul.session; moul.onAuthChange(cb);
+```
+
+In a tab no mail is sent: codes and reset links go to the local inbox (`moul.admin.inbox()`, and
+Studio's Inbox page).
+
+## Rules (set per collection: listRule, viewRule, createRule, updateRule, deleteRule, subscribeRule)
+
+Empty string = everyone, including guests, except on auth collections, where an empty list,
+view, update or delete rule is stored as `id = @request.auth.id` (own account only); write `true`
+to open one to everyone. No `!` operator: use `!=`, `!~`, `?!=`, compare a bool field or modifier with `false`
+(`done = false`), and rewrite compound conditions (`a != 1 || b != 2`). List rules cannot use
+`@request.body`.
+Examples: `@request.auth.id != ''`,
+`owner = @request.auth.id`, `@request.auth.id != '' && @request.body.owner = @request.auth.id`,
+`status = 'published' || owner = @request.auth.id`. Also `@request.body.x:isset`, `:changed`,
+`@collection.<name>.<field>`, relation paths in list rules (`project.owner = @request.auth.id`),
+`@now`. Field names are camelCase (`^[a-z][a-zA-Z0-9]*$`); collection names `^[A-Za-z][A-Za-z0-9_]*$`.
+In a tab the person at the keyboard owns the data; rules matter once the app is served to others.
+
+## Schema file (`moul.schema.json`)
+
+```json
+{ "format": 1, "collections": [
+  { "name": "users", "type": "auth", "fields": [{ "name": "name", "type": "text" }] },
+  { "name": "tasks", "fields": [
+      { "name": "title", "type": "text", "required": true },
+      { "name": "done", "type": "bool" },
+      { "name": "due", "type": "date" },
+      { "name": "owner", "type": "relation", "relationConfig": { "targetMoul": "users", "cardinality": "1:N" } }
+    ],
+    "rules": { "listRule": "owner = @request.auth.id", "viewRule": "owner = @request.auth.id",
+               "createRule": "@request.auth.id != '' && @request.body.owner = @request.auth.id",
+               "updateRule": "owner = @request.auth.id", "deleteRule": "owner = @request.auth.id" } }
+] }
+```
+
+Field types: text, number, bool, date, datetime, json, url, file, select (`"options": [...]`),
+relation (`relationConfig: { targetMoul, cardinality: "1:1" | "1:N" | "M:N", onDelete: "CASCADE" | "SET_NULL" | "RESTRICT" }`).
+Validate with `moul check [--json]` before applying.
+
+## Files, database, sync, owner tools
+
+- `moul.files.upload(blob)`, `moul.files.url(ref)` (blob URL for `<img>`), `moul.files.fetch(ref)`.
+- `moul.database.status() | export() | download() | import(bytes) | persist()`.
+- `moul.sync.configure({ endpoint, bucket, accessKeyId, secretAccessKey, label, followOnly? }) | status() | now() | takeOver() | disconnect()`.
+  Settings read from a join link (`readJoinLink`) must be connected with `followOnly: true`.
+- `moul.admin`: collections CRUD, `schema()`, `applySchema(file, { prune })`, `types()`, `changes()`, `inbox()`, `testRule()`.
+- `moul.asOwner()`: same engine, rules bypassed.
+
+## Tests without a browser
+
+```ts
+import { createHeadlessClient } from '@moul-dev/client/headless';
+const owner = await createHeadlessClient({ schema, owner: true, now: '2026-01-01T00:00:00Z', seed: 1 });
+const app = new MoulClient(owner.transport, { authStorage: null });   // with rules
+```
+
+## Admin UI
+
+`@moul-dev/studio`: `<moul-studio>` element; set `.client = moul` to share the engine.

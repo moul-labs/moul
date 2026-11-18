@@ -102,6 +102,35 @@ pub(crate) struct Catalog {
     version: i64,
     all: Vec<Collection>,
     loaded: bool,
+    /// While a read is served, the collections it looked up: the read set
+    /// a live query refreshes on. See [`Engine::handle`].
+    reads: std::cell::RefCell<Option<Reads>>,
+}
+
+/// The collections one read looked up, by id, or `all` when it may depend
+/// on any table (a rule that runs `exists(` or `get(`).
+#[derive(Debug, Default)]
+pub(crate) struct Reads {
+    ids: std::collections::BTreeSet<String>,
+    all: bool,
+    /// The collections whose rules were scanned for what they read.
+    scanned: std::collections::BTreeSet<String>,
+}
+
+impl Reads {
+    /// The `Moul-Reads` header: `*`, or collection ids joined by commas.
+    fn header(&self) -> String {
+        if self.all {
+            "*".into()
+        } else {
+            self.ids.iter().cloned().collect::<Vec<_>>().join(",")
+        }
+    }
+}
+
+/// Whether a rule or filter may read tables its collections do not name.
+fn reads_any_table(rule: &str) -> bool {
+    rule.contains("exists(") || rule.contains("get(")
 }
 
 impl Catalog {
@@ -120,7 +149,50 @@ impl Catalog {
     }
 
     pub(crate) fn get(&self, name: &str) -> Option<&Collection> {
-        self.all.iter().find(|c| c.name == name)
+        let found = self.all.iter().find(|c| c.name == name);
+        if let Some(c) = found {
+            self.note_read(c);
+        }
+        found
+    }
+
+    /// Adds `c` to the read set, if one is being recorded, with the
+    /// collections its rules read through `@collection.<name>`: those
+    /// conditions query their tables directly, without a lookup here.
+    fn note_read(&self, c: &Collection) {
+        let mut reads = self.reads.borrow_mut();
+        let Some(reads) = reads.as_mut() else {
+            return;
+        };
+        if !reads.scanned.insert(c.id.clone()) {
+            return;
+        }
+        reads.ids.insert(c.id.clone());
+        let r = &c.rules;
+        let rules = [
+            &r.list_rule,
+            &r.view_rule,
+            &r.create_rule,
+            &r.update_rule,
+            &r.delete_rule,
+            &r.subscribe_rule,
+        ];
+        reads.all |= rules.iter().any(|rule| reads_any_table(rule));
+        for rule in rules {
+            for name in moul_rules::collections_named(rule) {
+                if let Some(other) = self.all.iter().find(|o| o.name == name) {
+                    reads.ids.insert(other.id.clone());
+                }
+            }
+        }
+    }
+
+    fn start_reads(&self) {
+        *self.reads.borrow_mut() = Some(Reads::default());
+    }
+
+    fn take_reads(&self) -> Option<Reads> {
+        self.reads.borrow_mut().take()
     }
 
     pub(crate) fn by_id(&self, id: &str) -> Option<&Collection> {
@@ -445,6 +517,62 @@ impl Engine {
         &self.store
     }
 
+    /// The store underneath, for a host that applies replica pages or runs
+    /// the owner's raw SQL. Writes made here bypass the change log.
+    pub fn store_mut(&mut self) -> &mut Store {
+        &mut self.store
+    }
+
+    /// Runs `f` on the store while SQLite's authorizer lets the statements
+    /// prepared or run in it only read: tables of any store and the values
+    /// of pragmas, but nothing written or set, no database attached or
+    /// detached, and no transaction begun or ended. A refused statement
+    /// fails with `SQLITE_AUTH` ("not authorized"). For a host that runs
+    /// the owner's queries.
+    pub fn read_only<T>(&self, f: impl FnOnce(&Store) -> T) -> T {
+        self.guard.read_only(|| f(&self.store))
+    }
+
+    /// Replaces the shared store with a database file, such as one
+    /// [`Store::export`] wrote or one the Go engine made (converted here),
+    /// and migrates it. The writer-only and device stores are kept.
+    /// Refused on a follower, whose shared store is the writer's.
+    ///
+    /// A copy of the file is migrated in memory first, so a file that
+    /// cannot be migrated (one from a newer engine, say) is refused and the
+    /// shared store keeps its data.
+    pub fn import_database(&mut self, bytes: &[u8]) -> Result<(), OpenError> {
+        if self.role == Role::Follower {
+            return Err(OpenError::Store(moul_store::Error::BadImport(
+                "this device follows another writer; take over writing before importing".into(),
+            )));
+        }
+        {
+            let mut scratch = Store::open_in_memory()?;
+            scratch.import(bytes)?;
+            // Not the host's ids: the real migration below takes those.
+            let mut n = 0u32;
+            scratch.migrate(|| {
+                n += 1;
+                format!("fld_{n}")
+            })?;
+        }
+        self.store.import(bytes)?;
+        let host = &mut self.host;
+        let migrated = self.store.migrate(|| ids::field_id(&mut **host));
+        // The shared store was replaced, migrated or not.
+        self.catalog = Catalog::default();
+        self.last_seq = self
+            .store
+            .conn()
+            .query_row("SELECT COALESCE(MAX(seq), 0) FROM main._changes", [], |r| {
+                r.get(0)
+            })
+            .unwrap_or(0);
+        migrated?;
+        Ok(())
+    }
+
     /// Closes the engine and hands back the store.
     pub fn into_store(self) -> Store {
         self.store
@@ -510,6 +638,15 @@ impl Engine {
         self.realtime.take_closed()
     }
 
+    /// Ends every live subscription with `reason`; they come out of
+    /// [`take_closed`](Self::take_closed). For a host whose data changed in
+    /// a way the change log does not describe event by event, such as a
+    /// snapshot from the replica or an import: subscribers cannot know what
+    /// happened in between and must load the data again.
+    pub fn end_subscriptions(&mut self, reason: &str) {
+        self.realtime.retain(|_, _| Some(reason.to_owned()));
+    }
+
     /// Reads the change log after `seq` and announces the changes to live
     /// subscriptions. A follower calls this after pages from the writer were
     /// applied underneath SQLite, which fires no other change events.
@@ -559,9 +696,25 @@ impl Engine {
     }
 
     /// Serves one request.
+    ///
+    /// A successful `GET` answers with `Moul-Reads`: the ids of the
+    /// collections it read, comma-separated, or `*` when a rule it ran may
+    /// read any table. A live query refreshes when a change touches one of
+    /// them (or any definition changes); see [`changes`](Self::changes).
     pub fn handle(&mut self, req: Request) -> Response {
         let route = route(&req);
-        self.serve(&route, &req)
+        let reads = req.method == "GET" || req.method == "HEAD";
+        if reads {
+            self.catalog.start_reads();
+        }
+        let mut response = self.serve(&route, &req);
+        if let Some(mut set) = self.catalog.take_reads().filter(|_| reads)
+            && response.status < 400
+        {
+            set.all |= reads_any_table(req.query_param("filter"));
+            response.headers.push(("Moul-Reads".into(), set.header()));
+        }
+        response
     }
 
     fn serve(&mut self, route: &Route, req: &Request) -> Response {
@@ -589,6 +742,12 @@ impl Engine {
             Ok(w) => w,
             Err(e) => return e.into_response(),
         };
+        // A signed-in caller's own record feeds `@request.auth`, so a read
+        // depends on it.
+        if let Some(u) = who.user() {
+            let _ = self.catalog.refresh(self.store.conn());
+            self.catalog.get(&u.collection);
+        }
         let logged = route.is_logged_write();
         let writes = req.method != "GET" && req.method != "HEAD";
         if writes && self.role == Role::Follower {

@@ -6,8 +6,7 @@ Part of [Moul](https://github.com/moul-labs/moul), a backend that runs entirely
 in a browser tab: a database, access rules, auth, files and realtime, stored as
 one SQLite file and synced as a Litestream-compatible LTX replica.
 
-**Status:** early development. The API changes without notice until the first
-release.
+**Status:** 0.1, the first public release. The API may change before 1.0.
 
 ## What it does
 

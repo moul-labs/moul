@@ -29,7 +29,9 @@ use crate::storage::{StorageFile, read_exact_at};
 use crate::{Error, Result};
 use moul_ltx::Crc64;
 
-pub(crate) const HEADER_LEN: u64 = 128;
+/// The length of the commit log's header. A log no longer than this holds
+/// no commit.
+pub const HEADER_LEN: u64 = 128;
 const SLOT_LEN: usize = 64;
 const SLOT_MAGIC: &[u8; 8] = b"MOULLOG1";
 const RECORD_MAGIC: &[u8; 4] = b"MREC";

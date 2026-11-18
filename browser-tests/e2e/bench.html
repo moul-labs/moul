@@ -1,0 +1,46 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>client bench</title>
+<script type="module">
+  // The built SDK, as an app loads it. bench.mjs calls bench.open(), then bench.creates().
+  import { createClient } from '/packages/client/dist/index.js';
+
+  /** From createClient to the first answered request: worker start, wasm compile, opening storage. */
+  const open = async (db) => {
+    const started = performance.now();
+    // persist: false, so no browser asks to keep storage while it is timed.
+    window.moul = createClient({ db, owner: true, persist: false });
+    await window.moul.admin.listCollections();
+    const ms = performance.now() - started;
+    const { durable } = await window.moul.database.status();
+    return { ms, durable };
+  };
+
+  /**
+   * The mean time of one record created through the SDK, over `n` creates one after another. Timed
+   * as one loop: Firefox and WebKit round performance.now() to whole milliseconds on this page,
+   * too coarse to time a single create.
+   */
+  const creates = async (n) => {
+    await window.moul.admin.createCollection({
+      name: 'notes',
+      fields: [
+        { name: 'title', type: 'text', required: true },
+        { name: 'body', type: 'text' },
+        { name: 'done', type: 'bool' },
+      ],
+    });
+    const notes = window.moul.collection('notes');
+    const started = performance.now();
+    for (let i = 0; i < n; i++) {
+      await notes.create({ title: `Note ${i}`, body: 'Something to remember, written down so it is not forgotten.', done: i % 3 === 0 });
+    }
+    const ms = (performance.now() - started) / n;
+    const { totalItems } = await notes.list({ perPage: 1 });
+    if (totalItems !== n) throw new Error(`${totalItems} records, expected ${n}`);
+    return ms;
+  };
+
+  window.bench = { open, creates };
+  window.ready = true;
+</script>

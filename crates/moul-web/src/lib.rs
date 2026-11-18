@@ -9,12 +9,22 @@
 //! - `host`: opening the stores on OPFS, or in memory where OPFS is missing,
 //!   and answering requests, sync included.
 //! - `conflicts`: conflict copies kept in OPFS.
+//! - `api`: engine requests and responses as JavaScript values.
 //! - `MoulWorker`: the entry point a dedicated worker starts.
+//! - `MoulEngine`: the engine in memory, without a worker, for tests in
+//!   Node and tools.
 //!
 //! Everything here is browser-only; on native targets the crate is empty.
 
 #[cfg(target_arch = "wasm32")]
 mod js;
+
+#[cfg(target_arch = "wasm32")]
+pub mod api;
+#[cfg(target_arch = "wasm32")]
+mod headless;
+#[cfg(target_arch = "wasm32")]
+pub mod webhost;
 
 #[cfg(target_arch = "wasm32")]
 pub mod conflicts;
@@ -30,4 +40,6 @@ pub mod tabs;
 mod worker;
 
 #[cfg(target_arch = "wasm32")]
-pub use worker::MoulWorker;
+pub use headless::MoulEngine;
+#[cfg(target_arch = "wasm32")]
+pub use worker::{MoulWorker, Retry};

@@ -10,5 +10,19 @@ readme = "README.md"
 keywords = ["backend", "sqlite", "local-first", "wasm", "litestream"]
 categories = ["database", "wasm", "web-programming"]
 
+[dependencies]
+moul-ltx.workspace = true
+moul-vfs.workspace = true
+moul-store.workspace = true
+moul-rules.workspace = true
+moul-core.workspace = true
+moul-sync.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+moul-web.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+
 [lints]
 workspace = true

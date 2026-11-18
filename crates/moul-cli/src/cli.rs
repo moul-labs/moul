@@ -1,7 +1,7 @@
 //! The commands.
 
 use std::fs::{self, File};
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::Duration;
@@ -33,6 +33,14 @@ Usage:
       as a schema file, for git, review and agents.
   moul typegen <schema file | database> [-o <file>]
       Write TypeScript types for the records of every collection.
+  moul check [<schema file | database>] [--json] [--strict]
+      Check an app definition before it is applied: the file reads, every
+      collection applies to an empty app, relations have targets and every
+      rule compiles against its collection. Rules that let anyone write
+      are warnings. Checks ./moul.schema.json when no file is given.
+      --json prints one JSON report. Exits 0 when there is no error (and,
+      with --strict, no warning), 1 when there is, and 2 when the file
+      cannot be read.
 
 A database is a SQLite file (main.db, a Moul export or a Go engine
 database) or a folder holding main.db, such as one `moul pull` keeps.
@@ -63,6 +71,7 @@ pub(crate) fn main() -> ExitCode {
         Some("info") => info(&args[1..]),
         Some("schema") => schema(&args[1..]),
         Some("typegen") => typegen(&args[1..]),
+        Some("check") => return check(&args[1..]),
         Some(other) => Err(format!("unknown command {other:?}; see `moul help`")),
     };
     match result {
@@ -525,6 +534,68 @@ fn typegen(args: &[String]) -> Result<()> {
         a.value(&["-o", "--output"]),
         &moul_core::definition::typescript(&collections),
     )
+}
+
+/// The schema file `moul check` reads when given none.
+const DEFAULT_SCHEMA: &str = "moul.schema.json";
+
+/// The first bytes of every SQLite database file.
+const SQLITE_HEADER: &[u8; 16] = b"SQLite format 3\0";
+
+/// `moul check`. Exits 0 when the definition is sound, 1 when it has
+/// errors (or warnings, with `--strict`), and 2 when it cannot be checked:
+/// a bad argument or a file that cannot be read.
+fn check(args: &[String]) -> ExitCode {
+    let run = || -> Result<bool> {
+        let a = Args::parse(args, &[], &["--json", "--strict"])?;
+        a.arity(1)?;
+        let shown = match a.positional.first() {
+            Some(p) => p.clone(),
+            None if Path::new(DEFAULT_SCHEMA).is_file() => DEFAULT_SCHEMA.to_owned(),
+            None => {
+                return Err(format!(
+                    "no {DEFAULT_SCHEMA} here; give a schema file or a database to check"
+                ));
+            }
+        };
+        let input = read_check_input(&shown)?;
+        let strict = a.has("--strict");
+        let report = crate::check::check(input, &shown)?;
+        if a.has("--json") {
+            print!("{}", report.to_json(strict));
+        } else {
+            print!("{}", report.to_text(strict));
+        }
+        Ok(report.passes(strict))
+    };
+    match run() {
+        Ok(true) => ExitCode::SUCCESS,
+        Ok(false) => ExitCode::FAILURE,
+        Err(e) => {
+            eprintln!("moul: {e}");
+            ExitCode::from(2)
+        }
+    }
+}
+
+/// A database (a SQLite file, or a folder holding main.db) or the bytes of
+/// a schema file. A database is opened read-only.
+fn read_check_input(spec: &str) -> Result<crate::check::Input> {
+    let path = Path::new(spec);
+    let unreadable = |e: std::io::Error| format!("cannot read {spec}: {e}");
+    if path.is_dir() {
+        return Ok(crate::check::Input::Database(read_collections(spec)?));
+    }
+    let mut head = Vec::with_capacity(SQLITE_HEADER.len());
+    File::open(path)
+        .and_then(|f| f.take(SQLITE_HEADER.len() as u64).read_to_end(&mut head))
+        .map_err(unreadable)?;
+    if head == SQLITE_HEADER {
+        return Ok(crate::check::Input::Database(read_collections(spec)?));
+    }
+    Ok(crate::check::Input::Schema(
+        fs::read(path).map_err(unreadable)?,
+    ))
 }
 
 #[cfg(test)]

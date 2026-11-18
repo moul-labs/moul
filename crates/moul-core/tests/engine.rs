@@ -692,6 +692,32 @@ fn schema_file_applies_as_definition_requests() {
 }
 
 #[test]
+fn typegen_types_an_unset_bool_as_null() {
+    let mut e = engine();
+    define(
+        &mut e,
+        json!({"name": "flags", "fields": [
+            {"name": "done", "type": "bool"},
+            {"name": "seen", "type": "bool", "required": true},
+        ]}),
+    );
+    let made = ok(
+        e.handle(Request::post("/api/moul/flags/records", json!({"seen": true})).owner()),
+        201,
+    );
+    assert_eq!(made["done"], Value::Null, "an unset bool reads as null");
+    let types = e.handle(Request::get("/api/types").owner());
+    let moul_core::ResponseBody::Bytes { data, .. } = &types.body else {
+        panic!()
+    };
+    let ts = String::from_utf8(data.clone()).unwrap();
+    assert!(
+        ts.contains("  done: boolean | null;\n  seen: boolean;\n"),
+        "{ts}"
+    );
+}
+
+#[test]
 fn live_subscriptions_receive_changes() {
     let mut e = engine();
     posts(&mut e);
@@ -1233,6 +1259,34 @@ fn live_events_follow_go_rules_tokens_and_signing() {
     let closed = e.take_closed();
     assert_eq!(closed.len(), 1);
     assert_eq!(closed[0].0, member);
+}
+
+#[test]
+fn a_host_can_end_every_subscription() {
+    let mut e = engine();
+    posts(&mut e);
+    let sub = |e: &mut Engine| {
+        e.subscribe(Subscription {
+            collection: "posts".into(),
+            owner: true,
+            ..Default::default()
+        })
+        .unwrap()
+    };
+    let (a, b) = (sub(&mut e), sub(&mut e));
+    e.end_subscriptions("replaced");
+    let mut closed = e.take_closed();
+    closed.sort();
+    assert_eq!(closed, [(a, "replaced".into()), (b, "replaced".into())]);
+    ok(
+        e.handle(Request::post("/api/moul/posts/records", json!({"title": "after"})).owner()),
+        201,
+    );
+    assert!(
+        e.take_deliveries().is_empty(),
+        "ended subscriptions get nothing"
+    );
+    assert!(!e.unsubscribe(a));
 }
 
 #[test]
@@ -1960,13 +2014,15 @@ fn schema_file_renames_map_targets_at_once() {
             .collect()
     };
     // A swap with the targets written in new names; comments renamed to
-    // archive and a new comments made with a self relation.
+    // archive and a new comments made with a self relation. The new one
+    // has its own id: without one it would match the stored comments by
+    // name, which the rename claims by id, and the file is refused.
     let file = json!({"collections": [
         {"id": "aaaaaaaaaaaaaaa", "name": "c"},
         {"id": "bbbbbbbbbbbbbbb", "name": "a"},
         {"id": "xxxxxxxxxxxxxxx", "name": "x", "fields": [rel("ra", "c"), rel("rb", "a")]},
         {"id": "ccccccccccccccc", "name": "archive", "fields": [rel("parent", "archive")]},
-        {"name": "comments", "fields": [rel("parent", "comments")]},
+        {"id": "ddddddddddddddd", "name": "comments", "fields": [rel("parent", "comments")]},
     ]});
     ok(
         e.handle(Request::post("/api/schema", file.clone()).owner()),
@@ -2013,6 +2069,141 @@ fn schema_file_renames_map_targets_at_once() {
         ok(e.handle(Request::get("/api/moul/d").owner()), 200)["rules"]["deleteRule"],
         "1 = 2"
     );
+}
+
+#[test]
+fn schema_file_refuses_missing_targets_and_doubles() {
+    let mut e = engine();
+    let rel = |name: &str, target: &str| json!({"name": name, "type": "relation", "relationConfig": {"targetMoul": target, "cardinality": "1:N"}});
+    let apply = |e: &mut Engine, file: Value, prune: bool| {
+        let mut req = Request::post("/api/schema", file).owner();
+        if prune {
+            req = req.query("prune", "true");
+        }
+        e.handle(req)
+    };
+    let refused = |r: Response, words: &[&str]| {
+        assert_eq!(r.status, 400, "{:?}", r.body);
+        for w in words {
+            assert!(r.message().contains(w), "{:?} lacks {w}", r.message());
+        }
+    };
+
+    // A relation to a collection that does not exist, and nothing is made.
+    let tasks = json!({"name": "tasks", "fields": [rel("team", "teams")]});
+    refused(
+        apply(&mut e, json!({"collections": [tasks.clone()]}), false),
+        &["\"team\"", "\"tasks\"", "\"teams\""],
+    );
+    assert_eq!(
+        e.handle(Request::get("/api/moul/tasks").owner()).status,
+        404
+    );
+    // One the engine holds, or the file lists, is fine; with `prune`, only
+    // what the file lists stays.
+    let teams = define(
+        &mut e,
+        json!({"name": "teams", "fields": [{"name": "name", "type": "text"}]}),
+    );
+    ok(
+        apply(&mut e, json!({"collections": [tasks.clone()]}), false),
+        200,
+    );
+    refused(
+        apply(&mut e, json!({"collections": [tasks.clone()]}), true),
+        &["\"teams\""],
+    );
+    assert_eq!(
+        e.handle(Request::get("/api/moul/teams").owner()).status,
+        200
+    );
+
+    // Two entries with one name, in any case, or one id.
+    refused(
+        apply(
+            &mut e,
+            json!({"collections": [{"name": "notes"}, {"name": "Notes"}]}),
+            false,
+        ),
+        &["\"Notes\"", "twice"],
+    );
+    refused(
+        apply(
+            &mut e,
+            json!({"collections": [
+                {"id": "nnnnnnnnnnnnnnn", "name": "one"},
+                {"id": "nnnnnnnnnnnnnnn", "name": "two"},
+            ]}),
+            false,
+        ),
+        &["\"two\"", "\"one\"", "nnnnnnnnnnnnnnn"],
+    );
+    assert_eq!(e.handle(Request::get("/api/moul/one").owner()).status, 404);
+    // One entry matching by name the collection another renames by id.
+    refused(
+        apply(
+            &mut e,
+            json!({"collections": [
+                {"name": "teams", "fields": [{"name": "label", "type": "text"}]},
+                {"id": teams["id"], "name": "squads"},
+            ]}),
+            false,
+        ),
+        &["\"teams\""],
+    );
+    let kept = ok(e.handle(Request::get("/api/moul/teams").owner()), 200);
+    assert_eq!(kept["fields"][0]["name"], "name", "nothing was applied");
+    // The same two entries the other way round: the rename comes first.
+    refused(
+        apply(
+            &mut e,
+            json!({"collections": [
+                {"id": teams["id"], "name": "squads"},
+                {"name": "teams", "fields": [{"name": "label", "type": "text"}]},
+            ]}),
+            false,
+        ),
+        &["\"teams\"", "give each its id"],
+    );
+    let kept = ok(e.handle(Request::get("/api/moul/teams").owner()), 200);
+    assert_eq!(kept["fields"][0]["name"], "name", "nothing was applied");
+    assert_eq!(
+        e.handle(Request::get("/api/moul/squads").owner()).status,
+        404
+    );
+    // Names match in any case, so the order of the entries does not matter
+    // when only the case differs either.
+    for file in [
+        json!({"collections": [
+            {"id": teams["id"], "name": "squads"},
+            {"name": "Teams", "fields": [{"name": "label", "type": "text"}]},
+        ]}),
+        json!({"collections": [
+            {"name": "Teams", "fields": [{"name": "label", "type": "text"}]},
+            {"id": teams["id"], "name": "squads"},
+        ]}),
+    ] {
+        refused(
+            apply(&mut e, file, false),
+            &["\"teams\"", "give each its id"],
+        );
+        let kept = ok(e.handle(Request::get("/api/moul/teams").owner()), 200);
+        assert_eq!(kept["name"], "teams", "nothing was applied");
+        assert_eq!(kept["fields"][0]["name"], "name", "nothing was applied");
+    }
+    // An entry without an id that names a collection in another case
+    // describes it: it changes that collection, renamed to the new case.
+    let r = ok(
+        apply(
+            &mut e,
+            json!({"collections": [{"name": "TEAMS", "fields": [{"name": "name", "type": "text"}]}]}),
+            false,
+        ),
+        200,
+    );
+    assert_eq!(r["updated"], json!(["TEAMS"]), "{r}");
+    let renamed = ok(e.handle(Request::get("/api/moul/TEAMS").owner()), 200);
+    assert_eq!(renamed["id"], teams["id"]);
 }
 
 #[test]
@@ -2094,4 +2285,220 @@ fn webhook_secrets_go_with_their_collection() {
     assert_eq!(count(&e), 1);
     e.handle(Request::delete("/api/moul/posts").owner());
     assert_eq!(count(&e), 0);
+}
+
+#[test]
+fn reads_name_the_collections_a_live_query_depends_on() {
+    let mut e = engine();
+    let users = define(&mut e, json!({"name": "users", "type": "auth"}));
+    let teams = define(
+        &mut e,
+        json!({"name": "teams", "fields": [{"name": "name", "type": "text"}]}),
+    );
+    let tasks = define(
+        &mut e,
+        json!({
+            "name": "tasks",
+            "fields": [
+                {"name": "title", "type": "text"},
+                {"name": "team", "type": "relation", "relationConfig": {"targetMoul": "teams", "cardinality": "1:N"}},
+            ],
+            "rules": {"listRule": "", "viewRule": ""},
+        }),
+    );
+    let notes = define(
+        &mut e,
+        json!({
+            "name": "notes",
+            "fields": [{"name": "body", "type": "text"}],
+            "rules": {"listRule": "exists('teams', 'id != \"\"')"},
+        }),
+    );
+    let id = |v: &Value| v["id"].as_str().unwrap().to_owned();
+    let reads = |r: &Response| r.header_value("Moul-Reads").map(str::to_owned);
+
+    // The collection itself.
+    let r = e.handle(Request::get("/api/moul/tasks/records"));
+    assert_eq!(r.status, 200, "{:?}", r.body);
+    assert_eq!(reads(&r), Some(id(&tasks)));
+
+    // A filter through a relation, and an expand, read the target too.
+    let r = e.handle(Request::get("/api/moul/tasks/records").query("filter", "team.name = 'x'"));
+    assert_eq!(r.status, 200, "{:?}", r.body);
+    let mut both = [id(&tasks), id(&teams)];
+    both.sort();
+    assert_eq!(reads(&r), Some(both.join(",")));
+    // An expand reads the targets of the rows it expands; with no rows it
+    // reads nothing else, and a row added later changes `tasks` anyway.
+    let r = e.handle(Request::get("/api/moul/tasks/records").query("expand", "team"));
+    assert_eq!(reads(&r), Some(id(&tasks)));
+    let team = ok(
+        e.handle(Request::post("/api/moul/teams/records", json!({"name": "a"})).owner()),
+        201,
+    );
+    ok(
+        e.handle(
+            Request::post(
+                "/api/moul/tasks/records",
+                json!({"title": "t", "team": id(&team)}),
+            )
+            .owner(),
+        ),
+        201,
+    );
+    let r = e.handle(Request::get("/api/moul/tasks/records").query("expand", "team"));
+    assert_eq!(reads(&r), Some(both.join(",")));
+
+    // A rule that can read any table makes the read depend on everything.
+    let r = e.handle(Request::get("/api/moul/notes/records").owner());
+    assert_eq!(reads(&r).as_deref(), Some("*"), "{:?}", id(&notes));
+
+    // A rule's `@collection.<name>` conditions read that collection's table
+    // directly; the read depends on it too.
+    let members = define(
+        &mut e,
+        json!({"name": "members", "fields": [{"name": "user", "type": "text"}]}),
+    );
+    let projects = define(
+        &mut e,
+        json!({
+            "name": "projects",
+            "fields": [{"name": "title", "type": "text"}],
+            "rules": {"listRule": "@collection.members.user = @request.auth.id"},
+        }),
+    );
+    let r = e.handle(Request::get("/api/moul/projects/records"));
+    assert_eq!(r.status, 200, "{:?}", r.body);
+    let mut through = [id(&projects), id(&members)];
+    through.sort();
+    assert_eq!(reads(&r), Some(through.join(",")));
+
+    // A signed-in caller's own record feeds `@request.auth`.
+    ok(
+        e.handle(Request::post(
+            "/api/moul/users/records",
+            json!({"username": "ana", "email": "ana@example.com", "password": "Password123!", "passwordConfirm": "Password123!"}),
+        )),
+        201,
+    );
+    let token = ok(
+        e.handle(Request::post(
+            "/api/moul/users/auth-with-password",
+            json!({"identity": "ana@example.com", "password": "Password123!"}),
+        )),
+        200,
+    )["token"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let r = e.handle(Request::get("/api/moul/tasks/records").bearer(&token));
+    let mut mine = [id(&tasks), id(&users)];
+    mine.sort();
+    assert_eq!(reads(&r), Some(mine.join(",")));
+
+    // Writes and failures carry no read set.
+    let r = e.handle(Request::post(
+        "/api/moul/tasks/records",
+        json!({"title": "a"}),
+    ));
+    assert_eq!(reads(&r), None);
+    let r = e.handle(Request::get("/api/moul/nope/records"));
+    assert_eq!(reads(&r), None);
+}
+
+#[test]
+fn importing_a_database_file_migrates_it() {
+    let mut a = engine();
+    posts(&mut a);
+    ok(
+        a.handle(Request::post("/api/moul/posts/records", json!({"title": "kept"})).owner()),
+        201,
+    );
+    let file = a.store().export().unwrap();
+    let mut b = engine();
+    b.import_database(&file).unwrap();
+    let r = ok(
+        b.handle(Request::get("/api/moul/posts/records").owner()),
+        200,
+    );
+    assert_eq!(r["items"][0]["title"], "kept");
+    // The change log continues after the imported one.
+    let r = b.handle(Request::post("/api/moul/posts/records", json!({"title": "new"})).owner());
+    assert_eq!(r.status, 201);
+    let seq: i64 = r.header_value("Moul-Change").unwrap().parse().unwrap();
+    assert!(seq > 1, "{seq}");
+}
+
+#[test]
+fn a_file_that_cannot_be_migrated_is_refused_and_the_data_stays() {
+    let mut e = engine();
+    posts(&mut e);
+    ok(
+        e.handle(Request::post("/api/moul/posts/records", json!({"title": "kept"})).owner()),
+        201,
+    );
+    // A shared store from a newer engine passes the import checks but
+    // cannot be migrated.
+    let mut newer = Store::open_in_memory().unwrap();
+    newer
+        .write(|tx| tx.execute_batch("CREATE TABLE notes (body TEXT); PRAGMA user_version = 99;"))
+        .unwrap();
+    let file = newer.export().unwrap();
+    let (before, commit) = (
+        e.store().export().unwrap(),
+        e.store().volume().last_commit(),
+    );
+
+    let err = e.import_database(&file).unwrap_err();
+    assert!(err.to_string().contains("format 99"), "{err}");
+    assert!(
+        e.store().export().unwrap() == before,
+        "the shared store changed"
+    );
+    assert_eq!(e.store().volume().last_commit(), commit, "a commit landed");
+    let r = ok(
+        e.handle(Request::get("/api/moul/posts/records").owner()),
+        200,
+    );
+    assert_eq!(r["items"][0]["title"], "kept");
+    let r = e.handle(Request::post("/api/moul/posts/records", json!({"title": "after"})).owner());
+    assert_eq!(r.status, 201, "{:?}", r.body);
+}
+
+#[test]
+fn dot_ids_are_refused_and_the_log_has_a_tail() {
+    let mut e = engine();
+    posts(&mut e);
+    for id in [".", ".."] {
+        let r = e.handle(
+            Request::post("/api/moul/posts/records", json!({"id": id, "title": "x"})).owner(),
+        );
+        assert_eq!(r.status, 400, "{id}: {:?}", r.body);
+    }
+    for i in 0..5 {
+        ok(
+            e.handle(
+                Request::post("/api/moul/posts/records", json!({"title": format!("t{i}")})).owner(),
+            ),
+            201,
+        );
+    }
+    let all = ok(e.handle(Request::get("/api/changes").owner()), 200);
+    let seqs: Vec<i64> = all["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| c["seq"].as_i64().unwrap())
+        .collect();
+    let tail = ok(
+        e.handle(Request::get("/api/changes").query("tail", "2").owner()),
+        200,
+    );
+    let got: Vec<i64> = tail["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| c["seq"].as_i64().unwrap())
+        .collect();
+    assert_eq!(got, seqs[seqs.len() - 2..].to_vec());
 }

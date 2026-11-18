@@ -10,13 +10,25 @@
 //! | `resign`   | `tab`                     | `tab` stopped leading                     |
 //! | `request`  | `from`, `to`, `id`, `body` | A request for the leader `to`             |
 //! | `response` | `to`, `id`, `ok`, `body`   | The answer, or an error message           |
+//! | `push`     | `to`?, `body`              | From the leader to tab `to`, or to all    |
+//!
+//! Each tab also holds a Web Lock named `<channel>:tab:<id>` for as long as
+//! it lives, so the leader can tell which tabs are gone with
+//! [`live_tabs`] and drop what it kept for them.
+//!
+//! Whatever reaches a tab (pushes, and `{ type: "leader", tab }` when the
+//! leading tab changes) goes to the listener set with
+//! [`Tabs::on_push`]; the worker posts it to its page. The listener is
+//! called on a microtask, in the order the messages arrived, never while
+//! the leader is answering a request: it may call back into the tab (ask
+//! whether it leads, send a request, close it).
 //!
 //! A request in flight when its leader goes away fails with
 //! [`LEADER_LOST`], and the caller decides whether to send it again. Phase 4
 //! gives every write a request id, which makes sending it again safe.
 
 use std::cell::{Cell, RefCell};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fmt;
 use std::rc::Rc;
 
@@ -31,9 +43,10 @@ use crate::js;
 /// The message of the error a request fails with when its leader goes away.
 pub const LEADER_LOST: &str = "the leading tab went away before answering";
 
-/// Answers requests while this tab leads. A handler that answers later
-/// returns a `Promise`, which settles the request when it settles.
-pub type Handler = Box<dyn FnMut(JsValue) -> Result<JsValue, JsValue>>;
+/// Answers requests while this tab leads, given the request and the id of
+/// the tab that sent it. A handler that answers later returns a `Promise`,
+/// which settles the request when it settles.
+pub type Handler = Box<dyn FnMut(JsValue, &str) -> Result<JsValue, JsValue>>;
 
 /// A request waiting for its answer.
 struct Pending {
@@ -43,16 +56,49 @@ struct Pending {
     sent_to: Option<String>,
 }
 
+/// What waits for this tab's listener, delivered in order on a microtask.
+#[derive(Default)]
+struct Outbox {
+    queue: RefCell<VecDeque<JsValue>>,
+    scheduled: Cell<bool>,
+    /// Receives what reaches this tab: pushes and leader changes.
+    listener: RefCell<Option<Function>>,
+}
+
+impl Outbox {
+    /// Hands everything queued to the listener, including what it queues
+    /// while it runs.
+    fn flush(&self) {
+        loop {
+            let next = self.queue.borrow_mut().pop_front();
+            let Some(body) = next else {
+                break;
+            };
+            let listener = self.listener.borrow().clone();
+            if let Some(f) = listener {
+                let _ = f.call1(&JsValue::NULL, &body);
+            }
+        }
+        self.scheduled.set(false);
+    }
+}
+
 struct Inner {
     channel: BroadcastChannel,
     me: String,
     leader: RefCell<Option<String>>,
     handler: RefCell<Option<Handler>>,
+    /// Whether this tab leads. Kept apart from `handler`, which is borrowed
+    /// while it answers.
+    leading: Cell<bool>,
     pending: RefCell<HashMap<u64, Pending>>,
     queued: RefCell<Vec<(u64, JsValue)>>,
     next: Cell<u64>,
     /// Set by [`Tabs::disconnect`]: leave without a word.
     silent: Cell<bool>,
+    outbox: Rc<Outbox>,
+    /// This tab's liveness lock, once granted.
+    alive: RefCell<Option<crate::leader::Leadership>>,
 }
 
 /// This tab's place among the tabs of one database.
@@ -94,13 +140,43 @@ impl Inner {
     }
 
     fn is_leader(&self) -> bool {
-        self.handler.borrow().is_some()
+        self.leading.get()
     }
 
-    fn handle(&self, body: JsValue) -> Result<JsValue, JsValue> {
-        match self.handler.borrow_mut().as_mut() {
-            Some(h) => h(body),
+    fn handle(&self, body: JsValue, from: &str) -> Result<JsValue, JsValue> {
+        // Nothing this tab runs while the handler answers calls back into
+        // it (the listener waits for a microtask), so the handler is free.
+        let Ok(mut handler) = self.handler.try_borrow_mut() else {
+            return Err(js::error(
+                "the leading tab was asked again while it was answering a request",
+            ));
+        };
+        match handler.as_mut() {
+            Some(h) => h(body, from),
             None => Err(js::error("this tab does not lead")),
+        }
+    }
+
+    /// Queues `body` for this tab's listener, which gets it on a microtask
+    /// after everything queued before it.
+    fn deliver(&self, body: &JsValue) {
+        self.outbox.queue.borrow_mut().push_back(body.clone());
+        if !self.outbox.scheduled.replace(true) {
+            let outbox = self.outbox.clone();
+            wasm_bindgen_futures::spawn_local(async move { outbox.flush() });
+        }
+    }
+
+    /// Records that `tab` leads, and tells this tab's listener if that is a
+    /// change.
+    fn set_leader(&self, tab: &str) {
+        let changed = self.leader.borrow().as_deref() != Some(tab);
+        *self.leader.borrow_mut() = Some(tab.to_owned());
+        if changed {
+            self.deliver(&js::object(&[
+                ("type", "leader".into()),
+                ("tab", tab.into()),
+            ]));
         }
     }
 
@@ -135,7 +211,7 @@ impl Inner {
         let queued = std::mem::take(&mut *self.queued.borrow_mut());
         for (id, body) in queued {
             if self.is_leader() {
-                let result = self.handle(body);
+                let result = self.handle(body, &self.me);
                 if let Some(p) = self.pending.borrow_mut().remove(&id) {
                     let _ = match result {
                         Ok(v) => p.resolve.call1(&JsValue::NULL, &v),
@@ -164,7 +240,7 @@ impl Inner {
                     return;
                 };
                 self.fail_sent(Some(&tab));
-                *self.leader.borrow_mut() = Some(tab);
+                self.set_leader(&tab);
                 self.flush_queue();
             }
             "resign" => {
@@ -181,7 +257,7 @@ impl Inner {
                 }
                 let from = js::get_str(&msg, "from").unwrap_or_default();
                 let id = js::get(&msg, "id");
-                let result = self.handle(js::get(&msg, "body"));
+                let result = self.handle(js::get(&msg, "body"), &from);
                 let channel = self.channel.clone();
                 let reply = move |result: Result<JsValue, JsValue>| {
                     let msg = match result {
@@ -212,6 +288,12 @@ impl Inner {
                         });
                     }
                     other => reply(other),
+                }
+            }
+            "push" => {
+                let to = js::get_str(&msg, "to");
+                if to.is_none() || to.as_deref() == Some(self.me.as_str()) {
+                    self.deliver(&js::get(&msg, "body"));
                 }
             }
             "response" => {
@@ -253,10 +335,22 @@ impl Tabs {
             me: new_tab_id(),
             leader: RefCell::new(None),
             handler: RefCell::new(None),
+            leading: Cell::new(false),
             pending: RefCell::new(HashMap::new()),
             queued: RefCell::new(Vec::new()),
             next: Cell::new(1),
             silent: Cell::new(false),
+            outbox: Rc::new(Outbox::default()),
+            alive: RefCell::new(None),
+        });
+        let lock = format!("{}{}", tab_lock_prefix(channel), inner.me);
+        let holder = Rc::downgrade(&inner);
+        wasm_bindgen_futures::spawn_local(async move {
+            if let Ok(held) = crate::leader::Leadership::acquire(&lock).await
+                && let Some(inner) = holder.upgrade()
+            {
+                *inner.alive.borrow_mut() = Some(held);
+            }
         });
         let weak = Rc::downgrade(&inner);
         let on_message = Closure::<dyn FnMut(MessageEvent)>::new(move |e: MessageEvent| {
@@ -292,11 +386,36 @@ impl Tabs {
         self.inner.is_leader()
     }
 
+    /// Sets the function that receives what reaches this tab: pushes from
+    /// the leader, and `{ type: "leader", tab }` when the leader changes.
+    pub fn on_push(&self, listener: Option<Function>) {
+        *self.inner.outbox.listener.borrow_mut() = listener;
+    }
+
+    /// Sends `body` from the leader to tab `to`, or to every tab with
+    /// `None`. This tab's own listener gets it on a microtask, after what
+    /// reached it before.
+    pub fn push(&self, to: Option<&str>, body: JsValue) {
+        let me = self.inner.me.as_str();
+        if to.is_none_or(|t| t == me) {
+            self.inner.deliver(&body);
+        }
+        if to != Some(me) {
+            self.inner.post(js::object(&[
+                ("type", "push".into()),
+                ("to", to.map_or(JsValue::NULL, JsValue::from)),
+                ("body", body),
+            ]));
+        }
+    }
+
     /// Makes this tab the leader: `handler` answers every request from now on,
     /// including this tab's own. Call it only while holding the leader lock.
     pub fn lead(&self, handler: Handler) {
         *self.inner.handler.borrow_mut() = Some(handler);
-        *self.inner.leader.borrow_mut() = Some(self.inner.me.clone());
+        self.inner.leading.set(true);
+        let me = self.inner.me.clone();
+        self.inner.set_leader(&me);
         self.inner.fail_sent(Some(&self.inner.me));
         self.inner.announce();
         self.inner.flush_queue();
@@ -304,6 +423,7 @@ impl Tabs {
 
     /// Stops leading and tells the other tabs. Returns the handler.
     pub fn resign(&self) -> Option<Handler> {
+        self.inner.leading.set(false);
         let handler = self.inner.handler.borrow_mut().take();
         if handler.is_some() {
             *self.inner.leader.borrow_mut() = None;
@@ -319,7 +439,14 @@ impl Tabs {
     /// leader if none is known yet.
     pub async fn request(&self, body: JsValue) -> Result<JsValue, JsValue> {
         if self.inner.is_leader() {
-            return self.inner.handle(body);
+            let result = self.inner.handle(body, &self.inner.me);
+            // A handler that answers later returns a promise.
+            return match result {
+                Ok(v) if v.is_instance_of::<js_sys::Promise>() => {
+                    JsFuture::from(v.unchecked_into::<js_sys::Promise>()).await
+                }
+                other => other,
+            };
         }
         let id = self.inner.next.get();
         self.inner.next.set(id + 1);
@@ -355,7 +482,38 @@ impl Drop for Tabs {
             self.resign();
         }
         self.inner.fail_all();
+        // Nothing reaches a tab that left.
+        self.inner.outbox.queue.borrow_mut().clear();
+        *self.inner.outbox.listener.borrow_mut() = None;
         self.inner.channel.set_onmessage(None);
         self.inner.channel.close();
     }
+}
+
+/// The prefix of the liveness locks of the tabs on `channel`.
+fn tab_lock_prefix(channel: &str) -> String {
+    format!("{channel}:tab:")
+}
+
+/// The ids of the tabs on `channel` that are still open: those whose
+/// liveness lock is held.
+pub async fn live_tabs(channel: &str) -> Result<std::collections::HashSet<String>, JsValue> {
+    let locks = js::get(&js::navigator(), "locks");
+    if locks.is_undefined() {
+        return Err(js::error("the Web Locks API is not available"));
+    }
+    let snapshot = js::call_async(&locks, "query", &[]).await?;
+    let prefix = tab_lock_prefix(channel);
+    let held = js::get(&snapshot, "held");
+    let mut out = std::collections::HashSet::new();
+    if js_sys::Array::is_array(&held) {
+        for lock in js_sys::Array::from(&held).iter() {
+            if let Some(id) =
+                js::get_str(&lock, "name").and_then(|n| n.strip_prefix(&prefix).map(str::to_owned))
+            {
+                out.insert(id);
+            }
+        }
+    }
+    Ok(out)
 }

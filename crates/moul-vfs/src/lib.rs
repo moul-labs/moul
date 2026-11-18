@@ -16,7 +16,7 @@ pub use capture::{ApplyMode, Capture, Clock, PACK_NAME, Position, STATE_NAME, sy
 #[cfg(not(target_arch = "wasm32"))]
 pub use disk::DiskStorage;
 pub use error::{Error, ErrorKind, Result};
-pub use log::{Commit, CommitSeq, FileCommit};
+pub use log::{Commit, CommitSeq, FileCommit, HEADER_LEN as LOG_HEADER_LEN};
 pub use memory::{CrashMode, MemoryStorage};
 pub use moul_ltx::Crc64;
 #[cfg(target_arch = "wasm32")]

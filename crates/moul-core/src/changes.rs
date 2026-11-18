@@ -164,6 +164,17 @@ pub(crate) fn since(conn: &Connection, seq: i64, limit: usize) -> ApiResult<Vec<
     Ok(rows)
 }
 
+/// The newest `n` rows of the change log, oldest first.
+fn tail(conn: &Connection, n: usize) -> ApiResult<Vec<Change>> {
+    let mut stmt = conn.prepare(&format!(
+        "SELECT * FROM (SELECT {COLUMNS} FROM main._changes ORDER BY seq DESC LIMIT ?1) ORDER BY seq"
+    ))?;
+    let rows = stmt
+        .query_map(params![n as i64], read)?
+        .collect::<rusqlite::Result<Vec<_>>>()?;
+    Ok(rows)
+}
+
 /// The record events a follower announces for changes it received: the
 /// current state of each record that was created or updated, and a bare
 /// id for each that was deleted.
@@ -227,6 +238,7 @@ fn event_for(
 }
 
 /// `GET /api/changes?after=<seq>&limit=<n>`: the change log, owner only.
+/// With `tail=<n>` instead, the newest `n` rows, oldest first.
 pub(crate) fn endpoint(cx: &mut Cx<'_>) -> ApiResult {
     cx.require_admin()?;
     let after = cx.req.query_param("after").parse().unwrap_or(0);
@@ -236,7 +248,10 @@ pub(crate) fn endpoint(cx: &mut Cx<'_>) -> ApiResult {
         .parse::<usize>()
         .unwrap_or(500)
         .clamp(1, 5000);
-    let items = since(cx.conn, after, limit)?;
+    let items = match cx.req.query_param("tail").parse::<usize>() {
+        Ok(n) => tail(cx.conn, n.clamp(1, 5000))?,
+        Err(_) => since(cx.conn, after, limit)?,
+    };
     let last = items.last().map(|c| c.seq).unwrap_or(after);
     Ok(Response::json(200, json!({"items": items, "last": last})))
 }

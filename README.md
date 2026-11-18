@@ -5,16 +5,25 @@ files and realtime, stored as one SQLite file and synced as a
 Litestream-compatible LTX replica. The same engine later runs on Moul Hub, where
 apps are deployed as data.
 
-**Status:** early development. The crates on crates.io are placeholders that
-hold the names. In this repository, storage, LTX and sync work: a database in a
-browser tab syncs to an S3-compatible bucket as a Litestream replica, and
-`moul restore` and `moul pull` read it back. `demo/` is a SQL console that
-shows it. The engine (`moul-core`, with `moul-rules` and `moul-store`) serves
-collections, records, rules, auth with a local inbox, files, realtime, import
-and export, and the schema file, and converts a Go engine database on first
-open. `moul schema` and `moul typegen` read a database or schema file. The
-browser host still exposes Phase 3's SQL console; it serves engine requests
-from Phase 5.
+**Status:** 0.1, the first public release. A browser tab runs the whole
+engine: collections, records, rules, sign-in with a local inbox, files,
+realtime and live queries, stored on OPFS and synced to an S3-compatible
+bucket as a Litestream replica. `@moul-dev/client` is the SDK,
+`@moul-dev/studio` the admin console as an element, and the
+[Playground](https://play.moul.dev) is Studio on a database in your browser.
+`moul check`, `schema`, `typegen`, `pull` and `restore` work on schema files,
+database files and replicas. The native server and Moul Hub come next; the
+`moul-server` and `moul-hub` crates still only hold their names.
+
+Start with the [docs](docs/README.md).
+
+## Packages
+
+| Package | Job |
+| --- | --- |
+| [`@moul-dev/client`](packages/client) | The SDK: the engine in the page (or a server over HTTP), live queries, sign-in, files, sync; a headless engine for tests |
+| [`@moul-dev/studio`](packages/studio) | The admin console as `<moul-studio>` |
+| [`sites/playground`](sites/playground) | play.moul.dev |
 
 ## Crates
 
@@ -44,10 +53,21 @@ objects; Apple's `ar` silently produces an empty SQLite archive.
 `rust-toolchain.toml` installs the `llvm-tools` component and
 `scripts/llvm-ar` finds it (or a Homebrew LLVM).
 
+The TypeScript packages need Node 22 and the engine built for the browser:
+
+```sh
+npm ci
+scripts/build-wasm.sh                  # packages/client/wasm
+npm run build                          # the SDK, Studio and the Playground
+npm run dev -w @moul-dev/studio        # Studio at localhost:5174
+npm run dev -w moul-playground         # the Playground at localhost:5175
+```
+
 ## Testing
 
 ```sh
 cargo test --workspace
+cargo test -p moul-core -p moul-sync --release --test budgets -- --ignored --nocapture   # time budgets
 ```
 
 The storage crash-safety suite samples crash points in debug builds; run every
@@ -69,10 +89,24 @@ node run.mjs --browsers webkit     # one engine
 MOUL_BROWSER_TEST_CONSOLE=1 node run.mjs   # also print the browser console
 ```
 
+The TypeScript tests run on the headless engine, then end to end in the
+three browsers:
+
+```sh
+npm test                               # SDK, Studio and Playground units
+node browser-tests/e2e.mjs             # the SDK in a worker: tabs, live queries, leader hand-off
+node browser-tests/playground.mjs      # the built Playground, offline, and sync between two devices
+node browser-tests/studio.mjs          # the packaged <moul-studio>, as an app bundles it
+node browser-tests/bench.mjs           # time budgets: opening a database, a create (Chromium's CPU / 4)
+```
+
 The sync suite's S3 tests run when `MOUL_S3_ENDPOINT` points at an
 S3-compatible store; see [`crates/moul-sync`](crates/moul-sync/README.md).
 
 ## Demo
+
+`demo/` is Phase 3's SQL console over the storage and sync layers, kept as a
+low-level test page:
 
 ```sh
 scripts/build-demo.sh

@@ -1,0 +1,92 @@
+name: Release
+
+# On a version tag (v0.1.0): builds the `moul` command for Linux, macOS and
+# Windows and attaches it to a draft GitHub release, with the npm package
+# tarballs. Publishing to crates.io and npm is done by hand with
+# scripts/release.sh, which needs the maintainers' own logins.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cli:
+    name: moul for ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu }
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          # Intel macOS is cross-compiled: GitHub no longer offers Intel macOS runners.
+          - { os: macos-latest, target: x86_64-apple-darwin }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - run: rustup target add ${{ matrix.target }}
+      - run: cargo build -p moul-cli --release --locked --target ${{ matrix.target }}
+      - name: Package
+        shell: bash
+        run: |
+          name="moul-${GITHUB_REF_NAME}-${{ matrix.target }}"
+          mkdir "$name"
+          bin=target/${{ matrix.target }}/release/moul
+          [ -f "$bin.exe" ] && bin="$bin.exe"
+          cp "$bin" LICENSE README.md "$name/"
+          if [ "${{ runner.os }}" = "Windows" ]; then 7z a "$name.zip" "$name" >/dev/null; else tar czf "$name.tar.gz" "$name"; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.target }}
+          path: moul-*.*
+
+  web:
+    name: npm packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show
+      - name: Read the wasm-bindgen version from Cargo.lock
+        id: wbg
+        run: echo "version=$(grep -A1 '^name = "wasm-bindgen"$' Cargo.lock | sed -n 's/^version = "\(.*\)"$/\1/p')" >> "$GITHUB_OUTPUT"
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-bindgen@${{ steps.wbg.outputs.version }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: scripts/build-wasm.sh
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm pack -w @moul-dev/client -w @moul-dev/studio
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm
+          path: "*.tgz"
+
+  release:
+    name: Draft release
+    needs: [cli, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Notes from the changelog
+        run: awk '/^## /{n++} n==1' CHANGELOG.md > notes.md
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --draft --title "Moul $GITHUB_REF_NAME" --notes-file notes.md out/*

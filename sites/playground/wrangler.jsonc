@@ -1,0 +1,12 @@
+// The Playground at play.moul.dev: static files on Cloudflare, no server code.
+// Deploy with `npm run deploy -w moul-playground` (needs `wrangler login` to the Moul account).
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "moul-playground",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  },
+  "routes": [{ "pattern": "play.moul.dev", "custom_domain": true }]
+}

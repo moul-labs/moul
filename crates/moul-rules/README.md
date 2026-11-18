@@ -6,8 +6,7 @@ Part of [Moul](https://github.com/moul-labs/moul), a backend that runs entirely
 in a browser tab: a database, access rules, auth, files and realtime, stored as
 one SQLite file and synced as a Litestream-compatible LTX replica.
 
-**Status:** early development. The API changes without notice until the first
-release.
+**Status:** 0.1, the first public release. The API may change before 1.0.
 
 ## What it does
 
@@ -22,6 +21,7 @@ This crate reads them exactly as the Go engine does.
 | Columns a rule pins to the caller | [`owner_fields`] |
 | Whether a column may be filtered, or is secret | [`is_valid_field`], [`is_secret_field`] |
 | Syntax errors, before a rule is saved | [`check`] |
+| Fields a record rule reads that its collection lacks (`moul check`) | [`record_rule_names`] |
 | The expression a rule stands for | [`translate`] |
 | How deeply a rule or filter may nest | [`MAX_DEPTH`] |
 

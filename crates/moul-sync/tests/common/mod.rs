@@ -126,6 +126,11 @@ impl Device {
         block_on(sync.take_over(&mut local))
     }
 
+    pub fn disconnect(&mut self) -> moul_sync::Result<()> {
+        let (sync, mut local) = self.parts();
+        sync.disconnect(&mut local)
+    }
+
     pub fn status(&self) -> Status {
         self.sync.status(&self.capture)
     }

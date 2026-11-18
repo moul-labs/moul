@@ -45,6 +45,15 @@ pub struct DeviceState {
     /// The writer generation when it last knew.
     #[serde(default)]
     pub generation: u64,
+    /// Set from the moment the device takes over writing until its fence is
+    /// in the replica. Until then the host stays read-only, after a restart
+    /// too: finishing the take-over may replace the database.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub unfenced: bool,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
 }
 
 /// A copy of the local database kept aside because it held changes the
@@ -83,7 +92,9 @@ pub trait Local {
     /// Saves the device state.
     fn save_state(&mut self, state: &DeviceState) -> Result<()>;
     /// Keeps `copy` somewhere the builder can find it, durably, and returns
-    /// where. Sync replaces the database only after this returns.
+    /// how to find it: a path, or a name the host's own conflict operations
+    /// take. [`Status::conflicts`](crate::Status) lists what it returns.
+    /// Sync replaces the database only after this returns.
     fn save_conflict(&mut self, copy: ConflictCopy) -> BoxFuture<'_, Result<String>>;
     /// The device became `role`. A host makes the database read-only for a
     /// follower here.

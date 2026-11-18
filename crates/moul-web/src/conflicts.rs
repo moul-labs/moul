@@ -10,8 +10,12 @@ use wasm_bindgen::{JsCast, JsValue};
 
 use crate::js;
 
+/// What a database's conflict folder adds to its name. No database may be
+/// named so, or it would share another's conflict folder.
+pub(crate) const SUFFIX: &str = "-conflicts";
+
 fn folder_path(db: &str) -> String {
-    format!("moul/{db}-conflicts")
+    format!("moul/{db}{SUFFIX}")
 }
 
 /// Opens (and creates) the folder at a `/`-separated path under the OPFS root.
@@ -32,8 +36,8 @@ fn check(name: &str) -> Result<(), JsValue> {
     Ok(())
 }
 
-/// Keeps `bytes` as `name`, flushed, and returns where.
-pub async fn save(db: &str, name: &str, bytes: &[u8]) -> Result<String, JsValue> {
+/// Keeps `bytes` as `name`, flushed.
+pub async fn save(db: &str, name: &str, bytes: &[u8]) -> Result<(), JsValue> {
     check(name)?;
     let dir = folder(&folder_path(db)).await?;
     let create = js::object(&[("create", true.into())]);
@@ -49,7 +53,7 @@ pub async fn save(db: &str, name: &str, bytes: &[u8]) -> Result<String, JsValue>
     })();
     let _ = js::call(&handle, "close", &[]);
     written?;
-    Ok(format!("{}/{name}", folder_path(db)))
+    Ok(())
 }
 
 /// The names of the copies kept for `db`, oldest first.

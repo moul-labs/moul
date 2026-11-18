@@ -413,6 +413,11 @@ pub(crate) fn create(cx: &mut Cx<'_>, name: &str) -> ApiResult {
                     "id must be at most 128 characters and contain no '/'",
                 ));
             }
+            // A URL resolves these as path steps: `/records/..` is the collection
+            // itself, so a request for such a record would act on the collection.
+            if id == "." || id == ".." {
+                return Err(ApiError::bad_request("id must not be '.' or '..'"));
+            }
             id.to_owned()
         }
         _ => ids::record_id(cx.host, &c.name),

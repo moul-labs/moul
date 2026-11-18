@@ -1,3 +1,6 @@
 /target
 node_modules/
 /demo/pkg
+/packages/client/wasm
+/packages/*/dist
+/sites/*/dist

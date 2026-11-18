@@ -1,0 +1,13 @@
+{
+  "name": "Moul Playground",
+  "short_name": "Moul",
+  "description": "A database, rules, sign-in, files and live queries in your browser tab.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0d13",
+  "theme_color": "#0b0d13",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

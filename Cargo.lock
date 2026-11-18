@@ -329,25 +329,36 @@ dependencies = [
 
 [[package]]
 name = "moul"
-version = "0.0.1"
+version = "0.1.0"
+dependencies = [
+ "moul-core",
+ "moul-ltx",
+ "moul-rules",
+ "moul-store",
+ "moul-sync",
+ "moul-vfs",
+ "moul-web",
+]
 
 [[package]]
 name = "moul-cli"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "moul-core",
  "moul-fixtures",
  "moul-ltx",
+ "moul-rules",
  "moul-store",
  "moul-sync",
  "moul-vfs",
  "rusqlite",
+ "serde",
  "serde_json",
 ]
 
 [[package]]
 name = "moul-core"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "blowfish",
  "getrandom 0.3.4",
@@ -379,11 +390,11 @@ version = "0.0.1"
 
 [[package]]
 name = "moul-ltx"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "moul-rules"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "hmac",
  "moul-fixtures",
@@ -399,7 +410,7 @@ version = "0.0.1"
 
 [[package]]
 name = "moul-store"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "moul-fixtures",
  "moul-vfs",
@@ -413,7 +424,7 @@ dependencies = [
 
 [[package]]
 name = "moul-sync"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "hmac",
  "js-sys",
@@ -433,7 +444,7 @@ dependencies = [
 
 [[package]]
 name = "moul-vfs"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "js-sys",
  "moul-ltx",
@@ -448,9 +459,10 @@ dependencies = [
 
 [[package]]
 name = "moul-web"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "js-sys",
+ "moul-core",
  "moul-ltx",
  "moul-store",
  "moul-sync",

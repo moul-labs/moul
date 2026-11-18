@@ -17,11 +17,13 @@ macro_rules! tri {
 mod evaluate;
 mod expr;
 mod go;
+mod names;
 mod sql;
 mod tokenize;
 mod translate;
 
 pub use evaluate::{EvalContext, Lookup, check, evaluate};
+pub use names::{collections_named, record_rule_names};
 pub use sql::{
     FilterOptions, LoadCollection, SortOptions, SqlFilter, filter_sql, is_secret_field,
     is_valid_field, owner_fields, sort_sql,

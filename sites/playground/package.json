@@ -1,0 +1,25 @@
+{
+  "name": "moul-playground",
+  "private": true,
+  "version": "0.1.0",
+  "description": "The Moul Playground (play.moul.dev): Studio on a database in your browser, with no account and no server.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@moul-dev/client": "0.1.0",
+    "@moul-dev/studio": "0.1.0",
+    "@moul-dev/web-component": "1.0.0-rc.2",
+    "lit": "^3.3.1"
+  },
+  "devDependencies": {
+    "vite": "^8.3.8",
+    "wrangler": "4.157.0"
+  }
+}

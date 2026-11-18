@@ -6,8 +6,7 @@ Part of [Moul](https://github.com/moul-labs/moul), a backend that runs entirely
 in a browser tab: a database, access rules, auth, files and realtime, stored as
 one SQLite file and synced as a Litestream-compatible LTX replica.
 
-**Status:** early development. The API changes without notice until the first
-release.
+**Status:** 0.1, the first public release. The API may change before 1.0.
 
 ## How it runs
 
@@ -70,7 +69,10 @@ the owner, and the counter skips any id already in the log.
 Responses to writes carry `Moul-Request-Id` and `Moul-Change` (the log
 position). `Engine::catch_up` reads the log after the last position it
 announced and turns it into live events, for a follower whose pages arrived
-underneath SQLite.
+underneath SQLite. `Engine::import_database` replaces the shared store with a
+file (an export, or a Go engine database, converted) and migrates it. A copy
+is migrated in memory first, so a file that cannot be migrated (one from a
+newer engine) is refused and the data stays.
 
 Each request runs under a `Budget`: wall-clock time and SQLite steps (via the
 progress handler), rows read, and response bytes. A request may lower its
@@ -79,6 +81,17 @@ spent budget answers 400 with `"budget": "time" | "steps" | "rows" | "bytes"`,
 and nothing the request did is kept: a statement the budget stopped fails
 the request even where the code around it would read the failure as "no
 row", so a starved rule lookup can never let a caller through.
+
+## What a read depends on
+
+A successful `GET` answers with `Moul-Reads`: the ids of the collections it
+looked up, comma-separated. That is the collection itself, the targets of
+relations it filtered, sorted or expanded through, collections its rules
+named, and the signed-in caller's own auth collection (it feeds
+`@request.auth`). A rule that calls `exists(` or `get(` may read any table, so
+the read depends on everything: `Moul-Reads: *`. A live query refreshes when a
+change-log row touches one of its collections, when a definition changes, or
+always for `*`.
 
 ## Rule SQL stays in the shared store
 

@@ -1,7 +1,8 @@
 [package]
 name = "moul-server"
 description = "Native host for one Moul database: HTTP API, realtime, mail, jobs and MCP."
-version.workspace = true
+# Holds the name until its phase; see the workspace manifest.
+version = "0.0.1"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true

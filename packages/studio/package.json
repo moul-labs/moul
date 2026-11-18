@@ -1,0 +1,58 @@
+{
+  "name": "@moul-dev/studio",
+  "version": "0.1.0",
+  "description": "Moul Studio: the admin console for a Moul database (collections, records, rules, the local inbox, the database file and sync) as one <moul-studio> element.",
+  "license": "MIT",
+  "type": "module",
+  "homepage": "https://moul.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/moul-labs/moul.git",
+    "directory": "packages/studio"
+  },
+  "keywords": [
+    "moul",
+    "admin",
+    "web-component",
+    "lit",
+    "local-first",
+    "sqlite"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/types/element.d.ts",
+      "default": "./dist/moul-studio.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/types/element.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build && tsc -p tsconfig.types.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "@moul-dev/client": "^0.1.0"
+  },
+  "dependencies": {
+    "@moul-dev/web-component": "1.0.0-rc.2",
+    "@tanstack/db": "1.0.0-rc.1",
+    "@tanstack/query-core": "^5.90.0",
+    "@tanstack/query-db-collection": "1.5.0",
+    "lit": "^3.3.1"
+  },
+  "devDependencies": {
+    "@moul-dev/client": "0.1.0",
+    "@phosphor-icons/core": "^2.1.1",
+    "jsqr": "^1.4.0",
+    "vite": "^8.3.8"
+  }
+}
