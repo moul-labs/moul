@@ -83,7 +83,7 @@ jobs:
       - run: cargo test -p litestream-compat
 
   sync-s3:
-    name: Sync against MinIO
+    name: Sync and the hub against MinIO
     runs-on: ubuntu-latest
     env:
       MOUL_REQUIRE_S3: "1"
@@ -112,6 +112,8 @@ jobs:
       # Conditional writes, racing devices, hand-off and conflicts through a
       # real S3-compatible store.
       - run: cargo test -p moul-sync --test s3
+      # Devices syncing through a hub whose replicas are in the bucket.
+      - run: cargo test -p moul-hub --test hub
 
   demo:
     name: Demo page

@@ -1,8 +1,7 @@
 [package]
 name = "moul-server"
 description = "Native host for one Moul database: HTTP API, realtime, mail, jobs and MCP."
-# Holds the name until its phase; see the workspace manifest.
-version = "0.0.1"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -10,6 +9,38 @@ homepage.workspace = true
 readme = "README.md"
 keywords = ["backend", "http", "server", "sqlite", "mcp"]
 categories = ["web-programming::http-server", "database"]
+
+# The server reads files, listens on sockets and sends mail, so it builds
+# only for native targets; the browser build of the workspace gets an empty
+# crate.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+moul-core.workspace = true
+moul-store.workspace = true
+moul-vfs.workspace = true
+moul-ltx.workspace = true
+moul-sync.workspace = true
+moul-rules.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hmac.workspace = true
+getrandom = "0.3.4"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "net", "sync", "time", "signal", "io-util", "io-std"] }
+axum = { version = "0.8.9", default-features = false, features = ["http1", "tokio", "query", "json"] }
+tower = { version = "0.5.3", default-features = false, features = ["util"] }
+futures-util = { version = "0.3.32", default-features = false, features = ["std"] }
+# Outbound HTTPS (webhooks, OAuth providers, mail APIs) on rustls with ring
+# and the webpki roots, the same TLS stack as the sync transport's ureq.
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls", "http2"] }
+url = "2.5.8"
+# Apple's client secret is an ES256 token the server signs.
+p256 = { version = "0.13.2", default-features = false, features = ["ecdsa", "pem", "std"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+moul-fixtures.workspace = true
+moul-store.workspace = true
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls"] }
 
 [lints]
 workspace = true

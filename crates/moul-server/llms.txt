@@ -1,0 +1,26 @@
+# Moul server
+
+> A Moul database served over HTTP: collections, records with access rules,
+> sign-in (password, email code, GitHub, Google, Apple), files, live events,
+> webhooks, jobs and feature flags. One SQLite file, optionally replicated as
+> a Litestream-compatible replica.
+
+- [OpenAPI](/openapi.json): every route, with request and response shapes.
+- MCP: `POST /api/mcp` (Streamable HTTP) for agents; sign in through
+  `/.well-known/oauth-authorization-server` or send the admin key as
+  `X-Admin-Key`.
+
+## Essentials
+
+- Records: `GET|POST /api/moul/:collection/records`,
+  `GET|PATCH|DELETE /api/moul/:collection/records/:id`. Lists take `filter`
+  (the rule language, such as `done = false && owner = @request.auth.id`),
+  `sort` (`-createdAt,title`), `page`, `perPage`, `expand`.
+- Sign in: `POST /api/moul/:users/auth-with-password` with
+  `{identity, password}`, or an email code: `POST /api/moul/:users/otp/request`
+  then `POST /api/moul/:users/auth-with-otp`. Send the token as
+  `Authorization: Bearer <token>`.
+- Live events: `GET /api/moul/:collection/subscribe` (server-sent events).
+- The app definition as one file: `GET /api/schema`; apply one with
+  `POST /api/schema` (admin).
+- Writes are named requests: send `Moul-Request-Id` to make a retry safe.

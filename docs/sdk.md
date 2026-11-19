@@ -173,6 +173,28 @@ endpoint (or `http` to this computer). Connect from a link with `followOnly: tru
 then only follows a replica that exists, keeps its own data as a conflict copy, and never uploads
 it to a bucket the link chose.
 
+Through a [Moul Hub](hub.md) instead of your own bucket, each device signs in with your email and
+holds a token of its own:
+
+```ts
+import { HubClient, joinHub, joinLink, readJoinLink } from '@moul-dev/client';
+
+const hub = new HubClient('https://sync.moul.dev');
+await hub.signIn('me@example.com');                                // a code arrives by mail
+const { token } = await hub.verify('me@example.com', code, { label: 'Laptop' });
+await hub.createDatabase(token, 'notes');
+await moul.sync.configure({ hub: 'https://sync.moul.dev', database: 'notes', token, label: 'Laptop' });
+
+// Another device: a link with a one-time ticket, never the token.
+const link = joinLink(await moul.sync.joinTicket(), location.href);
+// On the phone:
+const found = readJoinLink(link);
+if (found && 'ticket' in found) await phone.sync.configure(await joinHub(found, { label: 'Phone' }));
+```
+
+The worker keeps the hub's event stream open and syncs as soon as a change lands; the hub
+compacts the replica, so devices do not.
+
 ## The owner's tools
 
 `moul.admin` sends everything as the owner: `listCollections`, `liveCollections`,

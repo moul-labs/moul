@@ -70,13 +70,17 @@ it stops trying and lets go of the lock too.
 
 ## Sync
 
-The leading worker syncs the shared store with an S3-compatible bucket
-(`moul-sync`), about once a second while the page is open. The requests are
-`syncConfigure`, `syncStatus`, `syncNow`, `takeOver`, `syncDisconnect`, and
-`conflicts`, `conflictExport` and `conflictDelete` for the copies kept when a
-device had changes the replica does not (in OPFS, `moul/<db>-conflicts/`).
-They answer with a promise. The settings, keys included, stay in the device
-store. While the device follows another writer, the engine answers writes
+The leading worker syncs the shared store with an S3-compatible bucket, or
+through a Moul Hub (`moul-sync`), about once a second while the page is open.
+The requests are `syncConfigure`, `syncStatus`, `syncNow`, `takeOver`,
+`syncDisconnect`, `syncJoinTicket` (a one-time ticket from the hub for a join
+link), and `conflicts`, `conflictExport` and `conflictDelete` for the copies
+kept when a device had changes the replica does not (in OPFS,
+`moul/<db>-conflicts/`). They answer with a promise. The settings, keys and
+hub tokens included, stay in the device store; a status never shows a secret
+key or a token. Through a hub, the worker holds the hub's event stream open
+and pulls as soon as another device pushes, polls every 30 seconds besides,
+and leaves compaction to the hub. While the device follows another writer, the engine answers writes
 with 409, `exec` runs with `PRAGMA query_only` and `import` is refused. So
 it does while sync replaces the database (joining a replica, or stepping
 down as the writer), so that no acknowledged write is lost. When

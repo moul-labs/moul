@@ -3,6 +3,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod dir;
 mod error;
+pub mod hub;
 pub mod layout;
 mod local;
 pub mod maintain;
@@ -16,6 +17,7 @@ mod time;
 #[cfg(not(target_arch = "wasm32"))]
 pub use dir::DirReplica;
 pub use error::{Error, ErrorKind, Result};
+pub use hub::{HubConfig, HubReplica};
 pub use local::{
     ConflictCopy, DeviceState, Local, Role, StoreLocal, store_apply, store_get, store_has_data,
     store_load_state, store_save_state, store_set,

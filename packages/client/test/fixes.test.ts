@@ -268,7 +268,7 @@ describe('remote files and join links', () => {
     expect(readJoinLink(link(good))).toEqual({ ...good, endpoint: 'https://acct.r2.cloudflarestorage.com' });
     expect(readJoinLink(link({ ...good, extra: 'x' }))).not.toHaveProperty('extra');
     expect(readJoinLink(link({ ...good, endpoint: 'http://169.254.169.254' }))).toBeNull();
-    expect(readJoinLink(link({ ...good, endpoint: 'http://127.0.0.1:9000' }))?.endpoint).toBe('http://127.0.0.1:9000');
+    expect(readJoinLink(link({ ...good, endpoint: 'http://127.0.0.1:9000' }))).toMatchObject({ endpoint: 'http://127.0.0.1:9000' });
     expect(readJoinLink(link({ ...good, endpoint: 'javascript:alert(1)' }))).toBeNull();
     expect(readJoinLink(link({ ...good, endpoint: 'https://user:pw@evil.example' }))).toBeNull();
     expect(readJoinLink(link({ ...good, pathStyle: 'yes' }))).toBeNull();

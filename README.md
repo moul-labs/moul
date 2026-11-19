@@ -12,8 +12,14 @@ bucket as a Litestream replica. `@moul-dev/client` is the SDK,
 `@moul-dev/studio` the admin console as an element, and the
 [Playground](https://play.moul.dev) is Studio on a database in your browser.
 `moul check`, `schema`, `typegen`, `pull` and `restore` work on schema files,
-database files and replicas. The native server and Moul Hub come next; the
-`moul-server` and `moul-hub` crates still only hold their names.
+database files and replicas.
+
+The same engine runs as a server, `moul serve`: the API over HTTP, live events,
+mail, sign-in with GitHub, Google and Apple, webhooks, jobs, feature flags,
+replication, and MCP for AI agents (also `moul mcp` over stdio). `moul hub` is
+sync without a bucket: devices sign in with an email code, hear of changes as
+they land, and the hub compacts their replicas; a hosted beta runs at
+sync.moul.dev. Hosting apps on the hub comes next.
 
 Start with the [docs](docs/README.md).
 
@@ -38,7 +44,7 @@ Start with the [docs](docs/README.md).
 | `moul-sync` | Push, pull, follow, hand-off, compaction and retention | Browser and native |
 | `moul-web` | Browser host: worker entry point, message protocol, tab coordination | Browser |
 | `moul-server` | Native host for one database: HTTP API, realtime, mail, jobs, MCP | Native |
-| `moul-hub` | Native host for many databases | Native |
+| `moul-hub` | Native host for many databases; first, sync for a builder's devices | Native |
 | `moul-cli` | The `moul` binary | Native |
 
 ## Building
@@ -102,6 +108,14 @@ node browser-tests/bench.mjs           # time budgets: opening a database, a cre
 
 The sync suite's S3 tests run when `MOUL_S3_ENDPOINT` points at an
 S3-compatible store; see [`crates/moul-sync`](crates/moul-sync/README.md).
+
+The server and the hub are tested over real HTTP on loopback ports
+(`cargo test -p moul-server -p moul-hub`), and the server's parity suite
+replays the Go engine's recorded traffic through the whole server:
+
+```sh
+cargo test -p moul-server --test go_parity -- --nocapture
+```
 
 ## Demo
 

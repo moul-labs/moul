@@ -613,6 +613,88 @@ fn a_device_clock_far_ahead_does_not_prune_early() {
     assert_converged(&replica, &[&a, &b]);
 }
 
+/// A replica that something else compacts, as a hub does.
+struct Remote(MemoryReplica);
+
+impl Replica for Remote {
+    fn describe(&self) -> String {
+        self.0.describe()
+    }
+    fn get<'a>(&'a self, key: &'a str) -> BoxFuture<'a, moul_sync::Result<Option<Object>>> {
+        self.0.get(key)
+    }
+    fn put<'a>(
+        &'a self,
+        key: &'a str,
+        bytes: &'a [u8],
+        condition: Condition,
+    ) -> BoxFuture<'a, moul_sync::Result<Put>> {
+        self.0.put(key, bytes, condition)
+    }
+    fn list<'a>(&'a self, prefix: &'a str) -> BoxFuture<'a, moul_sync::Result<Vec<ObjectInfo>>> {
+        self.0.list(prefix)
+    }
+    fn delete<'a>(&'a self, key: &'a str) -> BoxFuture<'a, moul_sync::Result<()>> {
+        self.0.delete(key)
+    }
+    fn maintained_remotely(&self) -> bool {
+        true
+    }
+}
+
+#[test]
+fn a_writer_leaves_a_remotely_maintained_replica_to_its_maintainer() {
+    let r = Retention {
+        level1_every: 5 * MINUTE,
+        level2_every: 10 * MINUTE,
+        snapshot_every: 20 * MINUTE,
+        compacted_kept: 30 * MINUTE,
+        history: HOUR,
+    };
+    let run = |remote: bool| {
+        let (replica, clock) = setup();
+        let shared = replica.clone();
+        let mut a = Device::new(
+            "laptop",
+            move || -> Box<dyn Replica> {
+                if remote {
+                    // Boxed twice, as hosts pass a boxed replica to `Sync::new`.
+                    Box::new(Box::new(Remote(shared.clone())) as Box<dyn Replica>)
+                } else {
+                    Box::new(shared.clone())
+                }
+            },
+            &clock,
+            r.clone(),
+        );
+        assert_eq!(a.sync.replica().maintained_remotely(), remote);
+        a.exec("CREATE TABLE t (v TEXT);");
+        a.connect().unwrap();
+        let mut b = device_with("phone", &replica, &clock, r.clone());
+        b.connect().unwrap();
+        for i in 0..30 {
+            clock.advance(5 * MINUTE);
+            replica.set_now(clock.now());
+            a.exec(&format!("INSERT INTO t VALUES ('row {i}')"));
+            a.sync().unwrap();
+        }
+        b.sync().unwrap();
+        assert_eq!(b.rows().len(), 30);
+        assert_converged(&replica, &[&a, &b]);
+        (replica.keys(), a.sync.last_report().is_some())
+    };
+
+    let (keys, reported) = run(false);
+    assert!(reported);
+    assert!(keys.iter().any(|k| k.starts_with("ltx/9/")), "{keys:?}");
+
+    let (keys, reported) = run(true);
+    assert!(!reported, "no maintenance pass ran");
+    let ltx: Vec<_> = keys.iter().filter(|k| k.starts_with("ltx/")).collect();
+    assert!(ltx.iter().all(|k| k.starts_with("ltx/0/")), "{keys:?}");
+    assert_eq!(ltx.len(), 31, "every level-0 file is still there: {keys:?}");
+}
+
 // ---- Requests that arrive while sync replaces the database ----------------
 
 use std::cell::{Cell, RefCell};

@@ -4,6 +4,12 @@ Sync keeps a database on your other devices through a bucket you own. Every comm
 file, the replica format Litestream writes, so the bucket is also a backup that `moul restore` or
 `litestream restore` rebuilds without Moul.
 
+
+Rather not set up a bucket? [Moul Hub](hub.md) keeps the replica for you:
+each device signs in with your email, followers hear of changes as they land,
+and the hub compacts the replica. The rest of this page is about your own
+bucket.
+
 ## Set up a bucket
 
 Any S3-compatible store with conditional writes works: Cloudflare R2, Amazon S3, MinIO.

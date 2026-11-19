@@ -46,4 +46,8 @@ talks to the engine through `@moul-dev/client`. There is no server.
 - In a tab the person at the keyboard owns the data; rules protect it once the app is served by
   Moul Hub. Never put other services' secrets in records.
 - `moul.database.export()` is the whole data model and records as one SQLite file.
+- Sync to other devices goes through a bucket the person owns or a Moul Hub
+  (`HubClient`: email code → token → `moul.sync.configure({ hub, database, token })`). A hub token
+  stays in the engine; a join link carries a one-time ticket (`moul.sync.joinTicket()`, `joinHub`),
+  never the token.
 - The admin console is `<moul-studio>` from `@moul-dev/studio` (set `.client = moul`).

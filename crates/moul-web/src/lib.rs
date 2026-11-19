@@ -8,6 +8,8 @@
 //! - `persist`: asking the browser to keep the site's storage.
 //! - `host`: opening the stores on OPFS, or in memory where OPFS is missing,
 //!   and answering requests, sync included.
+//! - `hub_events`: holding a Moul Hub's event stream open while the device
+//!   syncs through the hub, so it pulls as soon as another device pushes.
 //! - `conflicts`: conflict copies kept in OPFS.
 //! - `api`: engine requests and responses as JavaScript values.
 //! - `MoulWorker`: the entry point a dedicated worker starts.
@@ -30,6 +32,8 @@ pub mod webhost;
 pub mod conflicts;
 #[cfg(target_arch = "wasm32")]
 pub mod host;
+#[cfg(target_arch = "wasm32")]
+mod hub_events;
 #[cfg(target_arch = "wasm32")]
 pub mod leader;
 #[cfg(target_arch = "wasm32")]

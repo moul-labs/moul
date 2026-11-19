@@ -1,6 +1,7 @@
 import { AuthClient, type AuthSession, AuthStore, samePerson, type StorageLike } from './auth.js';
 import { CollectionClient, type FileRef, fileUrl, type SubscribeOptions } from './collection.js';
 import { MoulError, toMoulError } from './errors.js';
+import { HUB_DATABASE_NAME, HubClient } from './hub.js';
 import { LiveQuery, type LiveRegistry, type LiveRun, type Reads, readsOf, report } from './live.js';
 import type { Push, Transport } from './transport.js';
 import type {
@@ -1173,7 +1174,7 @@ export class DatabaseClient {
 }
 
 /** Settings for syncing with an S3-compatible bucket. */
-export interface SyncSettings {
+export interface BucketSyncSettings {
   /** Such as `https://<account>.r2.cloudflarestorage.com`. */
   endpoint: string;
   bucket: string;
@@ -1195,6 +1196,30 @@ export interface SyncSettings {
    * later is still possible.
    */
   followOnly?: boolean;
+}
+
+/** Settings for syncing through a Moul Hub. */
+export interface HubSyncSettings {
+  /** The hub's address, such as `https://sync.moul.dev`. */
+  hub: string;
+  /** The database on the hub. */
+  database: string;
+  /** This device's token, from {@link HubClient.verify} or {@link joinHub}. Kept in this device's store. */
+  token: string;
+  /** A name for this device, such as "Laptop", shown to the others. */
+  label?: string;
+  /** As for a bucket: never become the writer. Joining from a link should use this. */
+  followOnly?: boolean;
+}
+
+/** Where to sync: a bucket you own, or a database on a Moul Hub. */
+export type SyncSettings = BucketSyncSettings | HubSyncSettings;
+
+/** What a join link for a hub database carries: a one-time ticket, never a token. */
+export interface HubJoinLink {
+  hub: string;
+  database: string;
+  ticket: string;
 }
 
 /** Where sync stands. */
@@ -1222,13 +1247,15 @@ export interface SyncStatus {
   conflicts?: string[];
   readOnly: boolean;
   lastCommit: number;
-  /** The settings, without the secret key. */
-  settings?: Omit<SyncSettings, 'secretAccessKey'>;
+  /** The settings, without the secret key or the token. */
+  settings?: Omit<BucketSyncSettings, 'secretAccessKey'> | Omit<HubSyncSettings, 'token'>;
   /** The replica, without credentials. */
   replica?: string;
 }
 
-/** Sync with a bucket, as a Litestream-compatible replica. Local engines only. */
+/**
+ * Sync with a bucket or through a Moul Hub, as a Litestream-compatible replica. Local engines only.
+ */
 export class SyncClient {
   constructor(private readonly client: MoulClient<any>) {}
 
@@ -1243,11 +1270,22 @@ export class SyncClient {
   }
 
   /**
-   * Connects to a bucket. A device with data and an empty bucket becomes the writer; a device that
-   * finds a replica follows it. The settings, keys included, stay in this device's own store.
+   * Connects to a bucket, or to a database on a Moul Hub. A device with data and an empty replica
+   * becomes the writer; a device that finds a replica follows it. The settings, keys and tokens
+   * included, stay in this device's own store. Through a hub, the device pulls as soon as the hub
+   * says another device pushed, and leaves compaction to the hub.
    */
   configure(settings: SyncSettings): Promise<SyncStatus> {
     return this.op('syncConfigure', { ...settings });
+  }
+
+  /**
+   * A one-time ticket for one more device, from the hub this device syncs through, made with this
+   * device's own token (which stays in the engine). Valid 15 minutes. Put it in a link with
+   * `joinLink(await moul.sync.joinTicket(), page)`.
+   */
+  joinTicket(): Promise<HubJoinLink & { expiresAt: number }> {
+    return this.op('syncJoinTicket');
   }
 
   /** Pushes or pulls now instead of waiting for the next round. */
@@ -1302,20 +1340,52 @@ function fromBase64Url(text: string): string {
 
 /**
  * A link that lets another device join this database's replica: `page` with the settings in its
- * fragment, which browsers never send to a server. It carries the bucket key, so share it only
- * with your own devices.
+ * fragment, which browsers never send to a server. A bucket link carries the bucket key, so share
+ * it only with your own devices. A hub link carries the hub, the database and a one-time ticket
+ * (from {@link SyncClient.joinTicket} or {@link HubClient.createJoinTicket}), never a token.
  */
-export function joinLink(settings: SyncSettings, page: string | URL): string {
+export function joinLink(settings: BucketSyncSettings | HubJoinLink, page: string | URL): string {
   const url = new URL(String(page));
-  const { label: _label, ...given } = settings;
-  // Unset settings stay out of the link (a status may report one as null).
-  const rest = Object.fromEntries(Object.entries(given).filter(([, v]) => v !== undefined && v !== null));
+  let rest: Record<string, unknown>;
+  if ('hub' in settings) {
+    const { hub, database, ticket } = settings;
+    if (!hub || !database || !ticket) throw new TypeError('a hub join link needs the hub, the database and a ticket');
+    // Only these three: never a token, whatever else the object holds.
+    rest = { hub, database, ticket };
+  } else {
+    const { label: _label, ...given } = settings;
+    // Unset settings stay out of the link (a status may report one as null).
+    rest = Object.fromEntries(Object.entries(given).filter(([, v]) => v !== undefined && v !== null));
+  }
   url.hash = `${JOIN}=${toBase64Url(JSON.stringify(rest))}`;
   return url.toString();
 }
 
-/** The settings in a {@link joinLink}, or `null` if the URL has none. */
-export function readJoinLink(link: string | URL): SyncSettings | null {
+/** A link may come from anywhere (a QR code): text of at most `max` characters, without control characters. */
+function linkText(v: unknown, max = 256): string | undefined {
+  return typeof v === 'string' && v.length <= max && !/[\u0000-\u001f\u007f]/.test(v) ? v : undefined;
+}
+
+/** HTTPS, or plain HTTP to this computer (a development server); never credentials in the URL. */
+function linkAddress(v: unknown): string | undefined {
+  const text = linkText(v, 2048);
+  if (!text) return undefined;
+  let url: URL;
+  try {
+    url = new URL(text);
+  } catch {
+    return undefined;
+  }
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  if (!(url.protocol === 'https:' || (url.protocol === 'http:' && local)) || url.username || url.password) return undefined;
+  return url.origin + url.pathname.replace(/\/+$/, '');
+}
+
+/**
+ * The settings in a {@link joinLink}, or `null` if the URL has none: a bucket's settings, or a hub
+ * link's ticket (`'hub' in result`), which {@link joinHub} trades for settings.
+ */
+export function readJoinLink(link: string | URL): BucketSyncSettings | HubJoinLink | null {
   let s: any;
   try {
     const hash = new URL(String(link)).hash.replace(/^#/, '');
@@ -1325,34 +1395,31 @@ export function readJoinLink(link: string | URL): SyncSettings | null {
   } catch {
     return null;
   }
+  if (!s || typeof s !== 'object') return null;
   // A link may come from anywhere (a QR code): keep only well-formed settings.
-  const text = (v: unknown, max = 256) =>
-    typeof v === 'string' && v.length <= max && !/[\u0000-\u001f\u007f]/.test(v) ? v : undefined;
-  const endpoint = text(s?.endpoint, 2048);
-  const bucket = text(s?.bucket, 63);
-  const accessKeyId = text(s?.accessKeyId);
-  const secretAccessKey = text(s?.secretAccessKey);
-  if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) return null;
-  let url: URL;
-  try {
-    url = new URL(endpoint);
-  } catch {
-    return null;
+  if (s.hub !== undefined) {
+    const hub = linkAddress(s.hub);
+    const database = linkText(s.database, 63);
+    const ticket = linkText(s.ticket, 512);
+    if (!hub || !database || !HUB_DATABASE_NAME.test(database) || !ticket || !/^[\x21-\x7e]+$/.test(ticket)) return null;
+    return { hub, database, ticket };
   }
-  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
-  // HTTPS, or plain HTTP to this computer (MinIO in development); never credentials in the URL.
-  if (!(url.protocol === 'https:' || (url.protocol === 'http:' && local)) || url.username || url.password) return null;
+  const endpoint = linkAddress(s.endpoint);
+  const bucket = linkText(s.bucket, 63);
+  const accessKeyId = linkText(s.accessKeyId);
+  const secretAccessKey = linkText(s.secretAccessKey);
+  if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) return null;
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(bucket)) return null;
-  const out: SyncSettings = { endpoint: url.origin + url.pathname.replace(/\/+$/, ''), bucket, accessKeyId, secretAccessKey };
+  const out: BucketSyncSettings = { endpoint, bucket, accessKeyId, secretAccessKey };
   // An unset setting may come as null.
   for (const k of ['prefix', 'region', 'pathStyle']) if (s[k] === null) delete s[k];
   if (s.prefix !== undefined) {
-    const prefix = text(s.prefix, 512);
+    const prefix = linkText(s.prefix, 512);
     if (prefix === undefined || prefix.split('/').some((p) => p === '.' || p === '..')) return null;
     out.prefix = prefix;
   }
   if (s.region !== undefined) {
-    const region = text(s.region, 64);
+    const region = linkText(s.region, 64);
     if (region === undefined || !/^[A-Za-z0-9-]*$/.test(region)) return null;
     out.region = region;
   }
@@ -1360,6 +1427,23 @@ export function readJoinLink(link: string | URL): SyncSettings | null {
     if (typeof s.pathStyle !== 'boolean') return null;
     out.pathStyle = s.pathStyle;
   }
+  return out;
+}
+
+/**
+ * Trades a hub join link's ticket for a database token of this device's own, and answers the
+ * settings to connect with: `moul.sync.configure(await joinHub(link, { label: 'Phone' }))`. The
+ * settings follow only (`followOnly`), so a link cannot make this device upload its data to a
+ * database the link chose; take over writing later if this device should write. A ticket works
+ * once.
+ */
+export async function joinHub(link: HubJoinLink, options: { label?: string; fetch?: typeof fetch } = {}): Promise<HubSyncSettings> {
+  const hub = new HubClient(link.hub, { fetch: options.fetch });
+  const joined = await hub.join(link.ticket, { label: options.label });
+  const database = typeof joined.database === 'string' && HUB_DATABASE_NAME.test(joined.database) ? joined.database : link.database;
+  if (typeof joined.token !== 'string' || !joined.token) throw new MoulError(0, 'the hub answered the join without a token', joined);
+  const out: HubSyncSettings = { hub: hub.url, database, token: joined.token, followOnly: true };
+  if (options.label) out.label = options.label;
   return out;
 }
 

@@ -22,9 +22,20 @@
 //! | writer-only | `_rootUsers`       | Administrators of a native server                       |
 //! | writer-only | `_webhook_secrets` | Secrets of webhooks kept from a Go database             |
 //! | writer-only | `_worker_args`     | Rendered mail of Go mail jobs in worker collections     |
+//! | writer-only | `_outbox`          | Webhook calls a write queued, until they are delivered  |
+//! | writer-only | `_workers`         | Background jobs (the Go engine's table)                 |
+//! | writer-only | `_requests`        | The request log of a native server                      |
+//! | writer-only | `_visits`          | Visits a native server counted                          |
+//! | writer-only | `_oauth_clients`   | MCP clients registered with a server's OAuth endpoints  |
+//! | writer-only | `_oauth_refresh`   | Their refresh tokens, hashed                            |
+//! | shared      | `_feature_flags`   | Feature flags and their targeting                       |
 //! | device      | `_device`          | This device's id and request counter                    |
 //! | device      | `_queue`           | Requests not yet confirmed by the writer (Phase 9)      |
 //! | device      | `_blobs`           | Uploaded file bytes by SHA-256, when kept in SQLite     |
+//!
+//! Tables added after a format was released are created, and columns added,
+//! each time a store opens ([`ADDITIONS`]): an older engine opens such a
+//! store and ignores what it does not know, so they need no new format.
 
 use std::collections::HashSet;
 
@@ -214,6 +225,147 @@ CREATE TABLE IF NOT EXISTS device._blobs (
 ) WITHOUT ROWID;
 ";
 
+/// Tables and columns added to format 1 since it was first written, applied
+/// with `IF NOT EXISTS` each time the stores open. Older engines ignore them.
+/// The Go engine's `_workers`, `_requests` and `_visits` keep its layout, so
+/// a converted Go database fills them as they are.
+const WRITER_ADDITIONS: &str = "
+CREATE TABLE IF NOT EXISTS writer._outbox (
+  id TEXT PRIMARY KEY,
+  kind TEXT NOT NULL,
+  collection TEXT NOT NULL DEFAULT '',
+  target TEXT NOT NULL DEFAULT '',
+  url TEXT NOT NULL,
+  event TEXT NOT NULL DEFAULT '',
+  payload TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'pending',
+  nextAt TEXT NOT NULL,
+  lastError TEXT,
+  createdAt TEXT NOT NULL,
+  sentAt TEXT
+);
+CREATE INDEX IF NOT EXISTS writer.idx_outbox_due ON _outbox (status, nextAt);
+CREATE TABLE IF NOT EXISTS writer._workers (
+  id TEXT PRIMARY KEY,
+  createdAt TEXT,
+  updatedAt TEXT,
+  state TEXT DEFAULT 'available',
+  queue TEXT DEFAULT 'default',
+  worker TEXT NOT NULL,
+  args TEXT DEFAULT '{}',
+  meta TEXT DEFAULT '{}',
+  tags TEXT DEFAULT '[]',
+  errors TEXT DEFAULT '[]',
+  attempt INTEGER DEFAULT 0,
+  max_attempts INTEGER DEFAULT 20,
+  priority INTEGER DEFAULT 0,
+  inserted_at TEXT NOT NULL,
+  scheduled_at TEXT NOT NULL,
+  attempted_at TEXT,
+  attempted_by TEXT,
+  cancelled_at TEXT,
+  completed_at TEXT,
+  discarded_at TEXT
+);
+CREATE INDEX IF NOT EXISTS writer.idx__workers_job_processing ON _workers (state, queue, priority, scheduled_at, id);
+CREATE TABLE IF NOT EXISTS writer._requests (
+  id TEXT PRIMARY KEY,
+  visit_id TEXT,
+  method TEXT NOT NULL,
+  path TEXT NOT NULL,
+  status_code INTEGER NOT NULL,
+  response_time_ms INTEGER NOT NULL,
+  createdAt TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS writer.idx_requests_created ON _requests (createdAt);
+CREATE TABLE IF NOT EXISTS writer._visits (
+  id TEXT PRIMARY KEY,
+  visitor_token TEXT NOT NULL,
+  user_id TEXT,
+  ip TEXT,
+  user_agent TEXT,
+  referrer TEXT,
+  referring_domain TEXT,
+  landing_page TEXT,
+  browser TEXT,
+  os TEXT,
+  device_type TEXT,
+  country TEXT,
+  region TEXT,
+  city TEXT,
+  utm_source TEXT,
+  utm_medium TEXT,
+  utm_term TEXT,
+  utm_content TEXT,
+  utm_campaign TEXT,
+  started_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS writer.idx_visits_started ON _visits (started_at);
+CREATE TABLE IF NOT EXISTS writer._oauth_clients (
+  id TEXT PRIMARY KEY,
+  secretHash TEXT,
+  name TEXT NOT NULL,
+  redirectUris TEXT NOT NULL,
+  grantTypes TEXT NOT NULL,
+  responseTypes TEXT NOT NULL,
+  authMethod TEXT NOT NULL,
+  createdAt TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS writer._oauth_refresh (
+  tokenHash TEXT PRIMARY KEY,
+  client TEXT NOT NULL,
+  rootUser TEXT NOT NULL,
+  scope TEXT NOT NULL,
+  expiresAt TEXT NOT NULL
+);
+";
+
+/// Columns added to writer-only tables of format 1: the delivery state of
+/// mail, which a native server sends and a tab keeps.
+const WRITER_ADDED_COLUMNS: [(&str, &str, &str); 5] = [
+    ("_inbox", "status", "TEXT"),
+    ("_inbox", "attempts", "INTEGER NOT NULL DEFAULT 0"),
+    ("_inbox", "nextAt", "TEXT"),
+    ("_inbox", "sentAt", "TEXT"),
+    ("_inbox", "error", "TEXT"),
+];
+
+/// Shared tables added to format 1. Only the writer creates them; a
+/// follower gets them with the writer's pages.
+const SHARED_ADDITIONS: &str = "
+CREATE TABLE IF NOT EXISTS main._feature_flags (
+  id TEXT PRIMARY KEY,
+  key TEXT UNIQUE NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  enabled INTEGER NOT NULL DEFAULT 1,
+  default_value TEXT NOT NULL DEFAULT 'false',
+  gates TEXT NOT NULL DEFAULT '{}',
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL
+);
+";
+
+/// Everything [`Store::migrate`] adds to format 1 stores each time they
+/// open: the writer-only tables and columns, then the shared tables.
+pub const ADDITIONS: [&str; 2] = [WRITER_ADDITIONS, SHARED_ADDITIONS];
+
+fn add_writer_additions(tx: &Transaction<'_>) -> Result<()> {
+    tx.execute_batch(WRITER_ADDITIONS)?;
+    for (table, column, decl) in WRITER_ADDED_COLUMNS {
+        if !column_names(tx, "writer", table)?
+            .iter()
+            .any(|c| c.eq_ignore_ascii_case(column))
+        {
+            tx.execute_batch(&format!(
+                "ALTER TABLE writer.{} ADD COLUMN {column} {decl}",
+                quote(table)
+            ))?;
+        }
+    }
+    Ok(())
+}
+
 /// What [`Store::migrate`] did.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Migrated {
@@ -285,7 +437,7 @@ fn migrate_local_stores(tx: &Transaction<'_>) -> Result<()> {
             tx.execute_batch(&format!("PRAGMA {schema}.user_version = 1"))?;
         }
     }
-    Ok(())
+    add_writer_additions(tx)
 }
 
 impl Store {
@@ -308,7 +460,10 @@ impl Store {
             return Err(too_new(StoreKind::Shared, v));
         }
         if v == FORMAT {
-            self.write(migrate_local_stores)?;
+            self.write(|tx| -> Result<()> {
+                migrate_local_stores(tx)?;
+                Ok(tx.execute_batch(SHARED_ADDITIONS)?)
+            })?;
             // Format 1 is unreleased: a development store made before the
             // change log carried effects gets the column now.
             if !column_names(self.conn(), "main", "_changes")?
@@ -342,6 +497,7 @@ impl Store {
                 out.created = true;
                 tx.execute_batch(SHARED_V1)?;
             }
+            tx.execute_batch(SHARED_ADDITIONS)?;
             tx.execute(
                 "INSERT OR REPLACE INTO main._meta (key, value) VALUES ('format', ?1), ('min_runtime', ?2)",
                 params![FORMAT.to_string(), MIN_RUNTIME],

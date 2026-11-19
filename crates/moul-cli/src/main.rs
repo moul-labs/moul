@@ -4,6 +4,10 @@
 mod check;
 #[cfg(not(target_arch = "wasm32"))]
 mod cli;
+#[cfg(not(target_arch = "wasm32"))]
+mod hub;
+#[cfg(not(target_arch = "wasm32"))]
+mod serve;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> std::process::ExitCode {

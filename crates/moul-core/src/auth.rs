@@ -151,6 +151,10 @@ pub(crate) fn identify(
         collection: claims.collection,
     };
     if user.collection == ROOT_COLLECTION {
+        // Root users may be held to a list of addresses.
+        if !crate::settings::root_ip_allowed(conn, req.remote.as_deref()) {
+            return Err(ApiError::forbidden("IP address not authorized"));
+        }
         return Ok(Who::Owner { root: Some(user) });
     }
     Ok(Who::User(user))
@@ -211,7 +215,7 @@ pub(crate) fn set_secret(
     Ok(())
 }
 
-fn secret(
+pub(crate) fn secret(
     conn: &Connection,
     collection_id: &str,
     record: &str,
@@ -230,7 +234,7 @@ fn secret(
         .flatten())
 }
 
-fn auth_collection(cx: &mut Cx<'_>, name: &str) -> ApiResult<Collection> {
+pub(crate) fn auth_collection(cx: &mut Cx<'_>, name: &str) -> ApiResult<Collection> {
     let c = cx
         .collection(name)?
         .ok_or_else(|| ApiError::not_found("Not found"))?;
@@ -252,7 +256,7 @@ fn str_field<'a>(body: &'a Map<String, Value>, key: &str) -> &'a str {
     body.get(key).and_then(Value::as_str).unwrap_or("")
 }
 
-fn find_by(
+pub(crate) fn find_by(
     cx: &Cx<'_>,
     c: &Collection,
     sql_where: &str,
@@ -268,7 +272,7 @@ fn find_by(
     .next())
 }
 
-fn rec_str(rec: &values::Record, key: &str) -> String {
+pub(crate) fn rec_str(rec: &values::Record, key: &str) -> String {
     rec.get(key)
         .and_then(Value::as_str)
         .unwrap_or("")
@@ -276,7 +280,7 @@ fn rec_str(rec: &values::Record, key: &str) -> String {
 }
 
 /// The sign-in answer: a token and the record, as the Go engine sends it.
-fn signed_in(cx: &mut Cx<'_>, c: &Collection, mut rec: values::Record) -> Response {
+pub(crate) fn signed_in(cx: &mut Cx<'_>, c: &Collection, mut rec: values::Record) -> Response {
     let (id, email, username) = (
         rec_str(&rec, "id"),
         rec_str(&rec, "email"),
@@ -355,7 +359,7 @@ pub(crate) fn with_password(cx: &mut Cx<'_>, name: &str) -> ApiResult {
 /// text/template does for a map: any spacing, the `{{-` and `-}}` trim
 /// markers, and `<no value>` for a field the mail does not have. Other
 /// actions are left as written.
-fn render(template: &str, data: &[(&str, &str)]) -> String {
+pub(crate) fn render(template: &str, data: &[(&str, &str)]) -> String {
     let mut out = String::with_capacity(template.len());
     let mut rest = template;
     while let Some(open) = rest.find("{{") {
@@ -842,17 +846,192 @@ pub(crate) fn with_otp(cx: &mut Cx<'_>, name: &str) -> ApiResult {
     Ok(signed_in(cx, &c, rec))
 }
 
-/// `GET /api/moul/:name/auth-methods`
-pub(crate) fn methods(cx: &mut Cx<'_>, name: &str) -> ApiResult {
-    auth_collection(cx, name)?;
+/// The username a new account starts from: `base` with only letters,
+/// digits and `_` kept (`user` if nothing is left), and a suffix if that is
+/// taken.
+fn free_username(cx: &mut Cx<'_>, c: &Collection, base: &str) -> ApiResult<String> {
+    let base: String = base
+        .chars()
+        .filter(|ch| ch.is_ascii_alphanumeric() || *ch == '_')
+        .collect();
+    let base = if base.is_empty() {
+        "user".to_owned()
+    } else {
+        base
+    };
+    let mut username = base.clone();
+    while find_by(cx, c, "username = :v", &username)?.is_some() {
+        username = format!("{base}_{}", ids::random_chars(cx.host, 4));
+    }
+    Ok(username)
+}
+
+/// Signs in the person a provider vouched for: the account already linked
+/// to their id at the provider, else the account with their email if the
+/// provider says the email is theirs (and links it), else a new account.
+/// The host has checked the provider's answer; see [`crate::oauth`].
+pub(crate) fn external(
+    cx: &mut Cx<'_>,
+    name: &str,
+    profile: &crate::oauth::ExternalProfile,
+) -> ApiResult {
+    let c = auth_collection(cx, name)?;
+    if profile.provider.is_empty() || profile.id.is_empty() {
+        return Err(ApiError::bad_request(
+            "The provider did not identify the account",
+        ));
+    }
+    // An account already linked to this id.
+    let linked: Vec<(String, String)> = {
+        let mut stmt = cx.conn.prepare(
+            "SELECT record, oauthProviders FROM writer._auth WHERE collection = ?1 AND oauthProviders IS NOT NULL",
+        )?;
+        stmt.query_map([&c.id], |r| Ok((r.get(0)?, r.get(1)?)))?
+            .collect::<rusqlite::Result<_>>()?
+    };
+    let matches = |list: &str| -> bool {
+        serde_json::from_str::<Vec<Value>>(list).is_ok_and(|links| {
+            links.iter().any(|l| {
+                l["provider"]
+                    .as_str()
+                    .is_some_and(|p| p.eq_ignore_ascii_case(&profile.provider))
+                    && l["id"].as_str() == Some(profile.id.as_str())
+            })
+        })
+    };
+    if let Some((record, _)) = linked.iter().find(|(_, list)| matches(list))
+        && let Some(rec) = records::load(cx.conn, &c, record)?
+    {
+        return Ok(signed_in(cx, &c, rec));
+    }
+    let add_link = |cx: &mut Cx<'_>, record: &str| -> ApiResult<()> {
+        let mut links: Vec<Value> = secret(cx.conn, &c.id, record, "oauthProviders")?
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default();
+        links.push(profile.link());
+        set_secret(
+            cx.conn,
+            &c.id,
+            record,
+            "oauthProviders",
+            Some(&Value::Array(links).to_string()),
+        )
+    };
+    let email = profile.email.trim();
+    if !email.is_empty()
+        && let Some(rec) = find_by(cx, &c, "email = :v", email)?
+    {
+        if !profile.email_verified {
+            return Err(ApiError::bad_request(format!(
+                "An account with this email exists. {} has not confirmed the address is yours, so sign in to the account another way.",
+                profile.provider
+            )));
+        }
+        // An account with a password may have been made by someone who
+        // only typed this address: linking would let them keep signing in
+        // with their password. The owner of the address resets the
+        // password by mail instead, and owns the account from then on.
+        let id = rec_str(&rec, "id");
+        if secret(cx.conn, &c.id, &id, "passwordHash")?.is_some() {
+            return Err(ApiError::bad_request(format!(
+                "An account with this email has a password. Sign in with it, or reset it by email, rather than with {}.",
+                profile.provider
+            )));
+        }
+        add_link(cx, &id)?;
+        return Ok(signed_in(cx, &c, rec));
+    }
+    // A new account.
+    let base = [
+        &profile.username,
+        &email.split('@').next().unwrap_or("").to_owned(),
+        &profile.name,
+    ]
+    .into_iter()
+    .find(|s| !s.trim().is_empty())
+    .cloned()
+    .unwrap_or_default();
+    let username = free_username(cx, &c, &base)?;
+    // An address the provider does not vouch for is not recorded as the
+    // account's: a later sign-in that does vouch for it must not land here.
+    let email = if email.is_empty() || !profile.email_verified {
+        format!("{}@{}.oauth", profile.id, profile.provider)
+    } else {
+        email.to_owned()
+    };
+    let id = ids::record_id(cx.host, &c.name);
+    let now = cx.now();
+    cx.conn.execute(
+        &format!(
+            "INSERT INTO {} (id, username, email, createdAt, updatedAt) VALUES (?1, ?2, ?3, ?4, ?4)",
+            quote(&c.name)
+        ),
+        params![id, username, email, now],
+    )?;
+    add_link(cx, &id)?;
+    let rec = records::load(cx.conn, &c, &id)?.ok_or_else(ApiError::internal)?;
+    let mut shown = rec.clone();
+    values::normalize(&c, &mut shown);
+    cx.events.push(RecordEvent {
+        action: Action::Create,
+        collection: c.clone(),
+        record: shown,
+        old: None,
+        from_log: false,
+    });
+    cx.changed(&c, Some(&id), vec!["username".into(), "email".into()]);
+    Ok(signed_in(cx, &c, rec))
+}
+
+/// `POST /api/moul/:name/email-templates/test` with `{"email", "template"}`:
+/// renders the template with sample values and puts the mail in the inbox,
+/// from which a native server sends it.
+pub(crate) fn test_template(cx: &mut Cx<'_>, name: &str) -> ApiResult {
+    cx.require_admin()?;
+    let c = auth_collection(cx, name)?;
+    let body = body(cx)?;
+    let email = str_field(&body, "email").trim().to_owned();
+    let key = str_field(&body, "template").trim().to_owned();
+    if email.is_empty() {
+        return Err(ApiError::bad_request("email is required"));
+    }
+    if key.is_empty() {
+        return Err(ApiError::bad_request("template key is required"));
+    }
+    let t = c.email_templates.clone().unwrap_or_default();
+    let template = match key.as_str() {
+        "verification" => t.verification,
+        "password_reset" => t.password_reset,
+        "confirm_email_change" => t.confirm_email_change,
+        "otp" => t.otp,
+        "login_alert" => t.login_alert,
+        _ => {
+            return Err(ApiError::bad_request(
+                "invalid template key: must be verification, password_reset, confirm_email_change, otp, or login_alert",
+            ));
+        }
+    };
+    let link = format!(
+        "{}/dummy-link-test",
+        cx.config.public_url.trim_end_matches('/')
+    );
+    let data = [
+        ("Link", link.as_str()),
+        ("OTP", "123456"),
+        ("Username", "TestUser"),
+        ("Email", email.as_str()),
+    ];
+    deliver(
+        cx,
+        &c,
+        &email,
+        "test",
+        &render(&template.subject, &data),
+        &render(&template.body, &data),
+    )?;
     Ok(Response::json(
         200,
-        json!({
-            "password": {"enabled": true},
-            "otp": {"enabled": true},
-            "passkeys": {"enabled": false},
-            "oauth2": {"enabled": false, "providers": []},
-        }),
+        json!({"message": "Test email sent/queued successfully"}),
     ))
 }
 

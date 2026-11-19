@@ -8,10 +8,11 @@
 //! response, the pair is remembered and later requests are rewritten with
 //! the Rust value. Everything else must match: status, keys and values.
 //!
-//! Exchanges on routes this engine does not serve in the first browser
-//! release (setup, settings, feature flags, workers, OAuth, MCP, server-sent
-//! events, logs, metrics) are skipped. A root user token those routes issued
-//! is replayed as the owner. A difference that is a decision, not a bug, is
+//! Exchanges on routes the engine does not serve are skipped: the native
+//! server's own (server-sent events, realtime tickets, MCP, the OAuth
+//! authorization server, the device flow, logs, metrics), which
+//! `crates/moul-server/tests/go_parity.rs` replays through the server. A
+//! root user token such a route issued is replayed as the owner. A difference that is a decision, not a bug, is
 //! listed in `DECIDED` with its reason.
 
 #![cfg(not(target_arch = "wasm32"))]
@@ -20,6 +21,9 @@ use std::collections::BTreeMap;
 
 use moul_core::{
     Body, Caller, Config, Engine, MemoryBlobs, Request, Response, ResponseBody, SeededHost,
+};
+use moul_fixtures::compare::{
+    GO_TEST_JWT_SECRET, NOW, Subs, admin_key, body_bytes, compare, expected_json, is_dynamic,
 };
 use moul_fixtures::{Exchange, Fixtures, HttpFixture};
 use moul_store::Store;
@@ -49,6 +53,21 @@ const IN_SCOPE: &[&str] = &[
     "/api/files/*",
     "/storage/*",
     "/api/rules/test",
+    "/api/setup",
+    "/api/admin/login",
+    "/api/admin/account",
+    "/api/admin/password",
+    "/api/admin/reload",
+    "/api/settings",
+    "/api/settings/account",
+    "/api/feature-flags",
+    "/api/feature-flags/:key",
+    "/api/feature-flags/:key/eval",
+    "/api/workers",
+    "/api/workers/:id",
+    "/api/workers/retry",
+    "/api/moul/:name/webhooks",
+    "/api/moul/:name/email-templates/test",
 ];
 
 /// Differences that are decisions, or that the fixtures cannot reproduce.
@@ -99,187 +118,35 @@ const DECIDED: &[(&str, &str)] = &[
         "TestUploads_MembersCannotStoreActiveContent#0.6",
         "set outside the API",
     ),
-    // The root user came from the setup endpoint, which a tab does not serve.
-    ("TestSetupFlow#0.7", "root user from setup"),
-    ("TestSetupFlow#0.20", "root user from setup"),
     // Encrypted (cloak) fields and analytics events are not served yet.
     (
         "TestRealtime_CloakFieldMaskingEndToEnd#0.0",
         "no cloak fields yet",
     ),
     ("TestAppE2EFlow#0.11", "no analytics events yet"),
+    // Secret settings are never sent back; they read as "********".
+    (
+        "TestEmailSettingsAndUpdate#0.1",
+        "secret settings are masked",
+    ),
+    ("TestTUIE2E#0.11", "secret settings are masked"),
+    // A second flag with a key in use is refused; Go updated the first and
+    // answered with an id it never stored.
+    (
+        "TestAdminSurface_RootOrAdminKeyOnly#0.75",
+        "duplicate flag key answers 400",
+    ),
+    // Jobs read back with their JSON and numbers decoded, as Go answered
+    // only when creating one.
+    ("TestWorkersAPI#0.4", "jobs read back decoded"),
+    ("TestWorkersAPI#0.5", "jobs read back decoded"),
+    ("TestWorkersAPI#0.7", "jobs read back decoded"),
     // Go's in-process hooks ran custom code; a deployed app carries none.
     (
         "TestRecords_HooksFireForHTTPAndGoWrites#0.0",
         "no custom code hooks",
     ),
 ];
-
-const NOW: i64 = 1_794_961_964_000;
-
-/// The secret the Go handler tests sign their own tokens with.
-const GO_TEST_JWT_SECRET: &[u8] = b"test-secret-key-for-unit-tests-1234";
-
-/// The admin key the Go handler security tests configure.
-const GO_SECURITY_ADMIN_KEY: &str = "security-test-admin-key";
-
-/// Keys whose values are timings, not data.
-const TIMING_KEYS: &[&str] = &["duration_us"];
-
-#[derive(Default)]
-struct Subs {
-    /// Go value → Rust value.
-    map: BTreeMap<String, String>,
-    /// Go tokens that stand for the owner (root users, admin login).
-    owner_tokens: Vec<String>,
-}
-
-impl Subs {
-    fn apply(&self, s: &str) -> String {
-        let mut out = s.to_owned();
-        let mut keys: Vec<&String> = self.map.keys().collect();
-        keys.sort_by_key(|k| std::cmp::Reverse(k.len()));
-        for k in keys {
-            if out.contains(k.as_str()) {
-                out = out.replace(k.as_str(), &self.map[k]);
-            }
-        }
-        out
-    }
-}
-
-fn is_alnum(s: &str) -> bool {
-    !s.is_empty() && s.bytes().all(|b| b.is_ascii_alphanumeric())
-}
-
-/// Whether `s` is a value that differs between runs by nature.
-fn is_dynamic(s: &str) -> bool {
-    let b = s.as_bytes();
-    let timestamp =
-        b.len() >= 20 && b[4] == b'-' && b[7] == b'-' && (b[10] == b'T' || b[10] == b' ');
-    let jwt = s.split('.').count() == 3 && s.starts_with("eyJ");
-    let id15 = s.len() == 15 && is_alnum(s);
-    let record_id = s
-        .rsplit_once('-')
-        .is_some_and(|(p, r)| r.len() == 15 && is_alnum(r) && !p.is_empty());
-    let storage = s.starts_with("/storage/");
-    let hex = s.len() >= 32 && s.bytes().all(|b| b.is_ascii_hexdigit());
-    let field_id = s.starts_with("fld_");
-    let stamp_name = s.contains("-records-") && (s.ends_with(".csv") || s.ends_with(".json"));
-    timestamp || jwt || id15 || record_id || storage || hex || field_id || stamp_name
-}
-
-/// Compares a Go value with a Rust value, learning substitutions.
-fn compare(go: &Value, rs: &Value, subs: &mut Subs, at: &str) -> Result<(), String> {
-    let mut first = None;
-    walk(go, rs, subs, at, &mut first);
-    match first {
-        Some(e) => Err(e),
-        None => Ok(()),
-    }
-}
-
-fn walk_err(first: &mut Option<String>, e: String) {
-    if first.is_none() {
-        *first = Some(e);
-    }
-}
-
-/// Walks the whole value, learning every substitution, and keeps the first
-/// difference.
-fn walk(go: &Value, rs: &Value, subs: &mut Subs, at: &str, first: &mut Option<String>) {
-    if let Err(e) = compare_here(go, rs, subs, at, first)
-        && first.is_none()
-    {
-        *first = Some(e);
-    }
-}
-
-fn compare_here(
-    go: &Value,
-    rs: &Value,
-    subs: &mut Subs,
-    at: &str,
-    first: &mut Option<String>,
-) -> Result<(), String> {
-    match (go, rs) {
-        (Value::Object(g), Value::Object(r)) => {
-            for (k, gv) in g {
-                let here = format!("{at}.{k}");
-                if TIMING_KEYS.contains(&k.as_str()) {
-                    continue;
-                }
-                match r.get(k) {
-                    Some(rv) => walk(gv, rv, subs, &here, first),
-                    // Go writes nil slices as null where Rust leaves the key out.
-                    None if gv.is_null() => {}
-                    None => walk_err(first, format!("{here}: missing (Go has {gv})")),
-                }
-            }
-            for k in r.keys() {
-                if !g.contains_key(k) && !(k == "id" && at.contains(".fields[")) {
-                    walk_err(first, format!("{at}.{k}: extra (Rust has {})", r[k]));
-                }
-            }
-            Ok(())
-        }
-        (Value::Array(g), Value::Array(r)) => {
-            if g.len() != r.len() {
-                return Err(format!(
-                    "{at}: {} items in Go, {} in Rust",
-                    g.len(),
-                    r.len()
-                ));
-            }
-            for (i, (gv, rv)) in g.iter().zip(r).enumerate() {
-                walk(gv, rv, subs, &format!("{at}[{i}]"), first);
-            }
-            Ok(())
-        }
-        // Go writes an empty fields list as null.
-        (Value::Null, Value::Array(r)) if r.is_empty() => Ok(()),
-        (Value::String(g), Value::String(r)) => {
-            if g == r {
-                return Ok(());
-            }
-            let expected = subs.apply(g);
-            if &expected == r {
-                return Ok(());
-            }
-            if is_dynamic(g) && is_dynamic(r) {
-                if let Some(known) = subs.map.get(g)
-                    && known != r
-                {
-                    return Err(format!(
-                        "{at}: Go {g:?} was Rust {known:?} before, now {r:?}"
-                    ));
-                }
-                subs.map.insert(g.clone(), r.clone());
-                // A signed URL also names the bare one.
-                if let (Some((gb, gq)), Some((rb, rq))) = (g.split_once('?'), r.split_once('?')) {
-                    subs.map.insert(gb.to_owned(), rb.to_owned());
-                    subs.map.insert(gq.to_owned(), rq.to_owned());
-                }
-                return Ok(());
-            }
-            Err(format!("{at}: Go {g:?}, Rust {r:?}"))
-        }
-        (Value::Number(g), Value::Number(r)) if g.as_f64() == r.as_f64() => Ok(()),
-        _ if go == rs => Ok(()),
-        _ => Err(format!("{at}: Go {go}, Rust {rs}")),
-    }
-}
-
-fn body_bytes(b: &Option<moul_fixtures::Body>) -> Option<Vec<u8>> {
-    let b = b.as_ref()?;
-    if let Some(j) = &b.json {
-        return Some(serde_json::to_vec(j).unwrap());
-    }
-    if let Some(t) = &b.text {
-        return Some(t.clone().into_bytes());
-    }
-    b.base64.as_ref().map(|s| moul_fixtures::decode_base64(s))
-}
 
 fn build_request(ex: &Exchange, subs: &Subs) -> Request {
     let r = &ex.request;
@@ -313,29 +180,6 @@ fn build_request(ex: &Exchange, subs: &Subs) -> Request {
     req
 }
 
-fn admin_key(fx: &HttpFixture) -> Option<String> {
-    let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
-    for s in &fx.sessions {
-        for ex in &s.exchanges {
-            if ex.response.status < 300
-                && let Some(v) = ex
-                    .request
-                    .headers
-                    .get("X-Admin-Key")
-                    .and_then(|v| v.first())
-            {
-                *counts.entry(v).or_default() += 1;
-            }
-        }
-    }
-    if let Some((k, _)) = counts.into_iter().max_by_key(|(_, n)| *n) {
-        return Some(k.to_owned());
-    }
-    // Handler tests that never send the key in a header still configure
-    // the one the security tests share.
-    Some(GO_SECURITY_ADMIN_KEY.to_owned())
-}
-
 fn response_json(r: &Response) -> Option<Value> {
     match &r.body {
         ResponseBody::Json(v) => Some(v.clone()),
@@ -344,14 +188,6 @@ fn response_json(r: &Response) -> Option<Value> {
         }
         _ => None,
     }
-}
-
-fn expected_json(b: &Option<moul_fixtures::Body>) -> Option<Value> {
-    let b = b.as_ref()?;
-    if let Some(j) = &b.json {
-        return Some(j.clone());
-    }
-    b.text.as_ref().and_then(|t| serde_json::from_str(t).ok())
 }
 
 #[derive(Debug)]
@@ -432,6 +268,7 @@ fn go_http_parity() {
     let fx = Fixtures::default();
     let mut passed = 0;
     let mut decided = 0;
+    let mut used = std::collections::BTreeSet::new();
     let mut failed = Vec::new();
     let mut by_route: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for path in fx.http_paths().unwrap() {
@@ -446,7 +283,10 @@ fn go_http_parity() {
                     passed += 1;
                     e.0 += 1;
                 }
-                Some(_) if DECIDED.iter().any(|(k, _)| *k == o.key) => decided += 1,
+                Some(_) if DECIDED.iter().any(|(k, _)| *k == o.key) => {
+                    decided += 1;
+                    used.insert(o.key.clone());
+                }
                 Some(d) => {
                     e.1 += 1;
                     failed.push(format!("{} {}: {d}", o.key, o.route));
@@ -464,6 +304,17 @@ fn go_http_parity() {
     for f in &failed {
         println!("DIFF {f}");
     }
+    // A decision for an exchange that now matches, or no longer runs, is
+    // out of date.
+    let stale: Vec<&str> = DECIDED
+        .iter()
+        .map(|(k, _)| *k)
+        .filter(|k| !used.contains(*k))
+        .collect();
+    assert!(
+        stale.is_empty(),
+        "DECIDED entries that no longer differ: {stale:?}"
+    );
     let limit: usize = std::env::var("MOUL_PARITY_ALLOWED_DIFFS")
         .ok()
         .and_then(|v| v.parse().ok())

@@ -17,7 +17,7 @@ export const platformNavLinks: NavLink[] = [
 
 export const systemNavLinks: NavLink[] = [
   { to: '/database', label: 'Database', icon: 'hard-drives', description: 'The file, backups and storage' },
-  { to: '/sync', label: 'Sync', icon: 'arrows-clockwise', description: 'Your other devices, through a bucket' },
+  { to: '/sync', label: 'Sync', icon: 'arrows-clockwise', description: 'Your other devices, through a hub or a bucket' },
   { to: '/schema', label: 'Schema & types', icon: 'code', description: 'For git, agents and TypeScript' },
 ];
 

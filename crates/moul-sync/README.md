@@ -19,6 +19,7 @@ Litestream wrote.
 | --- | --- |
 | Where a replica lives | [`Replica`]: `get`, `put` with a condition, `list`, `delete` |
 | An S3-compatible bucket (R2, S3, MinIO) | [`S3Replica`], signed with SigV4, over `ureq` natively and `fetch` in the browser |
+| A database on a Moul Hub (`docs/hub.md`) | [`HubReplica`], with the device's token, over the same HTTP clients; [`hub::EventParser`] reads its event stream |
 | A folder, laid out as Litestream's file replica | `DirReplica` (native) |
 | Memory, with lost requests, lost answers and a full disk to order | [`MemoryReplica`] |
 | A device's sync: connect, push, pull, take over | [`Sync`] |
@@ -92,7 +93,9 @@ moul/writer.json                              which device writes
 ## Compaction and retention
 
 The writer compacts when idle; any writer, or a script, can, because every
-decision comes from the replica's listing. Ages are measured by the replica's
+decision comes from the replica's listing. A replica that is
+[maintained remotely](Replica::maintained_remotely), as a Moul Hub's is, is
+left to its maintainer: devices that sync through a hub do not compact. Ages are measured by the replica's
 clock, never the device's, so a phone with a wrong clock neither prunes early
 nor compacts on every pass. Before deleting anything it checks that the
 newest state still restores without it.
@@ -111,6 +114,7 @@ newest state still restores without it.
 | --- | --- |
 | `tests/scenarios.rs` | Devices converge byte for byte: a race to create, hand-off both ways, an offline writer that lost the role, an old writer's last upload before the fence, a take-over that stopped half way and one cut short then restarted, a writer whose storage was reset (behind head, up to it, or past it, while another device takes over, or after its first head was lost), a writer that restarts offline, a head write that failed before an idle round, a writer whose head lags files it released (the same files as the replica's, or not), lost requests and answers, a full replica, a restart between upload and head, a follower asleep past retention, a crash at every storage step while following, a Litestream replica, a skewed clock |
 | `tests/s3.rs` | The S3 transport against a real store: conditional writes, eight devices racing for one TXID, wrong credentials, and devices syncing through it |
+| `tests/hub.rs` | The hub transport against a stand-in hub that serves the protocol: devices converge and hand off through it without compacting, and a revoked token is refused for good |
 | `tools/litestream-compat/tests/sync.rs` | `litestream restore` rebuilds a replica sync wrote, with a hand-off and every level, at every TXID still held |
 
 The S3 tests run when `MOUL_S3_ENDPOINT` is set; CI runs them against MinIO:

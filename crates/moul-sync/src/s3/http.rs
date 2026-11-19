@@ -1,5 +1,5 @@
-//! The HTTP the S3 transport needs, behind a trait: `ureq` natively and
-//! `fetch` in the browser.
+//! The HTTP the S3 and hub transports need, behind a trait: `ureq` natively
+//! and `fetch` in the browser.
 
 use crate::replica::BoxFuture;
 use crate::{Error, Result};
@@ -7,7 +7,7 @@ use crate::{Error, Result};
 /// One HTTP request.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct HttpRequest {
-    /// `GET`, `PUT` or `DELETE`.
+    /// `GET`, `PUT` or `DELETE`, or `POST` for the hub's other calls.
     pub method: &'static str,
     /// The full URL.
     pub url: String,
@@ -80,7 +80,7 @@ impl UreqClient {
         let fail = |e: &dyn std::fmt::Display| {
             Error::network(format!("{} {}: {e}", request.method, request.url))
         };
-        let response = if request.method == "PUT" {
+        let response = if matches!(request.method, "PUT" | "POST") {
             let req = builder.body(request.body.clone()).map_err(|e| fail(&e))?;
             self.agent.run(req)
         } else {
@@ -120,9 +120,9 @@ impl HttpClient for UreqClient {
     }
 }
 
-/// HTTP with the browser's `fetch`, in a page or a worker. The bucket's CORS
-/// rule must allow the page's origin, the methods `GET`, `PUT` and `DELETE`,
-/// the request headers sent here, and expose `ETag`.
+/// HTTP with the browser's `fetch`, in a page or a worker. The bucket's (or
+/// hub's) CORS rule must allow the page's origin, the methods `GET`, `PUT`
+/// and `DELETE`, the request headers sent here, and expose `ETag`.
 #[cfg(target_arch = "wasm32")]
 #[derive(Debug, Default)]
 pub struct FetchClient;
@@ -141,7 +141,7 @@ impl FetchClient {
                 .map(|e| String::from(e.message()))
                 .unwrap_or_else(|| format!("{e:?}"));
             Error::network(format!(
-                "{} {}: {detail} (if the bucket is reachable, check its CORS rule)",
+                "{} {}: {detail} (if the server is reachable, check its CORS rule)",
                 request.method, request.url
             ))
         };
@@ -159,13 +159,22 @@ impl FetchClient {
             init.set_body(&Uint8Array::from(request.body.as_slice()).into());
         }
         let req = Request::new_with_str_and_init(&request.url, &init).map_err(fail)?;
+        // The global `fetch`: a window's, a worker's, or Node's (the
+        // headless engine).
         let global = js_sys::global();
         let promise = if let Some(w) = global.dyn_ref::<web_sys::WorkerGlobalScope>() {
             w.fetch_with_request(&req)
         } else if let Some(w) = global.dyn_ref::<web_sys::Window>() {
             w.fetch_with_request(&req)
         } else {
-            return Err(Error::network("fetch is not available here"));
+            let f = js_sys::Reflect::get(&global, &"fetch".into())
+                .ok()
+                .and_then(|f| f.dyn_into::<js_sys::Function>().ok())
+                .ok_or_else(|| Error::network("fetch is not available here"))?;
+            f.call1(&global, &req)
+                .map_err(fail)?
+                .dyn_into::<js_sys::Promise>()
+                .map_err(fail)?
         };
         let response: Response = JsFuture::from(promise)
             .await

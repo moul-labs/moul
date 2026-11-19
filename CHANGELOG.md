@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+The engine runs as a server, and devices can sync through a hub instead of a bucket.
+
+- **`moul serve <folder>`**, the native server (`moul-server`): the engine's API over HTTP with
+  CORS, rate limits and a request log; live events as server-sent events, with single-use
+  tickets; mail through Resend, Mailgun, SendGrid, Amazon SES or Cloudflare; sign-in with GitHub,
+  Google and Apple; webhooks, signed and retried; jobs (`SendEmail`, `Webhook`, or claimed by your
+  own program); feature flags; root users and settings; replication to a folder, a bucket or a hub
+  as it commits; OpenAPI at `/openapi.json`. It opens a Go engine database with `--from`, keeps
+  its settings, and its tokens with `MOUL_JWT_SECRET`.
+- **MCP** at `/api/mcp`, with an OAuth authorization server so agents can sign in, and `moul mcp
+  <folder>` over stdio. The Go engine's tools, plus the schema file, the change log, and a
+  read-only query that cannot reach credentials.
+- **`moul hub`**, sync for a builder's devices (`moul-hub`): sign-in by email code, a token per
+  device, databases, join tickets for QR codes, push events, and compaction on the hub. The hosted
+  beta, sync.moul.dev, is `moul hub` behind an invitation.
+- **Devices sync through a hub** (`moul-sync`'s `HubReplica`): the SDK's `HubClient` and hub sync
+  settings, join links that carry a one-time ticket, a worker that syncs as soon as the hub says
+  there is something new, and a "Moul Hub" choice on Studio's Sync page. `moul login <hub>`, then
+  `moul pull moul+https://<hub>/<database>`.
+- **The engine** serves settings, root users, feature flags, jobs, webhooks and OAuth sign-in in
+  every host, and writes mail, webhook calls and jobs as rows a server sends once.
+- The parity suites now cover the server's routes; where Moul departs from Go (secrets never read
+  back, checked OAuth state, registered MCP clients only, retried webhooks, …) each difference is
+  a written decision.
+
 ## 0.1.0
 
 The first public release. A backend runs in a browser tab: collections, records, rules, sign-in,

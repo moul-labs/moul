@@ -1,15 +1,34 @@
 [package]
 name = "moul-hub"
-description = "Moul Hub: runs many Moul apps side by side, each in its own database, opened on demand."
-# Holds the name until its phase; see the workspace manifest.
-version = "0.0.1"
+description = "Moul Hub: runs many Moul apps side by side, each in its own database, opened on demand. First, sync for a builder's devices."
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 readme = "README.md"
-keywords = ["hosting", "multi-tenant", "sqlite", "backend", "server"]
+keywords = ["hosting", "sync", "sqlite", "litestream", "server"]
 categories = ["web-programming::http-server", "database"]
+
+# The hub listens on sockets and keeps files, so it builds only for native
+# targets; the browser build of the workspace gets an empty crate.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+moul-core.workspace = true
+moul-server.workspace = true
+moul-sync.workspace = true
+moul-ltx.workspace = true
+moul-vfs.workspace = true
+rusqlite.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+getrandom = "0.3.4"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "net", "sync", "time"] }
+axum = { version = "0.8.9", default-features = false, features = ["http1", "tokio", "query", "json"] }
+futures-util = { version = "0.3.32", default-features = false, features = ["std"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls"] }
+moul-store.workspace = true
 
 [lints]
 workspace = true

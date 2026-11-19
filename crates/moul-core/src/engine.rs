@@ -14,7 +14,10 @@ use crate::guard::SqlGuard;
 use crate::host::Host;
 use crate::realtime::{Delivery, Realtime, RecordEvent, Subscription, SubscriptionId};
 use crate::router::{Route, route};
-use crate::{auth, collections, crypto, dataio, definition, files, ids, records, rules, time};
+use crate::{
+    admin, auth, collections, crypto, dataio, definition, effects, files, flags, ids, oauth,
+    records, rules, settings, time, webhooks, workers,
+};
 
 /// Settings of an engine. The defaults suit a builder's own tab.
 #[derive(Clone, Debug)]
@@ -94,6 +97,17 @@ pub enum Role {
     Writer,
     /// It follows another writer: it answers reads, and refuses writes.
     Follower,
+}
+
+/// Who a host's caller is, as [`Engine::identity`] tells it.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Identity {
+    /// The owner: the admin key, the host's word, or a root user.
+    pub admin: bool,
+    /// The signed-in person, or root user.
+    pub user: Option<auth::User>,
+    /// A token was sent and refused.
+    pub rejected: bool,
 }
 
 /// The collections, cached while `_moul_version` is unchanged.
@@ -339,6 +353,16 @@ impl Cx<'_> {
         Err(ApiError::unauthorized(
             "Admin authentication required (root user token or admin key)",
         ))
+    }
+
+    /// The gate of the Go engine's setup and admin-login endpoints: the
+    /// admin key (or the host's owner) only; a root user's token is not
+    /// enough.
+    pub fn require_admin_key(&self) -> ApiResult<()> {
+        if matches!(self.who, Who::Owner { root: None }) {
+            return Ok(());
+        }
+        Err(ApiError::unauthorized("Admin authentication required"))
     }
 
     /// Records what this write changed.
@@ -681,6 +705,234 @@ impl Engine {
         crate::changes::since(self.store.conn(), after, limit).unwrap_or_default()
     }
 
+    /// Who the credentials in `headers` name, for a host that hands out
+    /// tickets or checks access before it calls the engine.
+    pub fn identity(
+        &mut self,
+        headers: &[(String, String)],
+        remote: Option<&str>,
+    ) -> Result<Identity, Response> {
+        let mut req = Request::new("GET", "/");
+        req.headers = headers.to_vec();
+        req.remote = remote.map(str::to_owned);
+        let now = self.host.now_ms();
+        match auth::identify(self.store.conn(), &self.config, &self.key, &req, now) {
+            Ok(Who::Owner { root }) => Ok(Identity {
+                admin: true,
+                user: root,
+                rejected: false,
+            }),
+            Ok(Who::User(u)) => Ok(Identity {
+                admin: false,
+                user: Some(u),
+                rejected: false,
+            }),
+            Ok(Who::Guest { rejected }) => Ok(Identity {
+                admin: false,
+                user: None,
+                rejected,
+            }),
+            Err(e) => Err(e.into_response()),
+        }
+    }
+
+    /// Ends live subscriptions whose credentials no longer hold (a token
+    /// expired or was revoked, a user was deleted). The engine checks after
+    /// each write; a host calls this from time to time as well, so a quiet
+    /// collection's subscribers are dropped when their token expires.
+    pub fn check_subscriptions(&mut self) {
+        if self.catalog.refresh(self.store.conn()).is_ok() {
+            let now = self.host.now_ms();
+            self.recheck_subscriptions(now);
+        }
+    }
+
+    /// The settings, stored values over defaults, secrets included: for
+    /// the host, never for an answer.
+    pub fn settings(&self) -> std::collections::BTreeMap<String, String> {
+        settings::load(self.store.conn()).unwrap_or_default()
+    }
+
+    /// Checks the `state` an OAuth provider sent back: made by this engine,
+    /// not expired. Gives the collection, the provider and the PKCE verifier.
+    pub fn verify_oauth_state(&mut self, state: &str) -> Option<oauth::State> {
+        let now = self.host.now_ms();
+        oauth::verify_state(&self.key, state, now)
+    }
+
+    /// Signs in the person an OAuth provider vouched for, into the auth
+    /// collection `collection`: as `POST /api/moul/:name/auth-with-password`
+    /// answers. The host checked the provider's answer; this finds the
+    /// linked account, links one by a verified email, or makes one.
+    pub fn sign_in_external(
+        &mut self,
+        collection: &str,
+        profile: oauth::ExternalProfile,
+        remote: Option<&str>,
+    ) -> Response {
+        let route = Route::ExternalSignIn(collection.to_owned(), profile);
+        let mut req = Request::new("POST", &format!("/api/moul/{collection}/auth-with-oauth2"));
+        req.remote = remote.map(str::to_owned);
+        self.serve(&route, &req)
+    }
+
+    /// Runs one `SELECT` over the shared store only, for an agent: the
+    /// fence that holds rule SQL refuses the writer-only and device stores
+    /// (credentials, keys), writes, pragmas and attaching. At most
+    /// `max_rows` rows come back. Answers the column names and the rows.
+    pub fn query_shared(
+        &self,
+        sql: &str,
+        max_rows: usize,
+    ) -> Result<(Vec<String>, Vec<Vec<Value>>), String> {
+        let conn = self.store.conn();
+        let run = || -> rusqlite::Result<(Vec<String>, Vec<Vec<Value>>)> {
+            let mut stmt = conn.prepare(sql)?;
+            let names: Vec<String> = stmt.column_names().map(str::to_owned).collect();
+            let n = names.len();
+            let mut rows = stmt.query([])?;
+            let mut out = Vec::new();
+            while let Some(r) = rows.next()? {
+                if out.len() >= max_rows {
+                    break;
+                }
+                let mut row = Vec::with_capacity(n);
+                for i in 0..n {
+                    row.push(match r.get_ref(i)? {
+                        rusqlite::types::ValueRef::Null => Value::Null,
+                        rusqlite::types::ValueRef::Integer(v) => json!(v),
+                        rusqlite::types::ValueRef::Real(v) => json!(v),
+                        rusqlite::types::ValueRef::Text(t) => json!(String::from_utf8_lossy(t)),
+                        rusqlite::types::ValueRef::Blob(b) => json!(format!("<{} bytes>", b.len())),
+                    });
+                }
+                out.push(row);
+            }
+            Ok((names, out))
+        };
+        match self.guard.run(conn, run) {
+            Ok(Ok(v)) => Ok(v),
+            Ok(Err(e)) | Err(e) => Err(match e {
+                rusqlite::Error::SqliteFailure(_, Some(m)) => m,
+                other => other.to_string(),
+            }),
+        }
+    }
+
+    /// A fresh token for root user `id`, if they still exist: for a host
+    /// whose own sign-in (an OAuth refresh token) vouches for them.
+    pub fn issue_root_token(&mut self, id: &str) -> Option<String> {
+        let row: (String, String) = self
+            .store
+            .conn()
+            .query_row(
+                "SELECT email, username FROM writer._rootUsers WHERE id = ?1",
+                [id],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .optional()
+            .ok()
+            .flatten()?;
+        let now_s = self.host.now_ms().div_euclid(1000);
+        let claims = crypto::Claims {
+            id: id.to_owned(),
+            email: row.0,
+            username: row.1,
+            collection: auth::ROOT_COLLECTION.to_owned(),
+            exp: Some(now_s + self.config.token_ttl_ms / 1000),
+            iat: Some(now_s),
+            jti: ids::random_hex(&mut *self.host, 16),
+        };
+        Some(crypto::sign_token(&self.key, &claims))
+    }
+
+    /// A webhook's URL and secret, for a host that tests it: `None` if the
+    /// collection or the webhook does not exist.
+    pub fn webhook_target(
+        &mut self,
+        collection: &str,
+        id: &str,
+    ) -> Option<(String, Option<String>)> {
+        self.catalog.refresh(self.store.conn()).ok()?;
+        let c = self.catalog.all().iter().find(|c| c.name == collection)?;
+        let hook = c
+            .webhooks
+            .iter()
+            .find(|h| h.get("id").and_then(Value::as_str) == Some(id))?;
+        let url = hook.get("url").and_then(Value::as_str)?.to_owned();
+        Some((url, webhooks::secret(self.store.conn(), &c.id, id)))
+    }
+
+    /// Runs `f` in a write transaction of its own, for the effect calls.
+    fn effect<T: Default>(
+        &mut self,
+        f: impl FnOnce(&Connection, &mut dyn Host, i64) -> rusqlite::Result<T>,
+    ) -> T {
+        if self.role == Role::Follower {
+            return T::default();
+        }
+        let now = self.host.now_ms();
+        let host = &mut *self.host;
+        self.store.write(|tx| f(tx, host, now)).unwrap_or_default()
+    }
+
+    /// Takes up to `limit` mail that is due, leasing it; see [`effects`].
+    pub fn due_mail(&mut self, limit: usize) -> Vec<effects::Mail> {
+        self.effect(|c, _, now| effects::due_mail(c, now, limit))
+    }
+
+    /// Reports how sending mail `id` went.
+    pub fn mail_done(&mut self, id: &str, outcome: Result<(), String>) {
+        self.effect(|c, _, now| effects::mail_done(c, id, outcome, now))
+    }
+
+    /// Takes up to `limit` webhook calls that are due, leasing them.
+    pub fn due_webhooks(&mut self, limit: usize) -> Vec<effects::WebhookCall> {
+        self.effect(|c, _, now| effects::due_webhooks(c, now, limit))
+    }
+
+    /// Reports how webhook call `id` went.
+    pub fn webhook_done(&mut self, id: &str, outcome: Result<(), String>) {
+        self.effect(|c, _, now| effects::webhook_done(c, id, outcome, now))
+    }
+
+    /// Claims up to `limit` due jobs for `workers`, as runner `node`.
+    pub fn claim_jobs(&mut self, workers: &[&str], limit: usize, node: &str) -> Vec<workers::Job> {
+        self.effect(|c, _, now| workers::claim(c, workers, limit, node, now))
+    }
+
+    /// Reports how job `id` went: done, or the error (retried or discarded).
+    pub fn job_done(&mut self, id: &str, outcome: Result<(), String>) {
+        self.effect(|c, host, now| workers::finish(c, host, id, outcome, now))
+    }
+
+    /// Adds a job, as `POST /api/workers` does.
+    pub fn enqueue_job(&mut self, fields: Map<String, Value>) -> Result<Value, Response> {
+        if self.role == Role::Follower {
+            return Err(ApiError::new(409, "This device follows another writer").into_response());
+        }
+        let now = self.host.now_ms();
+        let host = &mut self.host;
+        let mut out = Err(ApiError::internal());
+        let _ = self.store.write(|tx| -> rusqlite::Result<()> {
+            out = workers::enqueue(tx, &mut **host, now, &fields);
+            Ok(())
+        });
+        out.map_err(ApiError::into_response)
+    }
+
+    /// Housekeeping: jobs whose runner stopped go back to `available`
+    /// after `lease_ms`, and finished effects older than a week are
+    /// deleted. Returns how many rows changed.
+    pub fn tidy_effects(&mut self, lease_ms: i64) -> usize {
+        self.effect(|c, _, now| Ok(workers::rescue(c, lease_ms, now)? + effects::prune(c, now)?))
+    }
+
+    /// What is waiting to be sent or run: `{mail, webhooks, jobs}`.
+    pub fn pending_effects(&self) -> Value {
+        effects::pending(self.store.conn()).unwrap_or(Value::Null)
+    }
+
     fn identify_headers(
         &mut self,
         headers: &[(String, String)],
@@ -919,6 +1171,14 @@ impl Engine {
                     }
                     _ => None,
                 };
+                // Webhook calls the change owes, kept with it.
+                if response.status < 400
+                    && let Err(e) = webhooks::queue(conn, &mut *self.host, &events, now_ms)
+                {
+                    let _ = conn.execute_batch("ROLLBACK");
+                    self.drop_blobs(&new_blobs);
+                    return ApiError::from(e).into_response();
+                }
                 if let Err(e) = conn.execute_batch("COMMIT") {
                     let _ = conn.execute_batch("ROLLBACK");
                     self.drop_blobs(&new_blobs);
@@ -1212,7 +1472,37 @@ fn dispatch(cx: &mut Cx<'_>, route: &Route) -> ApiResult {
         Route::Logout(_) => auth::logout(cx),
         Route::RequestOtp(n) => auth::request_otp(cx, n),
         Route::AuthWithOtp(n) => auth::with_otp(cx, n),
-        Route::AuthMethods(n) => auth::methods(cx, n),
+        Route::AuthMethods(n) => oauth::methods(cx, n),
+        Route::OAuthAuthorize(n, p) => oauth::authorize(cx, n, p),
+        Route::TestEmailTemplate(n) => auth::test_template(cx, n),
+        Route::SetupStatus => admin::status(cx),
+        Route::Setup => admin::setup(cx),
+        Route::AdminLogin => admin::login(cx),
+        Route::RootAccount => admin::account(cx),
+        Route::UpdateRootAccount => admin::update_account(cx),
+        Route::UpdateRootPassword => admin::update_password(cx),
+        Route::ReloadSettings => settings::reload_endpoint(cx),
+        Route::GetSettings => settings::get_endpoint(cx),
+        Route::UpdateSettings => settings::patch_endpoint(cx),
+        Route::ListFlags => flags::list(cx),
+        Route::CreateFlag => flags::create(cx),
+        Route::GetFlag(k) => flags::get(cx, k),
+        Route::UpdateFlag(k) => flags::update(cx, k),
+        Route::DeleteFlag(k) => flags::delete(cx, k),
+        Route::EvalFlag(k) => flags::eval(cx, k),
+        Route::ListJobs => workers::list(cx),
+        Route::CreateJob => workers::create(cx),
+        Route::GetJob(id) => workers::get(cx, id),
+        Route::UpdateJob(id) => workers::update(cx, id),
+        Route::DeleteJob(id) => workers::delete(cx, id),
+        Route::RetryJobs => workers::retry(cx),
+        Route::ListWebhooks(n) => webhooks::list(cx, n),
+        Route::CreateWebhook(n) => webhooks::create(cx, n),
+        Route::GetWebhook(n, id) => webhooks::get(cx, n, id),
+        Route::UpdateWebhook(n, id) => webhooks::update(cx, n, id),
+        Route::DeleteWebhook(n, id) => webhooks::delete(cx, n, id),
+        Route::TestWebhook(n) => webhooks::test(cx, n),
+        Route::ExternalSignIn(n, profile) => auth::external(cx, n, profile),
         Route::Upload => files::upload(cx),
         Route::ListFiles => files::list(cx),
         Route::DeleteFile(t) => files::delete(cx, t),

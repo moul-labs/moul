@@ -13,9 +13,10 @@
 //! | `status`          |                             | `{ durable, note, lastCommit, readOnly, role, device }` |
 //! | `exec`            | `sql`, `params`?            | `{ changes, lastCommit }`              |
 //! | `query`           | `sql`, `params`?            | `{ columns, rows }`                    |
-//! | `syncConfigure`   | `endpoint`, `bucket`, …     | sync status, after connecting          |
+//! | `syncConfigure`   | `endpoint`, `bucket`, …, or `hub`, `database`, `token` | sync status, after connecting |
 //! | `syncStatus`      |                             | sync status                            |
 //! | `syncNow`         |                             | sync status, after one round           |
+//! | `syncJoinTicket`  |                             | `{ hub, database, ticket, expiresAt }` |
 //! | `takeOver`        |                             | sync status, after taking over writing |
 //! | `syncDisconnect`  | `forget`?                   | sync status                            |
 //! | `conflicts`       |                             | names of the conflict copies kept      |
@@ -49,9 +50,22 @@
 //! the data again.
 //!
 //! `syncConfigure` takes `endpoint`, `bucket`, `accessKeyId` and
-//! `secretAccessKey`, and optionally `region`, `prefix`, `pathStyle` and
-//! `label`. The settings, keys included, stay in this device's own store and
-//! never reach the replica. The sync requests answer with a promise.
+//! `secretAccessKey`, and optionally `region`, `prefix`, `pathStyle`,
+//! `label` and `followOnly`, to sync with a bucket. To sync through a Moul
+//! Hub it takes `hub` (the hub's address), `database` and `token` (the
+//! device's token from signing in or joining), and optionally `label` and
+//! `followOnly`. The settings, keys and tokens included, stay in this
+//! device's own store and never reach the replica; a status shows them
+//! without the secret key or the token. The sync requests answer with a
+//! promise.
+//!
+//! While the device syncs through a hub, the leading tab's worker holds the
+//! hub's event stream (`GET /api/hub/db/<name>/events`) open and runs a
+//! round as soon as another device writes head; it polls only every 30
+//! seconds besides, and leaves compaction to the hub. `syncJoinTicket`
+//! asks the hub, with the device's own token, for a one-time ticket that
+//! lets one more device join the database: a join link carries the ticket,
+//! never the token.
 //!
 //! `syncDisconnect` stops syncing but remembers the replica: the device
 //! keeps its level-0 files, so connecting again pushes what it wrote
@@ -71,8 +85,9 @@ use js_sys::{Array, Uint8Array};
 use moul_core::{Config, Engine as Core, Role as CoreRole, StoreBlobs, SubscriptionId};
 use moul_store::{FILES, Store};
 use moul_sync::{
-    BoxFuture, ConflictCopy, DeviceState, Local, Role, S3Config, S3Replica, Status, Sync,
-    store_apply, store_get, store_has_data, store_load_state, store_save_state, store_set,
+    BoxFuture, ConflictCopy, DeviceState, HubConfig, HubReplica, Local, Role, S3Config, S3Replica,
+    Status, Sync, store_apply, store_get, store_has_data, store_load_state, store_save_state,
+    store_set,
 };
 use moul_vfs::{
     ApplyMode, Capture, CommitSeq, LOG_HEADER_LEN, LOG_NAME, MemoryStorage, OpfsStorage, PACK_NAME,
@@ -287,11 +302,10 @@ fn not_found(e: &JsValue) -> bool {
     )
 }
 
-/// Sync settings, as `syncConfigure` takes them and the device store keeps
-/// them.
+/// Settings for syncing with an S3-compatible bucket.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct SyncSettings {
+struct BucketSettings {
     endpoint: String,
     bucket: String,
     #[serde(default)]
@@ -311,10 +325,71 @@ struct SyncSettings {
     follow_only: bool,
 }
 
+/// Settings for syncing through a Moul Hub.
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct HubSettings {
+    /// The hub's address, such as `https://sync.moul.dev`.
+    hub: String,
+    database: String,
+    /// The device's token. Kept in the device store like a bucket's secret
+    /// key, and never in a status.
+    token: String,
+    #[serde(default)]
+    label: String,
+    /// As for a bucket: a device that joins from a link follows only.
+    #[serde(default)]
+    follow_only: bool,
+}
+
+impl std::fmt::Debug for HubSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HubSettings")
+            .field("hub", &self.hub)
+            .field("database", &self.database)
+            .finish_non_exhaustive()
+    }
+}
+
+/// Sync settings, as `syncConfigure` takes them and the device store keeps
+/// them: a bucket, or a database on a hub. Settings stored before hubs
+/// existed read as a bucket's.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum SyncSettings {
+    Hub(HubSettings),
+    Bucket(BucketSettings),
+}
+
+/// How often a device that syncs through a hub polls, as a fallback for the
+/// hub's event stream.
+const HUB_POLL_MS: i64 = 30_000;
+
 impl SyncSettings {
     fn from_js(req: &JsValue) -> Result<Self, JsValue> {
         let text = |k: &str| js::get_str(req, k).unwrap_or_default().trim().to_owned();
-        let s = SyncSettings {
+        let label = text("label");
+        let follow_only = js::get(req, "followOnly").as_bool() == Some(true);
+        if !js::get(req, "hub").is_undefined() {
+            let s = HubSettings {
+                hub: text("hub").trim_end_matches('/').to_owned(),
+                database: text("database"),
+                token: text("token"),
+                label,
+                follow_only,
+            };
+            for (name, v) in [
+                ("hub", &s.hub),
+                ("database", &s.database),
+                ("token", &s.token),
+            ] {
+                if v.is_empty() {
+                    return Err(js::error(&format!("syncConfigure needs {name}")));
+                }
+            }
+            return Ok(SyncSettings::Hub(s));
+        }
+        let s = BucketSettings {
             endpoint: text("endpoint").trim_end_matches('/').to_owned(),
             bucket: text("bucket"),
             prefix: text("prefix").trim_matches('/').to_owned(),
@@ -322,8 +397,8 @@ impl SyncSettings {
             access_key_id: text("accessKeyId"),
             secret_access_key: text("secretAccessKey"),
             path_style: js::get(req, "pathStyle").as_bool(),
-            label: text("label"),
-            follow_only: js::get(req, "followOnly").as_bool() == Some(true),
+            label,
+            follow_only,
         };
         for (name, v) in [
             ("endpoint", &s.endpoint),
@@ -335,39 +410,105 @@ impl SyncSettings {
                 return Err(js::error(&format!("syncConfigure needs {name}")));
             }
         }
-        Ok(s)
+        Ok(SyncSettings::Bucket(s))
     }
 
-    fn replica(&self) -> Result<S3Replica, JsValue> {
-        let region = if !self.region.is_empty() {
-            self.region.clone()
-        } else if self.endpoint.contains("r2.cloudflarestorage.com") {
+    fn label(&self) -> &str {
+        match self {
+            SyncSettings::Hub(h) => &h.label,
+            SyncSettings::Bucket(b) => &b.label,
+        }
+    }
+
+    fn follow_only(&self) -> bool {
+        match self {
+            SyncSettings::Hub(h) => h.follow_only,
+            SyncSettings::Bucket(b) => b.follow_only,
+        }
+    }
+
+    fn bucket_replica(b: &BucketSettings) -> Result<S3Replica, JsValue> {
+        let region = if !b.region.is_empty() {
+            b.region.clone()
+        } else if b.endpoint.contains("r2.cloudflarestorage.com") {
             "auto".into()
         } else {
             "us-east-1".into()
         };
         S3Replica::with_default_client(S3Config {
-            endpoint: self.endpoint.clone(),
+            endpoint: b.endpoint.clone(),
             region,
-            bucket: self.bucket.clone(),
-            prefix: self.prefix.clone(),
-            access_key_id: self.access_key_id.clone(),
-            secret_access_key: self.secret_access_key.clone(),
+            bucket: b.bucket.clone(),
+            prefix: b.prefix.clone(),
+            access_key_id: b.access_key_id.clone(),
+            secret_access_key: b.secret_access_key.clone(),
             session_token: None,
-            path_style: self.path_style.unwrap_or(true),
+            path_style: b.path_style.unwrap_or(true),
+        })
+        .map_err(|e| err(&e))
+    }
+
+    fn hub_replica(h: &HubSettings) -> Result<HubReplica, JsValue> {
+        HubReplica::with_default_client(HubConfig {
+            url: h.hub.clone(),
+            database: h.database.clone(),
+            token: h.token.clone(),
         })
         .map_err(|e| err(&e))
     }
 
     fn sync(&self) -> Result<Sync, JsValue> {
-        Ok(Sync::new(
-            self.replica()?,
-            moul_sync::Options {
-                label: self.label.clone(),
-                follow_only: self.follow_only,
-                ..moul_sync::Options::default()
-            },
-        ))
+        let options = moul_sync::Options {
+            label: self.label().to_owned(),
+            follow_only: self.follow_only(),
+            ..moul_sync::Options::default()
+        };
+        Ok(match self {
+            SyncSettings::Bucket(b) => Sync::new(Self::bucket_replica(b)?, options),
+            // The hub's event stream says when to pull; polling is the
+            // fallback.
+            SyncSettings::Hub(h) => Sync::new(
+                Self::hub_replica(h)?,
+                moul_sync::Options {
+                    poll_every: HUB_POLL_MS,
+                    ..options
+                },
+            ),
+        })
+    }
+
+    /// The settings a status shows: never a secret key or a token.
+    fn public(&self) -> serde_json::Value {
+        match self {
+            SyncSettings::Bucket(s) => serde_json::json!({
+                "endpoint": s.endpoint, "bucket": s.bucket, "prefix": s.prefix,
+                "region": s.region, "label": s.label, "accessKeyId": s.access_key_id,
+                // The style in use: path style unless the settings said otherwise.
+                "pathStyle": s.path_style.unwrap_or(true), "followOnly": s.follow_only,
+            }),
+            SyncSettings::Hub(h) => serde_json::json!({
+                "hub": h.hub, "database": h.database, "label": h.label,
+                "followOnly": h.follow_only,
+            }),
+        }
+    }
+}
+
+/// Where a hub's event stream is, for the worker that holds it open while
+/// the device syncs through the hub.
+#[derive(Clone, PartialEq, Eq)]
+pub struct HubEvents {
+    /// `GET /api/hub/db/<name>/events`.
+    pub url: String,
+    /// The device's token, sent as `Authorization: Bearer <token>`.
+    pub token: String,
+}
+
+impl std::fmt::Debug for HubEvents {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("HubEvents")
+            .field("url", &self.url)
+            .finish_non_exhaustive()
     }
 }
 
@@ -413,6 +554,9 @@ struct Inner {
     /// (joining a replica, resyncing after losing the writer role, or a
     /// snapshot). The change log is then not the one subscribers followed.
     replaced: Cell<bool>,
+    /// A hub said another device wrote head while a sync call ran: the next
+    /// tick runs a full round.
+    head_moved: Cell<bool>,
 }
 
 /// Answers requests against an opened database. Clones share it.
@@ -654,6 +798,7 @@ impl Engine {
                 role_error: RefCell::new(None),
                 closing: Cell::new(false),
                 replaced: Cell::new(false),
+                head_moved: Cell::new(false),
             }),
         };
         if let Some(s) = settings
@@ -681,7 +826,7 @@ impl Engine {
     #[doc(hidden)]
     pub async fn connect_with(&self, sync: Sync) -> Result<JsValue, JsValue> {
         self.stop_sync().await;
-        let settings = SyncSettings {
+        let settings = SyncSettings::Bucket(BucketSettings {
             endpoint: sync.replica().describe(),
             bucket: String::new(),
             prefix: String::new(),
@@ -691,7 +836,7 @@ impl Engine {
             path_style: None,
             label: String::new(),
             follow_only: false,
-        };
+        });
         *self.inner.settings.borrow_mut() = Some(settings);
         *self.inner.sync.borrow_mut() = Some(sync);
         self.run(Action::Connect).await?;
@@ -702,8 +847,50 @@ impl Engine {
     /// The worker calls this about once a second.
     pub async fn tick(&self) {
         if self.inner.sync.borrow().is_some() && !self.inner.busy.get() && !self.closing() {
-            let _ = self.run(Action::Tick).await;
+            let action = if self.inner.head_moved.replace(false) {
+                Action::Round
+            } else {
+                Action::Tick
+            };
+            let _ = self.run(action).await;
         }
+    }
+
+    /// Where the hub's event stream is, while the device syncs through a
+    /// hub; `None` otherwise.
+    pub fn hub_events(&self) -> Option<HubEvents> {
+        match self.inner.settings.borrow().as_ref()? {
+            SyncSettings::Hub(h) => Some(HubEvents {
+                url: SyncSettings::hub_replica(h).ok()?.events_url(),
+                token: h.token.clone(),
+            }),
+            SyncSettings::Bucket(_) => None,
+        }
+    }
+
+    /// The hub's event stream says a device wrote head, `data` being the
+    /// new `moul/head.json`: a follower pulls at once, and a writer checks
+    /// it still writes. Nothing to do for this device's own writes. If a
+    /// sync call is running, the next tick runs the round.
+    pub async fn on_head(&self, data: &str) {
+        if let Ok(head) = serde_json::from_str::<moul_sync::layout::Head>(data)
+            && self
+                .inner
+                .status
+                .borrow()
+                .as_ref()
+                .is_some_and(|s| !s.device.is_empty() && s.device == head.writer)
+        {
+            return;
+        }
+        if self.inner.sync.borrow().is_none() || self.closing() {
+            return;
+        }
+        if self.inner.busy.get() {
+            self.inner.head_moved.set(true);
+            return;
+        }
+        let _ = self.run(Action::Round).await;
     }
 
     /// Starts no more sync rounds: the worker is closing the engine. A
@@ -1055,6 +1242,24 @@ impl Engine {
                     engine.run(Action::Round).await?;
                     Ok(engine.status_js())
                 }),
+                "syncJoinTicket" => Box::pin(async move {
+                    let settings = engine.inner.settings.borrow().clone();
+                    let Some(SyncSettings::Hub(h)) = settings else {
+                        return Err(js::error(
+                            "join tickets come from a hub, and this device does not sync through one",
+                        ));
+                    };
+                    let ticket = SyncSettings::hub_replica(&h)?
+                        .create_join_ticket()
+                        .await
+                        .map_err(|e| err(&e))?;
+                    Ok(js::object(&[
+                        ("hub", h.hub.into()),
+                        ("database", h.database.into()),
+                        ("ticket", ticket.ticket.into()),
+                        ("expiresAt", (ticket.expires_at as f64).into()),
+                    ]))
+                }),
                 "takeOver" => Box::pin(async move {
                     engine.run(Action::TakeOver).await?;
                     Ok(engine.status_js())
@@ -1222,15 +1427,7 @@ impl Engine {
             db.core.store().volume().last_commit().0.into(),
         );
         if let Some(s) = settings.as_ref() {
-            obj.insert(
-                "settings".into(),
-                serde_json::json!({
-                    "endpoint": s.endpoint, "bucket": s.bucket, "prefix": s.prefix,
-                    "region": s.region, "label": s.label, "accessKeyId": s.access_key_id,
-                    // The style in use: path style unless the settings said otherwise.
-                    "pathStyle": s.path_style.unwrap_or(true), "followOnly": s.follow_only,
-                }),
-            );
+            obj.insert("settings".into(), s.public());
         }
         api::from_json(&value)
     }

@@ -61,7 +61,8 @@ pub struct Options {
     /// it still writes, in milliseconds.
     pub poll_every: i64,
     /// How often an idle writer checks whether compaction or pruning is
-    /// due, in milliseconds.
+    /// due, in milliseconds. Not at all through a replica that is
+    /// [maintained remotely](Replica::maintained_remotely), such as a hub.
     pub maintain_every: i64,
     /// Compaction and retention.
     pub retention: Retention,
@@ -1131,7 +1132,8 @@ impl Sync {
         Ok(())
     }
 
-    /// One full round: a writer pushes and, if due, maintains the replica;
+    /// One full round: a writer pushes and, if due, maintains the replica
+    /// (unless it is [maintained remotely](Replica::maintained_remotely));
     /// a follower pulls. Connects first if needed.
     pub async fn sync(&mut self, local: &mut dyn Local) -> Result<()> {
         let result = self.sync_inner(local, true).await;
@@ -1181,16 +1183,19 @@ impl Sync {
                     // maintenance prunes the replica's copies of them (see
                     // `holds_replicas_history`).
                     local.capture().release(self.pushed)?;
-                    let snapshot = local.export()?;
-                    let report = maintain(
-                        self.replica.as_ref(),
-                        self.pushed,
-                        Some(&snapshot),
-                        &self.options.retention,
-                        now,
-                    )
-                    .await?;
-                    self.report = Some(report);
+                    // A hub compacts and prunes on its own clock.
+                    if !self.replica.maintained_remotely() {
+                        let snapshot = local.export()?;
+                        let report = maintain(
+                            self.replica.as_ref(),
+                            self.pushed,
+                            Some(&snapshot),
+                            &self.options.retention,
+                            now,
+                        )
+                        .await?;
+                        self.report = Some(report);
+                    }
                 }
             }
             Role::Follower | Role::None => {

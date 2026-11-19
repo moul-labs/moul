@@ -1,0 +1,39 @@
+# The hosted sync beta on Fly.io. One machine: the hub keeps its directory on
+# the volume and the replicas in a Cloudflare R2 bucket.
+#
+#   fly launch --no-deploy --copy-config --name moul-sync
+#   fly volumes create moul_data --size 3 --region <region>
+#   fly secrets set MOUL_ADMIN_KEY=... AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... \
+#     EMAIL_ENABLED=true EMAIL_PROVIDER=resend EMAIL_API_KEY=... EMAIL_FROM_ADDRESS=sync@moul.dev
+#   fly deploy --dockerfile deploy/sync/Dockerfile
+app = "moul-sync"
+primary_region = "sin"
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+MOUL_PUBLIC_URL = "https://sync.moul.dev"
+MOUL_STORE = "s3://moul-sync/replicas?endpoint=https://<account>.r2.cloudflarestorage.com&region=auto"
+MOUL_SIGNUP = "invite"
+# Fly's proxy sets X-Forwarded-For; believe it, and only it.
+MOUL_TRUSTED_PROXIES = "private"
+MOUL_CLIENT_IP_HEADER = "Fly-Client-IP"
+
+[[mounts]]
+source = "moul_data"
+destination = "/data"
+
+[http_service]
+internal_port = 8080
+force_https = true
+# One writer: the directory is a SQLite database on the volume.
+auto_stop_machines = "off"
+min_machines_running = 1
+
+[[http_service.checks]]
+interval = "15s"
+timeout = "2s"
+grace_period = "10s"
+method = "GET"
+path = "/api/health"

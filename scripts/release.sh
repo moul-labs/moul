@@ -49,9 +49,8 @@ fi
 
 # One call for every crate: cargo publishes them in dependency order and waits
 # for each to reach the index before the next, and a dry run packs and builds
-# each against the others' new versions. moul-server and moul-hub stay at
-# their placeholders.
-crates="moul-ltx moul-vfs moul-store moul-rules moul-core moul-sync moul-web moul moul-cli"
+# each against the others' new versions.
+crates="moul-ltx moul-vfs moul-store moul-rules moul-core moul-sync moul-web moul-server moul-hub moul moul-cli"
 if ask "publish $crates at $version to crates.io?"; then
   # shellcheck disable=SC2086 # one -p per crate
   cargo publish $(printf -- '-p %s ' $crates) $dry

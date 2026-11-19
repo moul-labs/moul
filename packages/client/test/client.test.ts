@@ -354,7 +354,7 @@ describe('join links', () => {
     expect(link).not.toContain('SK');
     const back = readJoinLink(link);
     expect(back).toMatchObject({ endpoint: settings.endpoint, bucket: 'notes', secretAccessKey: 'SK' });
-    expect(back?.label).toBeUndefined();
+    expect(back).not.toHaveProperty('label');
     expect(readJoinLink('https://play.moul.dev/#other')).toBeNull();
   });
 });

@@ -3,6 +3,7 @@ import { repeat } from 'lit/directives/repeat.js';
 import { api } from '../api/client';
 import { moulsCollection } from '../api/db';
 import { collectionTypeBadge } from '../components/collections/collection-type';
+import { syncTarget } from '../lib/hub-flow';
 import { LiveQueryController } from '../lib/live-query';
 import { onPress } from '../lib/press';
 import { QueryController } from '../lib/query';
@@ -253,7 +254,7 @@ export class AdminOverviewPage extends LitElement {
         >
           <admin-icon slot="icon" name="hard-drives" size="20" color="var(--color-success-500)"></admin-icon>
         </moul-stat>
-        <moul-stat label="Sync" description=${sync?.configured ? (sync.settings?.bucket ?? 'A bucket') : 'Your other devices'} .value=${1} .valueFormatter=${() => syncText}>
+        <moul-stat label="Sync" description=${sync?.configured ? syncTarget(sync.settings) : 'Your other devices'} .value=${1} .valueFormatter=${() => syncText}>
           <admin-icon slot="icon" name="arrows-clockwise" size="20" color="var(--color-warning-500)"></admin-icon>
         </moul-stat>
         <moul-stat label="Commits" description="Written to this database" .value=${status?.lastCommit ?? 0} .valueFormatter=${status ? undefined : loadingText}>

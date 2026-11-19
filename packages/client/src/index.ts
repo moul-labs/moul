@@ -60,10 +60,14 @@ export function createClient<S extends object = AnySchema>(options: ClientOption
 export { AuthClient, type AuthSession, AuthStore, type StorageLike } from './auth.js';
 export {
   AdminClient,
+  type BucketSyncSettings,
   type ClientRequest,
   DatabaseClient,
   type DatabaseStatus,
   FilesClient,
+  type HubJoinLink,
+  type HubSyncSettings,
+  joinHub,
   joinLink,
   MoulClient,
   type MoulClientOptions,
@@ -75,6 +79,19 @@ export {
 } from './client.js';
 export { CollectionClient, type FileRef, type RecordInput, type SubscribeOptions } from './collection.js';
 export { MoulError, type MoulErrorCode } from './errors.js';
+export {
+  type HubAccount,
+  type HubAmounts,
+  HubClient,
+  type HubClientOptions,
+  type HubDatabase,
+  type HubDevice,
+  type HubHead,
+  type HubJoined,
+  type HubJoinTicket,
+  type HubMe,
+  type HubSession,
+} from './hub.js';
 export { affects, LiveQuery, type LiveRun, type LiveState, type Reads, readsOf } from './live.js';
 export {
   EngineTransport,

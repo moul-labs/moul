@@ -1299,6 +1299,132 @@ mod storage {
         assert_eq!(capture.first_held(), None, "the replica was forgotten");
     }
 
+    /// Settings for a Moul Hub keep the token in the device store: a status
+    /// shows the hub and the database, never the token, and the worker
+    /// finds the hub's event stream from them.
+    #[wasm_bindgen_test]
+    async fn hub_settings_keep_the_token_out_of_the_status() {
+        let engine = Engine::new(
+            host::open_memory("hub-settings", None).unwrap(),
+            None,
+            no_push(),
+        )
+        .unwrap();
+        let configure = |fields: &[(&str, JsValue)]| {
+            let mut pairs = vec![("op", JsValue::from("syncConfigure"))];
+            pairs.extend(fields.iter().cloned());
+            let p = engine.handle(obj(&pairs), "me").unwrap();
+            wasm_bindgen_futures::JsFuture::from(p.unchecked_into::<js_sys::Promise>())
+        };
+        let e = configure(&[
+            ("hub", "http://127.0.0.1:9".into()),
+            ("database", "notes".into()),
+        ])
+        .await
+        .unwrap_err();
+        assert!(format!("{e:?}").contains("needs token"), "{e:?}");
+        assert!(!engine.syncing());
+
+        // Nothing answers on port 9: connecting fails, the settings stay.
+        configure(&[
+            ("hub", "http://127.0.0.1:9/".into()),
+            ("database", "notes".into()),
+            ("token", "mh_secret_token".into()),
+            ("label", "Laptop".into()),
+        ])
+        .await
+        .unwrap_err();
+        assert!(engine.syncing());
+        let s = engine
+            .handle(obj(&[("op", "syncStatus".into())]), "me")
+            .unwrap();
+        let text = js_sys::JSON::stringify(&s).unwrap().as_string().unwrap();
+        assert!(!text.contains("mh_secret_token"), "{text}");
+        assert_eq!(get(&s, "configured").as_bool(), Some(true));
+        let settings = get(&s, "settings");
+        assert_eq!(
+            get(&settings, "hub").as_string().as_deref(),
+            Some("http://127.0.0.1:9")
+        );
+        assert_eq!(
+            get(&settings, "database").as_string().as_deref(),
+            Some("notes")
+        );
+        assert_eq!(
+            get(&settings, "label").as_string().as_deref(),
+            Some("Laptop")
+        );
+        assert_eq!(
+            get(&s, "replica").as_string().as_deref(),
+            Some("moul+http://127.0.0.1:9/notes")
+        );
+        assert!(get(&s, "lastError").as_string().is_some(), "{text}");
+        let events = engine.hub_events().unwrap();
+        assert_eq!(events.url, "http://127.0.0.1:9/api/hub/db/notes/events");
+        assert_eq!(events.token, "mh_secret_token");
+        // A join ticket comes from the hub, which is not there.
+        assert!(settle(&engine, "syncJoinTicket").await.is_err());
+
+        settle(&engine, "syncDisconnect").await.unwrap();
+        assert!(engine.hub_events().is_none());
+        let e = settle(&engine, "syncJoinTicket").await.unwrap_err();
+        assert!(format!("{e:?}").contains("hub"), "{e:?}");
+    }
+
+    /// Settings kept by an earlier version (a bucket's) still read as a
+    /// bucket's, and a hub's as a hub's.
+    #[wasm_bindgen_test]
+    async fn kept_sync_settings_read_back_as_a_bucket_or_a_hub() {
+        let opened = host::open_memory("bucket-config", None).unwrap();
+        moul_sync::store_set(
+            &opened.store,
+            "config",
+            Some(
+                r#"{"endpoint":"http://127.0.0.1:9","bucket":"notes","accessKeyId":"key",
+                    "secretAccessKey":"the-secret","label":"Old"}"#,
+            ),
+        )
+        .unwrap();
+        let engine = Engine::new(opened, None, no_push()).unwrap();
+        assert!(engine.syncing());
+        assert!(engine.hub_events().is_none());
+        let s = engine
+            .handle(obj(&[("op", "syncStatus".into())]), "me")
+            .unwrap();
+        let settings = get(&s, "settings");
+        assert_eq!(
+            get(&settings, "bucket").as_string().as_deref(),
+            Some("notes")
+        );
+        let text = js_sys::JSON::stringify(&s).unwrap().as_string().unwrap();
+        assert!(!text.contains("the-secret"), "{text}");
+
+        let opened = host::open_memory("hub-config", None).unwrap();
+        moul_sync::store_set(
+            &opened.store,
+            "config",
+            Some(
+                r#"{"hub":"https://hub.test","database":"notes","token":"mh_kept",
+                    "label":"Phone","followOnly":true}"#,
+            ),
+        )
+        .unwrap();
+        let engine = Engine::new(opened, None, no_push()).unwrap();
+        let events = engine.hub_events().unwrap();
+        assert_eq!(events.url, "https://hub.test/api/hub/db/notes/events");
+        let s = engine
+            .handle(obj(&[("op", "syncStatus".into())]), "me")
+            .unwrap();
+        let settings = get(&s, "settings");
+        assert_eq!(get(&settings, "followOnly").as_bool(), Some(true));
+        assert_eq!(
+            get(&settings, "hub").as_string().as_deref(),
+            Some("https://hub.test")
+        );
+        let text = js_sys::JSON::stringify(&s).unwrap().as_string().unwrap();
+        assert!(!text.contains("mh_kept"), "{text}");
+    }
+
     /// A replica that answers after 100 ms.
     struct Slow(moul_sync::MemoryReplica);
 

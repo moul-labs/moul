@@ -70,6 +70,67 @@ pub enum Route {
     ApplySchema,
     /// `GET /api/types`: TypeScript types for the schema (Moul).
     Types,
+    /// `GET /api/setup`
+    SetupStatus,
+    /// `POST /api/setup`
+    Setup,
+    /// `POST /api/admin/login`
+    AdminLogin,
+    /// `GET /api/admin/account` (and under `/api/setup`, `/api/settings`)
+    RootAccount,
+    /// `POST|PATCH /api/admin/account`
+    UpdateRootAccount,
+    /// `POST|PATCH /api/admin/password`
+    UpdateRootPassword,
+    /// `POST /api/admin/reload` and `/api/settings/reload`
+    ReloadSettings,
+    /// `GET /api/settings`
+    GetSettings,
+    /// `PATCH /api/settings`
+    UpdateSettings,
+    /// `GET /api/feature-flags`
+    ListFlags,
+    /// `POST /api/feature-flags`
+    CreateFlag,
+    /// `GET /api/feature-flags/:key`
+    GetFlag(String),
+    /// `PATCH /api/feature-flags/:key`
+    UpdateFlag(String),
+    /// `DELETE /api/feature-flags/:key`
+    DeleteFlag(String),
+    /// `POST /api/feature-flags/:key/eval`
+    EvalFlag(String),
+    /// `GET /api/workers`
+    ListJobs,
+    /// `POST /api/workers`
+    CreateJob,
+    /// `GET /api/workers/:id`
+    GetJob(String),
+    /// `PATCH /api/workers/:id`
+    UpdateJob(String),
+    /// `DELETE /api/workers/:id`
+    DeleteJob(String),
+    /// `POST /api/workers/retry`
+    RetryJobs,
+    /// `GET /api/moul/:name/webhooks`
+    ListWebhooks(String),
+    /// `POST /api/moul/:name/webhooks`
+    CreateWebhook(String),
+    /// `GET /api/moul/:name/webhooks/:id`
+    GetWebhook(String, String),
+    /// `PATCH|PUT /api/moul/:name/webhooks/:id`
+    UpdateWebhook(String, String),
+    /// `DELETE /api/moul/:name/webhooks/:id`
+    DeleteWebhook(String, String),
+    /// `POST /api/moul/:name/webhooks/test` and `/webhooks/:id/test`
+    TestWebhook(String),
+    /// `POST /api/moul/:name/email-templates/test`
+    TestEmailTemplate(String),
+    /// `GET /api/moul/:name/oauth2/:provider`
+    OAuthAuthorize(String, String),
+    /// A sign-in the host vouches for after an OAuth provider answered;
+    /// never matched from a path. See `Engine::sign_in_external`.
+    ExternalSignIn(String, crate::oauth::ExternalProfile),
     /// A known path with another method.
     MethodNotAllowed,
     /// No such path.
@@ -96,19 +157,31 @@ impl Route {
                 | Route::ApplySchema
                 // An unknown email signs up: a record is created.
                 | Route::RequestOtp(_)
+                | Route::CreateFlag
+                | Route::UpdateFlag(_)
+                | Route::DeleteFlag(_)
+                | Route::CreateWebhook(_)
+                | Route::UpdateWebhook(..)
+                | Route::DeleteWebhook(..)
+                // A new account may be made.
+                | Route::ExternalSignIn(..)
         )
     }
 
     /// The operation name recorded in the change log.
     pub fn op(&self) -> &'static str {
         match self {
-            Route::CreateCollection | Route::UpdateCollection(_) | Route::PutEmailTemplates(_) => {
-                "define"
-            }
+            Route::CreateCollection
+            | Route::UpdateCollection(_)
+            | Route::PutEmailTemplates(_)
+            | Route::CreateWebhook(_)
+            | Route::UpdateWebhook(..)
+            | Route::DeleteWebhook(..) => "define",
+            Route::CreateFlag | Route::UpdateFlag(_) | Route::DeleteFlag(_) => "flag",
             Route::DeleteCollection(_) => "undefine",
             Route::ApplySchema => "schema",
             Route::Import(_) => "import",
-            Route::CreateRecord(_) | Route::RequestOtp(_) => "create",
+            Route::CreateRecord(_) | Route::RequestOtp(_) | Route::ExternalSignIn(..) => "create",
             Route::UpdateRecord(..) => "update",
             Route::DeleteRecord(..) => "delete",
             Route::Upload => "upload",
@@ -132,7 +205,13 @@ impl Route {
             | Route::GetRecord(n, _)
             | Route::UpdateRecord(n, _)
             | Route::DeleteRecord(n, _)
-            | Route::RequestOtp(n) => Some(n),
+            | Route::RequestOtp(n)
+            | Route::ListWebhooks(n)
+            | Route::CreateWebhook(n)
+            | Route::GetWebhook(n, _)
+            | Route::UpdateWebhook(n, _)
+            | Route::DeleteWebhook(n, _)
+            | Route::ExternalSignIn(n, _) => Some(n),
             _ => None,
         }
     }
@@ -199,6 +278,30 @@ pub fn route(req: &Request) -> Route {
             "POST" => Route::CreateRecord(name.to_string()),
             _ => Route::MethodNotAllowed,
         },
+        ["moul", name, "email-templates", "test"] => {
+            allow(m == "POST", Route::TestEmailTemplate(name.to_string()))
+        }
+        ["moul", name, "webhooks"] => match m {
+            "GET" => Route::ListWebhooks(name.to_string()),
+            "POST" => Route::CreateWebhook(name.to_string()),
+            _ => Route::MethodNotAllowed,
+        },
+        ["moul", name, "webhooks", "test"] => {
+            allow(m == "POST", Route::TestWebhook(name.to_string()))
+        }
+        ["moul", name, "webhooks", id] => match m {
+            "GET" => Route::GetWebhook(name.to_string(), id.to_string()),
+            "PATCH" | "PUT" => Route::UpdateWebhook(name.to_string(), id.to_string()),
+            "DELETE" => Route::DeleteWebhook(name.to_string(), id.to_string()),
+            _ => Route::MethodNotAllowed,
+        },
+        ["moul", name, "webhooks", _, "test"] => {
+            allow(m == "POST", Route::TestWebhook(name.to_string()))
+        }
+        ["moul", name, "oauth2", provider] => allow(
+            m == "GET",
+            Route::OAuthAuthorize(name.to_string(), provider.to_string()),
+        ),
         ["moul", name, "records", id] => match m {
             "GET" => Route::GetRecord(name.to_string(), id.to_string()),
             "PATCH" => Route::UpdateRecord(name.to_string(), id.to_string()),
@@ -247,6 +350,50 @@ pub fn route(req: &Request) -> Route {
             _ => Route::MethodNotAllowed,
         },
         ["types"] => allow(m == "GET", Route::Types),
+        ["setup"] => match m {
+            "GET" => Route::SetupStatus,
+            "POST" => Route::Setup,
+            _ => Route::MethodNotAllowed,
+        },
+        ["admin", "login"] => allow(m == "POST", Route::AdminLogin),
+        ["setup" | "admin" | "settings", "account"] => match m {
+            "GET" => Route::RootAccount,
+            "POST" | "PATCH" => Route::UpdateRootAccount,
+            _ => Route::MethodNotAllowed,
+        },
+        ["setup" | "admin" | "settings", "password"] => {
+            allow(m == "POST" || m == "PATCH", Route::UpdateRootPassword)
+        }
+        ["admin" | "settings", "reload"] => allow(m == "POST", Route::ReloadSettings),
+        ["settings"] => match m {
+            "GET" => Route::GetSettings,
+            "PATCH" => Route::UpdateSettings,
+            _ => Route::MethodNotAllowed,
+        },
+        ["feature-flags"] => match m {
+            "GET" => Route::ListFlags,
+            "POST" => Route::CreateFlag,
+            _ => Route::MethodNotAllowed,
+        },
+        ["feature-flags", key] => match m {
+            "GET" => Route::GetFlag(key.to_string()),
+            "PATCH" => Route::UpdateFlag(key.to_string()),
+            "DELETE" => Route::DeleteFlag(key.to_string()),
+            _ => Route::MethodNotAllowed,
+        },
+        ["feature-flags", key, "eval"] => allow(m == "POST", Route::EvalFlag(key.to_string())),
+        ["workers"] => match m {
+            "GET" => Route::ListJobs,
+            "POST" => Route::CreateJob,
+            _ => Route::MethodNotAllowed,
+        },
+        ["workers", "retry"] => allow(m == "POST", Route::RetryJobs),
+        ["workers", id] => match m {
+            "GET" => Route::GetJob(id.to_string()),
+            "PATCH" => Route::UpdateJob(id.to_string()),
+            "DELETE" => Route::DeleteJob(id.to_string()),
+            _ => Route::MethodNotAllowed,
+        },
         _ => Route::NotFound,
     }
 }

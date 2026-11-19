@@ -51,6 +51,21 @@ release needs, plus four of Moul's own.
 | `/api/schema` | the schema file: `GET` exports, `POST` applies (`?prune=true` deletes what it does not list) | owner |
 | `/api/types` | TypeScript types for the schema | owner |
 
+## Effects: mail, webhook calls and jobs
+
+A write records what it owes in the writer-only store, in its own
+transaction: mail in `_inbox`, a webhook call per matching webhook in
+`_outbox`, jobs in `_workers`. A tab keeps them (Studio shows the inbox). A
+native server takes them in leased batches (`Engine::due_mail`,
+`due_webhooks`, `claim_jobs`), does the network work and reports back
+(`mail_done`, `webhook_done`, `job_done`); failures are retried with backoff.
+Only the writer holds that store, so a follower never sends anything.
+
+OAuth sign-in is split the same way: the engine makes the provider's address
+and a signed `state` whose PKCE verifier it can recompute
+(`Engine::verify_oauth_state`); the server trades the code for a profile and
+hands it to `Engine::sign_in_external`.
+
 ## Requests, the change log and budgets
 
 Every write that changes the shared store is a named request. Its id is the
@@ -157,11 +172,23 @@ the Go engine's tests. These differences are decisions:
   refused with a 400 (`moul-rules`' `MAX_DEPTH`), and a rule over
   expr-lang's 10,000-node limit fails as it did in Go: deep input must not
   exhaust the stack of a browser worker or a server thread.
-- **Not served yet:** worker job processing, analytics events, encrypted
-  (`cloak`) fields, image thumbnails, OAuth, passkeys, MCP, settings, the
-  setup and admin-login endpoints, server-sent events, webhooks, feature flags
-  and the request log. Go's in-process hooks for custom code have no
-  equivalent: a deployed app carries no code.
+- **Settings and webhook secrets** are written, never read back: they show
+  as `********`, and sending that back keeps the secret. Invalid
+  `rate_limiting_rules` are refused (Go kept the old rules and answered 200).
+- **Webhooks** fire after a change only (`:before` is refused when saved),
+  are delivered from rows with retries, start enabled, and keep `enabled`
+  when a change does not mention it.
+- **Feature flags:** a second flag with a key in use is refused (Go updated
+  the first and answered with an id it never stored).
+- **Jobs** read back with JSON and numbers decoded; `state` and
+  `scheduled_at` are checked; discarded jobs are kept a week.
+- **OAuth sign-in** checks a signed `state`, and links an existing account by
+  email only when the provider says the email is verified and the account has
+  no password; an unverified address is not kept on a new account.
+- **Not served yet:** analytics events, encrypted (`cloak`) fields, image
+  thumbnails, passkeys, and worker collections. The server adds live events,
+  MCP, the OAuth authorization server and the request log. Go's in-process
+  hooks for custom code have no equivalent: a deployed app carries no code.
 
 ## License
 

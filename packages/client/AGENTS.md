@@ -51,6 +51,8 @@ and no server code to write.
   database file.
 - Do not import `@moul-dev/client/headless` in browser code: it is for tests and tools.
 - Do not call `database.exec` (raw SQL) for app data: it bypasses rules and the change log.
+- Do not put a Moul Hub token in a link, a record or `localStorage`: `moul.sync.configure` keeps it
+  in the engine. Join links for a hub carry a one-time ticket (`moul.sync.joinTicket()`).
 
 More: `node_modules/@moul-dev/client/llms.txt`, and the docs at
 https://github.com/moul-labs/moul/tree/main/docs

@@ -1,8 +1,8 @@
 //! The replica interface: a flat store of named objects with conditional
 //! writes.
 //!
-//! Every transport (an S3-compatible bucket, a folder on disk, memory) offers
-//! the same five calls. Keys are relative to the replica's root and use `/`,
+//! Every transport (an S3-compatible bucket, a Moul Hub, a folder on disk,
+//! memory) offers the same five calls. Keys are relative to the replica's root and use `/`,
 //! such as `ltx/0/0000000000000001-0000000000000001.ltx`. The one thing a
 //! transport must get right is the condition on [`Replica::put`]: it must be
 //! checked and applied atomically, because it is what keeps two devices from
@@ -82,6 +82,13 @@ pub trait Replica {
 
     /// Deletes the object at `key`. Deleting a missing object succeeds.
     fn delete<'a>(&'a self, key: &'a str) -> BoxFuture<'a, Result<()>>;
+
+    /// Whether something other than the devices compacts and prunes this
+    /// replica, as a Moul Hub does. [`Sync`](crate::Sync) then leaves
+    /// compaction and retention to it.
+    fn maintained_remotely(&self) -> bool {
+        false
+    }
 }
 
 impl<R: Replica + ?Sized> Replica for Box<R> {
@@ -104,6 +111,9 @@ impl<R: Replica + ?Sized> Replica for Box<R> {
     }
     fn delete<'a>(&'a self, key: &'a str) -> BoxFuture<'a, Result<()>> {
         (**self).delete(key)
+    }
+    fn maintained_remotely(&self) -> bool {
+        (**self).maintained_remotely()
     }
 }
 

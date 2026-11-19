@@ -8,6 +8,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::DedicatedWorkerGlobalScope;
 
 use crate::host::{self, Engine, Push, WeakEngine};
+use crate::hub_events;
 use crate::js;
 use crate::leader::{Leadership, lock_name};
 use crate::persist::{self, PERSIST_MESSAGE, Persistence};
@@ -286,6 +287,7 @@ async fn lead(db: String, tabs_ref: Weak<Tabs>, state_ref: Weak<RefCell<State>>,
                     lock_name(&db),
                     tabs.tab_id().to_owned(),
                 ));
+                spawn_local(hub_events::follow(engine.downgrade()));
                 let weak = engine.downgrade();
                 // A subscribe answer names this tab, the leader that made
                 // the subscription: pages keep only the current leader's.
@@ -376,7 +378,9 @@ async fn lead(db: String, tabs_ref: Weak<Tabs>, state_ref: Weak<RefCell<State>>,
     }
 }
 
-/// Pushes and pulls about once a second while the engine is open, and
+/// Pushes and pulls about once a second while the engine is open (a hub's
+/// event stream, held open by [`hub_events::follow`], starts rounds sooner),
+/// and
 /// every ten seconds ends the subscriptions of tabs that closed. Holds the
 /// engine only during a round, so closing it is not held up between rounds,
 /// and stops once the worker closes the engine.

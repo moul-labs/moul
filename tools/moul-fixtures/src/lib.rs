@@ -6,6 +6,8 @@
 //!
 //! The crate is test support only: it reads from disk and is never published.
 
+pub mod compare;
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::io;

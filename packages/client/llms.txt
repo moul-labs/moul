@@ -2,8 +2,8 @@
 
 > The Moul SDK. It runs a backend inside a web page: a database with collections and records,
 > access rules, sign-in, files, record subscriptions and live queries, stored as one SQLite file in
-> the browser (OPFS) and optionally synced to an S3-compatible bucket as a Litestream replica. The
-> same client talks to a Moul server over HTTP.
+> the browser (OPFS) and optionally synced, as a Litestream replica, to an S3-compatible bucket or
+> through a Moul Hub. The same client talks to a Moul server over HTTP.
 
 Docs: https://github.com/moul-labs/moul/tree/main/docs
 
@@ -119,6 +119,13 @@ Validate with `moul check [--json]` before applying.
 - `moul.database.status() | export() | download() | import(bytes) | persist()`.
 - `moul.sync.configure({ endpoint, bucket, accessKeyId, secretAccessKey, label, followOnly? }) | status() | now() | takeOver() | disconnect()`.
   Settings read from a join link (`readJoinLink`) must be connected with `followOnly: true`.
+- Moul Hub instead of a bucket: `const hub = new HubClient('https://sync.moul.dev')`; `hub.signIn(email)`,
+  `hub.verify(email, code, { label })` → `{ token }`; `hub.databases(token)`, `hub.createDatabase(token, name)`;
+  then `moul.sync.configure({ hub: hub.url, database, token, label })`. The token stays in the engine;
+  `status().settings` shows `hub` and `database` only. Errors are `MoulError`.
+- Hub join links carry a one-time ticket, never a token: `joinLink(await moul.sync.joinTicket(), page)`.
+  `readJoinLink(url)` gives `{ hub, database, ticket }` for one (`'hub' in result`); connect with
+  `moul.sync.configure(await joinHub(result, { label }))`, which follows only.
 - `moul.admin`: collections CRUD, `schema()`, `applySchema(file, { prune })`, `types()`, `changes()`, `inbox()`, `testRule()`.
 - `moul.asOwner()`: same engine, rules bypassed.
 

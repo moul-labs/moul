@@ -9,15 +9,39 @@ use std::time::Duration;
 use moul_ltx::{SNAPSHOT_LEVEL, Txid};
 use moul_store::Store;
 use moul_sync::layout::{HEAD_KEY, Head, WRITER_KEY, WriterRecord, list_files};
-use moul_sync::{
-    DirReplica, Options, Replica, Role, S3Config, S3Replica, StoreLocal, Sync, block_on, rfc3339,
-};
+use moul_sync::{Options, Replica, Role, StoreLocal, Sync, block_on, rfc3339};
 use moul_vfs::{Capture, DiskStorage, Volume};
 
 const USAGE: &str = "\
 moul: the Moul command-line tool
 
 Usage:
+  moul serve [<folder>] [--listen <addr>] [--public-url <url>] [--replica <replica>]
+             [--from <file>] [--admin-key <key>] [--cors <origins>] [--read-only]
+      Serve the database in <folder> (default ./moul-data) over HTTP: the
+      API, live events, sign-in with OAuth providers, mail, webhooks, jobs
+      and MCP at /api/mcp. Listens on 127.0.0.1:8090 unless --listen says
+      otherwise (a port, or an address and port such as 0.0.0.0:8090).
+      --replica pushes every commit to a replica, as Litestream does.
+      --from fills a new folder from a database file: a Moul export or a
+      Go engine database. --read-only serves a folder `moul pull` keeps.
+      The admin key is made on first start and printed once, unless
+      MOUL_ADMIN_KEY or --admin-key gives one.
+  moul mcp <folder> [--read-only]
+      Serve the database in <folder> to an AI agent as MCP tools over
+      stdin and stdout. With --read-only (a folder `moul pull` keeps) the
+      agent can read but not change it.
+  moul hub [<folder>] [--listen <addr>] [--public-url <url>] [--store <store>]
+           [--signup open|invite|closed] [--max-databases <n>] [--max-bytes <n>]
+      Run a sync hub for builders' devices: sign-in by email code, a
+      replica for each database in <folder>/replicas or in --store (a folder
+      or an s3:// URL), push events and compaction. Listens on
+      127.0.0.1:8091 unless --listen says otherwise.
+  moul login <hub> [--email <address>] [--label <name>]
+      Sign this computer in to a hub with an email code, and keep the token
+      in ~/.config/moul/hubs.json for pull, restore, info and serve.
+  moul logout <hub>
+      Revoke this computer's token at the hub and forget it.
   moul restore <replica> -o <file> [--txid <n>] [--force]
       Rebuild the database a replica holds into a plain SQLite file, as
       `litestream restore` does. --txid restores an earlier state.
@@ -45,7 +69,10 @@ Usage:
 A database is a SQLite file (main.db, a Moul export or a Go engine
 database) or a folder holding main.db, such as one `moul pull` keeps.
 
-A replica is a folder (a path or file:///path) or an S3-compatible bucket:
+A replica is a folder (a path or file:///path), a database on a Moul hub:
+  moul+https://<hub>/<database>
+with the token `moul login` saved (or MOUL_HUB_TOKEN), or an S3-compatible
+bucket:
   s3://<bucket>/<prefix>?endpoint=<url>&region=<region>
 with credentials from AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and
 AWS_SESSION_TOKEN. The endpoint and region may also come from
@@ -53,7 +80,7 @@ AWS_ENDPOINT_URL and AWS_REGION. For Cloudflare R2 use
   s3://<bucket>/<prefix>?endpoint=https://<account>.r2.cloudflarestorage.com
 ";
 
-type Result<T> = std::result::Result<T, String>;
+pub(crate) type Result<T> = std::result::Result<T, String>;
 
 pub(crate) fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -72,6 +99,11 @@ pub(crate) fn main() -> ExitCode {
         Some("schema") => schema(&args[1..]),
         Some("typegen") => typegen(&args[1..]),
         Some("check") => return check(&args[1..]),
+        Some("serve") => crate::serve::serve(&args[1..]),
+        Some("mcp") => crate::serve::mcp(&args[1..]),
+        Some("hub") => crate::hub::hub(&args[1..]),
+        Some("login") => crate::hub::login(&args[1..]),
+        Some("logout") => crate::hub::logout(&args[1..]),
         Some(other) => Err(format!("unknown command {other:?}; see `moul help`")),
     };
     match result {
@@ -84,13 +116,13 @@ pub(crate) fn main() -> ExitCode {
 }
 
 /// Positional arguments and flags, with values for the flags in `valued`.
-struct Args {
-    positional: Vec<String>,
+pub(crate) struct Args {
+    pub(crate) positional: Vec<String>,
     flags: Vec<(String, Option<String>)>,
 }
 
 impl Args {
-    fn parse(args: &[String], valued: &[&str], bare: &[&str]) -> Result<Args> {
+    pub(crate) fn parse(args: &[String], valued: &[&str], bare: &[&str]) -> Result<Args> {
         let mut out = Args {
             positional: Vec::new(),
             flags: Vec::new(),
@@ -116,7 +148,7 @@ impl Args {
         Ok(out)
     }
 
-    fn value(&self, names: &[&str]) -> Option<&str> {
+    pub(crate) fn value(&self, names: &[&str]) -> Option<&str> {
         self.flags
             .iter()
             .rev()
@@ -124,18 +156,18 @@ impl Args {
             .and_then(|(_, v)| v.as_deref())
     }
 
-    fn has(&self, name: &str) -> bool {
+    pub(crate) fn has(&self, name: &str) -> bool {
         self.flags.iter().any(|(k, _)| k == name)
     }
 
-    fn positional(&self, n: usize, what: &str) -> Result<&str> {
+    pub(crate) fn positional(&self, n: usize, what: &str) -> Result<&str> {
         self.positional
             .get(n)
             .map(String::as_str)
             .ok_or_else(|| format!("missing {what}; see `moul help`"))
     }
 
-    fn arity(&self, n: usize) -> Result<()> {
+    pub(crate) fn arity(&self, n: usize) -> Result<()> {
         match self.positional.get(n) {
             Some(extra) => Err(format!("unexpected argument {extra:?}")),
             None => Ok(()),
@@ -143,45 +175,10 @@ impl Args {
     }
 }
 
-fn env(name: &str) -> Option<String> {
-    std::env::var(name).ok().filter(|v| !v.is_empty())
-}
-
-/// Opens the replica `spec` names.
+/// Opens the replica `spec` names: a folder, an `s3://` bucket, or a
+/// `moul+https://` hub database.
 fn open_replica(spec: &str) -> Result<Box<dyn Replica>> {
-    if spec.starts_with("s3://") {
-        let key = env("AWS_ACCESS_KEY_ID")
-            .ok_or("AWS_ACCESS_KEY_ID is not set; an s3:// replica needs credentials")?;
-        let secret = env("AWS_SECRET_ACCESS_KEY")
-            .ok_or("AWS_SECRET_ACCESS_KEY is not set; an s3:// replica needs credentials")?;
-        let mut url = spec.to_owned();
-        let mut add = |k: &str, v: Option<String>| {
-            if let Some(v) = v
-                && !url.contains(&format!("{k}="))
-            {
-                url.push(if url.contains('?') { '&' } else { '?' });
-                url.push_str(&format!("{k}={v}"));
-            }
-        };
-        add(
-            "endpoint",
-            env("AWS_ENDPOINT_URL_S3").or_else(|| env("AWS_ENDPOINT_URL")),
-        );
-        add(
-            "region",
-            env("AWS_REGION").or_else(|| env("AWS_DEFAULT_REGION")),
-        );
-        let mut config = S3Config::from_url(&url, &key, &secret).map_err(|e| e.to_string())?;
-        config.session_token = env("AWS_SESSION_TOKEN");
-        return Ok(Box::new(
-            S3Replica::with_default_client(config).map_err(|e| e.to_string())?,
-        ));
-    }
-    let path = spec.strip_prefix("file://").unwrap_or(spec);
-    if path.contains("://") {
-        return Err(format!("{spec:?} is not a folder or an s3:// URL"));
-    }
-    Ok(Box::new(DirReplica::new(path)))
+    moul_server::replica::open(spec, None, None)
 }
 
 fn restore(args: &[String]) -> Result<()> {

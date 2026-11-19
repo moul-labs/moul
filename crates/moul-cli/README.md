@@ -6,9 +6,9 @@ Part of [Moul](https://github.com/moul-labs/moul), a backend that runs entirely
 in a browser tab: a database, access rules, auth, files and realtime, stored as
 one SQLite file and synced as a Litestream-compatible LTX replica.
 
-**Status:** 0.1, the first public release. `restore`, `pull`, `info`,
-`schema`, `typegen` and `check` work; `serve`, `mcp` and `deploy` arrive with
-the native server and Moul Hub.
+**Status:** 0.1. `serve`, `mcp`, `hub`, `login`, `restore`, `pull`, `info`,
+`schema`, `typegen` and `check` work; `deploy` arrives with app hosting on
+Moul Hub.
 
 ```sh
 cargo install moul-cli    # installs the `moul` command
@@ -17,6 +17,11 @@ cargo install moul-cli    # installs the `moul` command
 ## Commands
 
 ```sh
+moul serve [<folder>] [--listen <addr>] [--public-url <url>] [--replica <replica>] [--from <file>]
+moul mcp <folder> [--read-only]
+moul hub [<folder>] [--listen <addr>] [--store <store>] [--signup open|invite|closed]
+moul login <hub>
+moul logout <hub>
 moul restore <replica> -o notes.db [--txid <n>] [--force]
 moul pull <replica> ./notes [--watch] [--every <seconds>]
 moul info <replica>
@@ -25,6 +30,16 @@ moul typegen <schema file | database> [-o moul.d.ts]
 moul check [<schema file | database>] [--json] [--strict]
 ```
 
+- **`serve`** serves a database folder over HTTP: the API, live events,
+  mail, OAuth sign-in, webhooks, jobs and MCP. See
+  [the server guide](../../docs/server.md).
+- **`mcp`** serves a database folder to an AI agent as MCP tools over stdio.
+- **`hub`** runs a sync hub for builders' devices; see
+  [Moul Hub](../../docs/hub.md).
+- **`login`** signs this computer in to a hub with an email code and keeps
+  the token in `~/.config/moul/hubs.json`, readable only by you; `logout`
+  revokes it. `pull`, `restore`, `info` and `serve --replica` then reach
+  `moul+https://<hub>/<database>`.
 - **`restore`** rebuilds the database a replica holds into a plain SQLite
   file and checks its integrity, as `litestream restore` does. `--txid`
   restores an earlier state still in the replica's history.
