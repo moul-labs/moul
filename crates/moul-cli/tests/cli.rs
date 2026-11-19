@@ -167,6 +167,117 @@ fn pull_keeps_a_follower_copy() {
     );
 }
 
+/// A replica that carries a writer-only store beside the shared one, as a
+/// server pushes it: the fixture's files as the shared store, and its files
+/// up to TXID 3 as the writer-only store, so the two restore differently.
+fn replica_with_writer_only(dir: &Path) -> PathBuf {
+    let replica = dir.join("replica");
+    let from = fixture().join("replica").join("ltx");
+    for level in std::fs::read_dir(&from).unwrap() {
+        let level = level.unwrap();
+        for file in std::fs::read_dir(level.path()).unwrap() {
+            let file = file.unwrap();
+            let name = file.file_name().to_string_lossy().into_owned();
+            let max = u64::from_str_radix(&name[17..33], 16).unwrap();
+            let mut targets = vec![replica.join("ltx")];
+            if max <= 3 {
+                targets.push(replica.join("moul/writer-only/ltx"));
+            }
+            for t in targets {
+                let to = t.join(level.file_name());
+                std::fs::create_dir_all(&to).unwrap();
+                std::fs::copy(file.path(), to.join(&name)).unwrap();
+            }
+        }
+    }
+    replica
+}
+
+#[test]
+fn restore_brings_back_the_writer_only_store() {
+    let dir = scratch("restore-writer-only");
+    let replica = replica_with_writer_only(&dir);
+    let r = replica.to_str().unwrap();
+    let expected = std::fs::read(fixture().join("expected.db")).unwrap();
+    let at3 = dir.join("at3.db");
+    let (ok, text) = moul(&["restore", r, "-o", at3.to_str().unwrap(), "--txid", "3"]);
+    assert!(ok, "{text}");
+    let at3 = std::fs::read(&at3).unwrap();
+
+    // One store to a file: the shared store by default, as before.
+    let out = dir.join("shared.db");
+    let (ok, text) = moul(&["restore", r, "-o", out.to_str().unwrap()]);
+    assert!(ok && text.contains("restored TXID 7"), "{text}");
+    assert!(std::fs::read(&out).unwrap() == expected);
+    let out = dir.join("writer.db");
+    let (ok, text) = moul(&["restore", r, "--writer-only", "-o", out.to_str().unwrap()]);
+    assert!(
+        ok && text.contains("restored the writer-only store at TXID 3"),
+        "{text}"
+    );
+    assert!(std::fs::read(&out).unwrap() == at3);
+    let (ok, text) = moul(&[
+        "restore",
+        r,
+        "--writer-only",
+        "-o",
+        out.to_str().unwrap(),
+        "-f",
+        "--txid",
+        "2",
+    ]);
+    assert!(ok && text.contains("at TXID 2"), "{text}");
+
+    // Both stores into a folder, ready for `moul serve`.
+    let folder = dir.join("served");
+    let arg = format!("{}/", folder.display());
+    let (ok, text) = moul(&["restore", r, "-o", &arg]);
+    assert!(ok, "{text}");
+    assert!(std::fs::read(folder.join("main.db")).unwrap() == expected);
+    assert!(std::fs::read(folder.join("writer.db")).unwrap() == at3);
+    let mut left: Vec<String> = std::fs::read_dir(&folder)
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    left.sort();
+    assert_eq!(left, ["main.db", "writer.db"]);
+    let f = folder.to_str().unwrap();
+    let (ok, text) = moul(&["restore", r, "-o", f]);
+    assert!(!ok && text.contains("--force"), "{text}");
+    let (ok, text) = moul(&["restore", r, "-o", f, "--force"]);
+    assert!(ok, "{text}");
+    let (ok, text) = moul(&["restore", r, "-o", f, "--force", "--txid", "3"]);
+    assert!(!ok && text.contains("--txid"), "{text}");
+    let (ok, text) = moul(&["restore", r, "-o", f, "--force", "--writer-only"]);
+    assert!(!ok && text.contains("--writer-only"), "{text}");
+    // Never over a folder that holds anything else, such as a commit log.
+    std::fs::write(folder.join("commit.log"), b"").unwrap();
+    let (ok, text) = moul(&["restore", r, "-o", f, "--force"]);
+    assert!(!ok && text.contains("commit.log"), "{text}");
+
+    // A replica without one says so, and a folder gets the shared store.
+    let plain = fixture().join("replica");
+    let p = plain.to_str().unwrap();
+    let (ok, text) = moul(&[
+        "restore",
+        p,
+        "--writer-only",
+        "-o",
+        out.to_str().unwrap(),
+        "-f",
+    ]);
+    assert!(!ok && text.contains("holds no writer-only store"), "{text}");
+    let bare = dir.join("bare");
+    let (ok, text) = moul(&["restore", p, "-o", &format!("{}/", bare.display())]);
+    assert!(ok && text.contains("holds no writer-only store"), "{text}");
+    assert!(bare.join("main.db").is_file() && !bare.join("writer.db").exists());
+
+    let (ok, text) = moul(&["info", r]);
+    assert!(ok && text.contains("writer-only  TXID 3"), "{text}");
+    let (ok, text) = moul(&["info", p]);
+    assert!(ok && text.contains("writer-only  none"), "{text}");
+}
+
 #[test]
 fn info_and_errors() {
     let replica = fixture().join("replica");

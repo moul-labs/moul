@@ -117,6 +117,135 @@ impl<R: Replica + ?Sized> Replica for Box<R> {
     }
 }
 
+macro_rules! forward_replica {
+    ($($ty:ty),*) => {$(
+        impl<R: Replica + ?Sized> Replica for $ty {
+            fn describe(&self) -> String {
+                (**self).describe()
+            }
+            fn get<'a>(&'a self, key: &'a str) -> BoxFuture<'a, Result<Option<Object>>> {
+                (**self).get(key)
+            }
+            fn put<'a>(
+                &'a self,
+                key: &'a str,
+                bytes: &'a [u8],
+                condition: Condition,
+            ) -> BoxFuture<'a, Result<Put>> {
+                (**self).put(key, bytes, condition)
+            }
+            fn list<'a>(&'a self, prefix: &'a str) -> BoxFuture<'a, Result<Vec<ObjectInfo>>> {
+                (**self).list(prefix)
+            }
+            fn delete<'a>(&'a self, key: &'a str) -> BoxFuture<'a, Result<()>> {
+                (**self).delete(key)
+            }
+            fn maintained_remotely(&self) -> bool {
+                (**self).maintained_remotely()
+            }
+        }
+    )*};
+}
+
+// One transport shared by the syncs of a database's two stores, or lent
+// out for a call.
+forward_replica!(&R, std::rc::Rc<R>, std::sync::Arc<R>);
+
+/// The part of a replica under one prefix, seen as a replica of its own.
+///
+/// Keys are relative to the prefix: `ltx/0/…` here is `<prefix>ltx/0/…` in
+/// the replica underneath, and a listing hands back keys without the
+/// prefix. It is how a database's writer-only store is kept beside its
+/// shared store, in the same layout ([`Prefixed::writer_only`]):
+///
+/// ```text
+/// ltx/…, moul/head.json, moul/writer.json             the shared store
+/// moul/writer-only/ltx/…, moul/writer-only/moul/…     the writer-only store
+/// ```
+///
+/// Litestream reads only `ltx/` at the root, so it never sees the
+/// writer-only store; pointed at `<replica>/moul/writer-only` instead, it
+/// restores that store the same way.
+#[derive(Clone, Debug)]
+pub struct Prefixed<R> {
+    inner: R,
+    prefix: String,
+}
+
+impl<R: Replica> Prefixed<R> {
+    /// The part of `inner` under `prefix`, which ends with `/`.
+    pub fn new(inner: R, prefix: &str) -> Self {
+        let prefix = format!("{}/", prefix.trim_end_matches('/'));
+        Self { inner, prefix }
+    }
+
+    /// The writer-only store of the database whose shared store `inner`
+    /// holds: everything under
+    /// [`WRITER_ONLY_PREFIX`](crate::layout::WRITER_ONLY_PREFIX).
+    pub fn writer_only(inner: R) -> Self {
+        Self::new(inner, crate::layout::WRITER_ONLY_PREFIX)
+    }
+
+    /// The replica underneath.
+    pub fn inner(&self) -> &R {
+        &self.inner
+    }
+
+    /// The prefix, ending with `/`.
+    pub fn prefix(&self) -> &str {
+        &self.prefix
+    }
+
+    fn key(&self, key: &str) -> String {
+        format!("{}{key}", self.prefix)
+    }
+}
+
+impl<R: Replica> Replica for Prefixed<R> {
+    fn describe(&self) -> String {
+        format!(
+            "{}/{}",
+            self.inner.describe().trim_end_matches('/'),
+            self.prefix.trim_end_matches('/')
+        )
+    }
+
+    fn get<'a>(&'a self, key: &'a str) -> BoxFuture<'a, Result<Option<Object>>> {
+        Box::pin(async move { self.inner.get(&self.key(key)).await })
+    }
+
+    fn put<'a>(
+        &'a self,
+        key: &'a str,
+        bytes: &'a [u8],
+        condition: Condition,
+    ) -> BoxFuture<'a, Result<Put>> {
+        Box::pin(async move { self.inner.put(&self.key(key), bytes, condition).await })
+    }
+
+    fn list<'a>(&'a self, prefix: &'a str) -> BoxFuture<'a, Result<Vec<ObjectInfo>>> {
+        Box::pin(async move {
+            let mut objects = self.inner.list(&self.key(prefix)).await?;
+            for o in &mut objects {
+                o.key = o
+                    .key
+                    .strip_prefix(self.prefix.as_str())
+                    .unwrap_or(&o.key)
+                    .to_owned();
+            }
+            Ok(objects)
+        })
+    }
+
+    fn delete<'a>(&'a self, key: &'a str) -> BoxFuture<'a, Result<()>> {
+        Box::pin(async move { self.inner.delete(&self.key(key)).await })
+    }
+
+    fn maintained_remotely(&self) -> bool {
+        self.inner.maintained_remotely()
+    }
+}
+
 /// Checks that `key` is a relative key a transport can store.
 pub(crate) fn check_key(key: &str) -> Result<()> {
     let ok = !key.is_empty()

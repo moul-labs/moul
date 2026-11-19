@@ -7,8 +7,11 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicI64, Ordering};
 
 use moul_store::Store;
-use moul_sync::{Local, Options, Replica, Retention, Role, Status, StoreLocal, Sync, block_on};
-use moul_vfs::{Capture, CrashMode, MemoryStorage, Volume};
+use moul_sync::{
+    Local, Options, Prefixed, Replica, Retention, Role, Status, StoreLocal, Sync, WriterOnlyLocal,
+    block_on,
+};
+use moul_vfs::{Capture, CrashMode, Fanout, MemoryStorage, Volume};
 
 /// A clock every device and the replica share, moved by hand.
 #[derive(Clone, Debug)]
@@ -36,25 +39,40 @@ pub fn scratch(name: &str) -> PathBuf {
     dir
 }
 
-/// One device: its stores on memory storage, its capture, and its sync.
+/// One device: its stores on memory storage, the captures of its shared
+/// and writer-only stores, and a sync for each. The writer-only store's
+/// sync only pushes, as a server's does.
 pub struct Device {
     pub name: String,
     pub storage: MemoryStorage,
     pub ltx: MemoryStorage,
+    pub writer_ltx: MemoryStorage,
     pub store: Option<Store>,
     pub capture: Capture,
+    pub writer_capture: Capture,
     pub sync: Sync,
+    pub writer_sync: Sync,
     pub conflicts: PathBuf,
     replica: Box<dyn Fn() -> Box<dyn Replica>>,
     clock: Clock,
     retention: Retention,
 }
 
-fn open(storage: &MemoryStorage, ltx: &MemoryStorage) -> (Capture, Store) {
+fn open(storage: &MemoryStorage, ltx: &MemoryStorage, writer_ltx: &MemoryStorage) -> Opened {
     let capture = Capture::open(ltx.clone(), "main.db").unwrap();
-    let volume = Volume::open_observed(storage.clone(), capture.clone()).unwrap();
-    (capture, Store::open_follower(volume).unwrap())
+    let writer_capture = Capture::open(writer_ltx.clone(), "writer.db").unwrap();
+    let observers = Fanout::new()
+        .with(capture.clone())
+        .with(writer_capture.clone());
+    let volume = Volume::open_observed(storage.clone(), observers).unwrap();
+    (
+        capture,
+        writer_capture,
+        Store::open_follower(volume).unwrap(),
+    )
 }
+
+type Opened = (Capture, Capture, Store);
 
 impl Device {
     pub fn new(
@@ -65,37 +83,53 @@ impl Device {
     ) -> Device {
         let storage = MemoryStorage::new();
         let ltx = MemoryStorage::new();
-        let (capture, store) = open(&storage, &ltx);
+        let writer_ltx = MemoryStorage::new();
+        let (capture, writer_capture, store) = open(&storage, &ltx, &writer_ltx);
         let conflicts = scratch(&format!("conflicts-{name}-{}", moul_sync::new_id()));
         let mut d = Device {
             name: name.to_owned(),
             storage,
             ltx,
+            writer_ltx,
             store: Some(store),
             capture,
+            writer_capture,
             sync: Sync::new(NoReplica, Options::default()),
+            writer_sync: Sync::new(NoReplica, Options::default()),
             conflicts,
             replica: Box::new(replica),
             clock: clock.clone(),
             retention,
         };
         d.sync = d.new_sync();
+        d.writer_sync = d.new_writer_sync();
         d
     }
 
-    fn new_sync(&self) -> Sync {
+    fn options(&self, push_only: bool) -> Options {
         let clock = self.clock.clone();
-        Sync::new(
-            (self.replica)(),
-            Options {
-                label: self.name.clone(),
-                poll_every: 0,
-                maintain_every: 0,
-                retention: self.retention.clone(),
-                follow_only: false,
-                clock: Box::new(move || clock.now()),
-            },
-        )
+        Options {
+            label: self.name.clone(),
+            poll_every: 0,
+            maintain_every: 0,
+            retention: self.retention.clone(),
+            follow_only: false,
+            push_only,
+            clock: Box::new(move || clock.now()),
+        }
+    }
+
+    fn new_sync(&self) -> Sync {
+        Sync::new((self.replica)(), self.options(false))
+    }
+
+    fn new_writer_sync(&self) -> Sync {
+        Sync::new(Prefixed::writer_only((self.replica)()), self.options(true))
+    }
+
+    /// The writer-only store's part of the replica, as a replica of its own.
+    pub fn writer_only_replica(&self) -> Prefixed<Box<dyn Replica>> {
+        Prefixed::writer_only((self.replica)())
     }
 
     pub fn store(&self) -> &Store {
@@ -109,6 +143,34 @@ impl Device {
             conflicts: Some(self.conflicts.clone()),
         };
         (&mut self.sync, local)
+    }
+
+    fn writer_parts(&mut self) -> (&mut Sync, WriterOnlyLocal<'_>) {
+        let local = WriterOnlyLocal {
+            store: self.store.as_mut().expect("open"),
+            capture: self.writer_capture.clone(),
+            conflicts: Some(self.conflicts.clone()),
+        };
+        (&mut self.writer_sync, local)
+    }
+
+    /// One round of the writer-only store's sync, which only pushes.
+    pub fn push_writer_only(&mut self) -> moul_sync::Result<()> {
+        let (sync, mut local) = self.writer_parts();
+        block_on(sync.sync(&mut local))
+    }
+
+    /// Takes the writer-only store over as a device that takes over writing
+    /// does: with a sync that may follow, which fetches the store first.
+    pub fn take_over_writer_only(&mut self) -> moul_sync::Result<()> {
+        let mut sync = Sync::new(Prefixed::writer_only((self.replica)()), self.options(false));
+        let (_, mut local) = self.writer_parts();
+        block_on(sync.take_over(&mut local))
+    }
+
+    /// The writer-only store as a SQLite file.
+    pub fn writer_db(&self) -> Vec<u8> {
+        self.store().volume().export("writer.db").unwrap()
     }
 
     pub fn connect(&mut self) -> moul_sync::Result<()> {
@@ -182,10 +244,16 @@ impl Device {
     /// Closes everything and opens it again, as after the app restarts.
     pub fn restart(&mut self) {
         drop(self.store.take());
-        let (capture, store) = open(&self.storage, &self.ltx);
+        self.reopen();
+    }
+
+    fn reopen(&mut self) {
+        let (capture, writer_capture, store) = open(&self.storage, &self.ltx, &self.writer_ltx);
         self.capture = capture;
+        self.writer_capture = writer_capture;
         self.store = Some(store);
         self.sync = self.new_sync();
+        self.writer_sync = self.new_writer_sync();
     }
 
     /// Power loss: unflushed writes are handled by `mode`, then reopen.
@@ -195,10 +263,8 @@ impl Device {
         }
         self.storage.crash(mode);
         self.ltx.crash(mode);
-        let (capture, store) = open(&self.storage, &self.ltx);
-        self.capture = capture;
-        self.store = Some(store);
-        self.sync = self.new_sync();
+        self.writer_ltx.crash(mode);
+        self.reopen();
     }
 
     pub fn load_state(&mut self) -> Option<moul_sync::DeviceState> {

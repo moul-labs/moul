@@ -394,6 +394,7 @@ fn a_follower_survives_a_crash_at_any_point_while_applying() {
     let start_storage = b.storage.steps();
     let start_ltx = b.ltx.steps();
     let (base_storage, base_ltx) = (b.storage.fork(), b.ltx.fork());
+    let base_writer_ltx = b.writer_ltx.fork();
     // Count the steps one clean catch-up takes.
     b.sync().unwrap();
     let total = (b.storage.steps() - start_storage) + (b.ltx.steps() - start_ltx);
@@ -410,6 +411,7 @@ fn a_follower_survives_a_crash_at_any_point_while_applying() {
             let mut d = device("phone", &replica, &clock);
             d.storage = base_storage.fork();
             d.ltx = base_ltx.fork();
+            d.writer_ltx = base_writer_ltx.fork();
             d.restart();
             // Fail one of the two storages at this step of the catch-up.
             let (s0, l0) = (d.storage.steps(), d.ltx.steps());
@@ -693,6 +695,199 @@ fn a_writer_leaves_a_remotely_maintained_replica_to_its_maintainer() {
     let ltx: Vec<_> = keys.iter().filter(|k| k.starts_with("ltx/")).collect();
     assert!(ltx.iter().all(|k| k.starts_with("ltx/0/")), "{keys:?}");
     assert_eq!(ltx.len(), 31, "every level-0 file is still there: {keys:?}");
+}
+
+// ---- The writer-only store ------------------------------------------------
+
+/// The writer-only store's newest state, restored from its part of the
+/// replica.
+fn writer_only_restored(d: &Device) -> Vec<u8> {
+    block_on(moul_sync::restore::restore_db(
+        &d.writer_only_replica(),
+        None,
+    ))
+    .unwrap()
+    .1
+}
+
+fn writer_only_head(replica: &MemoryReplica) -> moul_sync::layout::Head {
+    serde_json::from_slice(&replica.object("moul/writer-only/moul/head.json").unwrap()).unwrap()
+}
+
+#[test]
+fn the_writer_only_store_is_pushed_beside_the_shared_one() {
+    let r = Retention {
+        level1_every: 5 * MINUTE,
+        level2_every: 10 * MINUTE,
+        snapshot_every: 20 * MINUTE,
+        compacted_kept: 30 * MINUTE,
+        history: HOUR,
+    };
+    let (replica, clock) = setup();
+    let mut a = device_with("server", &replica, &clock, r.clone());
+    a.exec("CREATE TABLE t (v TEXT); CREATE TABLE writer.secrets (k TEXT, v TEXT);");
+    a.connect().unwrap();
+    a.push_writer_only().unwrap();
+    assert_eq!(a.writer_sync.role(), Role::Writer);
+    let mut b = device_with("phone", &replica, &clock, r.clone());
+    b.connect().unwrap();
+    let phone_secrets = b.writer_db();
+    for i in 0..30 {
+        clock.advance(5 * MINUTE);
+        replica.set_now(clock.now());
+        a.exec(&format!("INSERT INTO t VALUES ('row {i}')"));
+        // One transaction across both stores, one in the writer-only store.
+        a.exec(&format!(
+            "BEGIN; INSERT INTO t VALUES ('both {i}');
+             INSERT INTO secrets VALUES ('user {i}', 'hash'); COMMIT;"
+        ));
+        a.exec(&format!(
+            "INSERT INTO secrets VALUES ('log {i}', '{}')",
+            "x".repeat(2000)
+        ));
+        a.sync().unwrap();
+        a.push_writer_only().unwrap();
+    }
+    b.sync().unwrap();
+    assert_eq!(b.rows().len(), 60);
+    // The shared store converges and restores as before, untouched by the
+    // writer-only store beside it.
+    assert_converged(&replica, &[&a, &b]);
+    assert!(writer_only_restored(&a) == a.writer_db());
+    assert!(
+        b.writer_db() == phone_secrets,
+        "a follower never gets the writer-only store"
+    );
+    assert_eq!(
+        writer_only_head(&replica).txid,
+        a.writer_capture.position().txid.0,
+        "the writer-only store keeps its own numbering"
+    );
+    assert_eq!(a.writer_sync.status(&a.writer_capture).pending, 0);
+    let keys = replica.keys();
+    for key in [
+        "moul/writer-only/moul/head.json",
+        "moul/writer-only/moul/writer.json",
+    ] {
+        assert!(keys.iter().any(|k| k == key), "{key}: {keys:?}");
+    }
+    // Compacted and pruned under its own prefix.
+    let snapshots = keys
+        .iter()
+        .filter(|k| k.starts_with("moul/writer-only/ltx/9/"))
+        .count();
+    assert!(snapshots > 0, "{keys:?}");
+    let level0 = keys
+        .iter()
+        .filter(|k| k.starts_with("moul/writer-only/ltx/0/"))
+        .count();
+    assert!(
+        (level0 as u64) < a.writer_capture.position().txid.0,
+        "old level-0 files were pruned: {keys:?}"
+    );
+}
+
+#[test]
+fn a_push_only_sync_leaves_another_devices_writer_only_store_alone() {
+    let (replica, clock) = setup();
+    let mut a = device("server", &replica, &clock);
+    a.exec("CREATE TABLE writer.secrets (v TEXT); INSERT INTO secrets VALUES ('a');");
+    a.push_writer_only().unwrap();
+    let mut b = device("another server", &replica, &clock);
+    b.exec("CREATE TABLE writer.secrets (v TEXT); INSERT INTO secrets VALUES ('b');");
+    let mine = b.writer_db();
+    let refused = |b: &mut Device| {
+        let e = b.push_writer_only().unwrap_err();
+        assert_eq!(e.kind(), ErrorKind::Conflict, "{e}");
+        assert!(e.to_string().contains("only pushes its own"), "{e}");
+        assert!(b.writer_db() == mine, "its own store is kept as it is");
+        assert!(b.conflict_copies().is_empty());
+    };
+    refused(&mut b);
+    // Nor does it take files that no writer record names.
+    replica.remove("moul/writer-only/moul/writer.json");
+    refused(&mut b);
+    assert!(writer_only_restored(&a) == a.writer_db());
+}
+
+#[test]
+fn a_device_that_takes_over_writing_fetches_the_writer_only_store() {
+    let (replica, clock) = setup();
+    let mut a = device("server", &replica, &clock);
+    a.exec(
+        "CREATE TABLE t (v TEXT); CREATE TABLE writer.secrets (v TEXT);
+         INSERT INTO secrets VALUES ('root password hash');",
+    );
+    a.connect().unwrap();
+    a.push_writer_only().unwrap();
+    let mut b = device("laptop", &replica, &clock);
+    b.connect().unwrap();
+    b.take_over().unwrap();
+    b.take_over_writer_only().unwrap();
+    assert!(
+        b.writer_db() == a.writer_db(),
+        "the new writer has the secrets"
+    );
+    // The old writer's late change to its writer-only store is refused, not
+    // pushed over the new writer's.
+    a.exec("INSERT INTO secrets VALUES ('late')");
+    let e = a.push_writer_only().unwrap_err();
+    assert_eq!(e.kind(), ErrorKind::Conflict, "{e}");
+    // The new writer pushes on with the push-only sync, from where it took over.
+    b.exec("INSERT INTO secrets VALUES ('new')");
+    b.push_writer_only().unwrap();
+    assert!(writer_only_restored(&b) == b.writer_db());
+    let rows: Vec<String> = {
+        let conn = b.store().conn();
+        let mut stmt = conn
+            .prepare("SELECT v FROM secrets ORDER BY rowid")
+            .unwrap();
+        stmt.query_map([], |r| r.get(0))
+            .unwrap()
+            .collect::<Result<_, _>>()
+            .unwrap()
+    };
+    assert_eq!(rows, ["root password hash", "new"]);
+    assert!(a.conflict_copies().is_empty() && b.conflict_copies().is_empty());
+}
+
+#[test]
+fn the_writer_only_store_is_pushed_after_a_crash() {
+    for mode in [
+        CrashMode::DropUnflushed,
+        CrashMode::KeepUnflushed,
+        CrashMode::Torn(3),
+    ] {
+        let (replica, clock) = setup();
+        let mut a = device("server", &replica, &clock);
+        a.exec("CREATE TABLE t (v TEXT); CREATE TABLE writer.secrets (v TEXT);");
+        a.connect().unwrap();
+        a.push_writer_only().unwrap();
+        for i in 0..5 {
+            a.exec(&format!(
+                "BEGIN; INSERT INTO t VALUES ('{i}');
+                 INSERT INTO secrets VALUES ('{}'); COMMIT;",
+                "s".repeat(1500 + i)
+            ));
+        }
+        a.sync().unwrap();
+        // The power goes before the writer-only store is pushed.
+        a.crash(mode);
+        a.integrity();
+        a.push_writer_only()
+            .unwrap_or_else(|e| panic!("{mode:?}: {e}"));
+        assert!(
+            writer_only_restored(&a) == a.writer_db(),
+            "{mode:?}: the replica's writer-only store differs"
+        );
+        assert!(a.conflict_copies().is_empty(), "{mode:?}");
+        let n: i64 = a
+            .store()
+            .conn()
+            .query_row("SELECT count(*) FROM secrets", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(n, 5, "{mode:?}");
+    }
 }
 
 // ---- Requests that arrive while sync replaces the database ----------------

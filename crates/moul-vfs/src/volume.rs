@@ -388,6 +388,68 @@ where
     }
 }
 
+/// Hands every commit to several observers, in the order they were added:
+/// how a volume has both its shared store and its writer-only store
+/// captured, each by its own [`Capture`](crate::Capture).
+///
+/// The first observer that fails stops the commit there, and its error is
+/// the volume's, exactly as with one observer: the volume takes no more
+/// commits, and the next [`Volume::open_observed`] hands the commit to every
+/// observer again. Those that had already handled it ignore it, as every
+/// observer must.
+///
+/// ```
+/// # use rusqlite as _; // links SQLite, which the VFS glue needs
+/// use moul_vfs::{Capture, Fanout, MemoryStorage, Volume};
+///
+/// let shared = Capture::open(MemoryStorage::new(), "main.db").unwrap();
+/// let writer_only = Capture::open(MemoryStorage::new(), "writer.db").unwrap();
+/// let observers = Fanout::new().with(shared.clone()).with(writer_only.clone());
+/// let volume = Volume::open_observed(MemoryStorage::new(), observers).unwrap();
+/// ```
+#[derive(Default)]
+pub struct Fanout {
+    observers: Vec<Box<dyn Observer>>,
+}
+
+impl std::fmt::Debug for Fanout {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Fanout")
+            .field("observers", &self.observers.len())
+            .finish()
+    }
+}
+
+impl Fanout {
+    /// No observers yet.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Adds `observer`, which is handed each commit after those added
+    /// before it.
+    pub fn with(mut self, observer: impl Observer) -> Self {
+        self.observers.push(Box::new(observer));
+        self
+    }
+}
+
+impl Observer for Fanout {
+    fn commit(&mut self, commit: &Commit, before: &mut Before<'_>) -> Result<()> {
+        for observer in &mut self.observers {
+            observer.commit(commit, before)?;
+        }
+        Ok(())
+    }
+
+    fn recovered(&mut self) -> Result<()> {
+        for observer in &mut self.observers {
+            observer.recovered()?;
+        }
+        Ok(())
+    }
+}
+
 /// The committed content of the volume's files as it was just before the
 /// commit an [`Observer`] is handling.
 pub struct Before<'a> {

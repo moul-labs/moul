@@ -22,7 +22,7 @@ pub use moul_ltx::Crc64;
 #[cfg(target_arch = "wasm32")]
 pub use opfs::OpfsStorage;
 pub use storage::{MaybeSend, Storage, StorageFile};
-pub use volume::{Before, LOG_NAME, Observer, Volume};
+pub use volume::{Before, Fanout, LOG_NAME, Observer, Volume};
 
 /// The page size Moul uses for every database file. SQLite's native builds
 /// default to it; the browser build defaults to 8,192, so stores set it.

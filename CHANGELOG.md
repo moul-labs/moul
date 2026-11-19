@@ -21,6 +21,11 @@ The engine runs as a server, and devices can sync through a hub instead of a buc
   settings, join links that carry a one-time ticket, a worker that syncs as soon as the hub says
   there is something new, and a "Moul Hub" choice on Studio's Sync page. `moul login <hub>`, then
   `moul pull moul+https://<hub>/<database>`.
+- **Backups carry the writer-only store.** A server's `--replica` pushes `writer.db` (root users,
+  password hashes, keys, settings, queued mail and webhook calls) beside the shared store, under
+  `moul/writer-only/` in the same layout; the shared store stays byte for byte Litestream's.
+  `moul restore --writer-only` rebuilds it, and `moul restore <replica> -o <folder>/` rebuilds
+  both stores into a folder `moul serve` opens as the same server.
 - **The engine** serves settings, root users, feature flags, jobs, webhooks and OAuth sign-in in
   every host, and writes mail, webhook calls and jobs as rows a server sends once.
 - The parity suites now cover the server's routes; where Moul departs from Go (secrets never read

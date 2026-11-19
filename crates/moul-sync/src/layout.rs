@@ -7,9 +7,14 @@
 //! ltx/9/0000000000000001-00000000000000a4.ltx   snapshots
 //! moul/head.json                                newest TXID, for cheap polling
 //! moul/writer.json                              which device writes
+//! moul/writer-only/ltx/…                        the writer-only store,
+//! moul/writer-only/moul/…                       in the same layout
 //! ```
 //!
-//! Litestream reads `ltx/` and ignores `moul/`.
+//! Litestream reads `ltx/` and ignores `moul/`. The writer-only store is a
+//! replica of its own under [`WRITER_ONLY_PREFIX`], reached through
+//! [`Prefixed::writer_only`](crate::Prefixed::writer_only), so every key
+//! below is the same there.
 
 use moul_ltx::{FileInfo, Txid, file_name, parse_file_name};
 use serde::{Deserialize, Serialize};
@@ -23,6 +28,9 @@ pub const LTX_PREFIX: &str = "ltx/";
 pub const HEAD_KEY: &str = "moul/head.json";
 /// The writer record.
 pub const WRITER_KEY: &str = "moul/writer.json";
+/// Where the writer-only store (`writer.db`: secrets and logs) is kept, in
+/// the same layout as the shared store.
+pub const WRITER_ONLY_PREFIX: &str = "moul/writer-only/";
 
 /// The key of an LTX file.
 pub fn ltx_key(level: u8, min: Txid, max: Txid) -> String {

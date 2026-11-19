@@ -23,7 +23,8 @@ Litestream wrote.
 | A folder, laid out as Litestream's file replica | `DirReplica` (native) |
 | Memory, with lost requests, lost answers and a full disk to order | [`MemoryReplica`] |
 | A device's sync: connect, push, pull, take over | [`Sync`] |
-| What sync needs from the local database | [`Local`]; [`StoreLocal`] for a [`moul_store::Store`] |
+| What sync needs from the local database | [`Local`]; [`StoreLocal`] for a [`moul_store::Store`]'s shared store, [`WriterOnlyLocal`] for its writer-only store |
+| The part of a replica under a prefix, as a replica of its own | [`Prefixed`]; [`Prefixed::writer_only`] for `moul/writer-only/` |
 | Compaction, snapshots and retention | [`maintain`] |
 | Rebuild a database, at any TXID still held | [`restore::restore_db`] |
 
@@ -33,7 +34,40 @@ ltx/1/…, ltx/2/…                              compacted ranges
 ltx/9/0000000000000001-00000000000000a4.ltx   snapshots
 moul/head.json                                newest TXID, for cheap polling
 moul/writer.json                              which device writes
+moul/writer-only/ltx/…, moul/writer-only/moul/…   the writer-only store, same layout
 ```
+
+## The writer-only store
+
+A database's writer-only store (`writer.db`: password hashes, keys,
+settings, queued mail and webhook calls, the request log) is a replica of its
+own under `moul/writer-only/`, in exactly the shared store's layout, with its
+own TXIDs, head and writer record. Litestream reads only `ltx/` at the root,
+so the shared store stays byte for byte its replica; pointed at
+`<replica>/moul/writer-only`, Litestream restores the writer-only store the
+same way.
+
+Only the device that writes the shared store pushes it, with a second
+[`Sync`] over [`Prefixed::writer_only`] of the same transport and a
+[`WriterOnlyLocal`]. A server's ([`Options::push_only`]) only pushes: it
+creates the store or pushes on as its writer of record, and fails rather
+than join, follow or take the state of a store another device writes. A
+device that takes over writing fetches the store with an ordinary sync's
+`take_over`, then pushes on. Followers never fetch it.
+
+```rust,ignore
+let replica: Rc<dyn Replica> = Rc::from(replica);
+let mut shared = Sync::new(replica.clone(), Options::default());
+let mut writer_only = Sync::new(
+    Prefixed::writer_only(replica),
+    Options { push_only: true, ..Options::default() },
+);
+// While `shared.role()` is `Role::Writer`:
+writer_only.tick(&mut WriterOnlyLocal { store, capture: writer_capture, conflicts }).await?;
+```
+
+[`restore::restore_db`] over `Prefixed::writer_only(replica)` rebuilds it, as
+`moul restore --writer-only` does.
 
 ## The rules
 
@@ -112,10 +146,10 @@ newest state still restores without it.
 
 | Suite | Shows |
 | --- | --- |
-| `tests/scenarios.rs` | Devices converge byte for byte: a race to create, hand-off both ways, an offline writer that lost the role, an old writer's last upload before the fence, a take-over that stopped half way and one cut short then restarted, a writer whose storage was reset (behind head, up to it, or past it, while another device takes over, or after its first head was lost), a writer that restarts offline, a head write that failed before an idle round, a writer whose head lags files it released (the same files as the replica's, or not), lost requests and answers, a full replica, a restart between upload and head, a follower asleep past retention, a crash at every storage step while following, a Litestream replica, a skewed clock |
+| `tests/scenarios.rs` | Devices converge byte for byte: a race to create, hand-off both ways, an offline writer that lost the role, an old writer's last upload before the fence, a take-over that stopped half way and one cut short then restarted, a writer whose storage was reset (behind head, up to it, or past it, while another device takes over, or after its first head was lost), a writer that restarts offline, a head write that failed before an idle round, a writer whose head lags files it released (the same files as the replica's, or not), lost requests and answers, a full replica, a restart between upload and head, a follower asleep past retention, a crash at every storage step while following, a Litestream replica, a skewed clock. The writer-only store: pushed and compacted beside the shared store without touching it or reaching followers, left alone when another device writes it, fetched by a device that takes over writing, and pushed after a crash |
 | `tests/s3.rs` | The S3 transport against a real store: conditional writes, eight devices racing for one TXID, wrong credentials, and devices syncing through it |
 | `tests/hub.rs` | The hub transport against a stand-in hub that serves the protocol: devices converge and hand off through it without compacting, and a revoked token is refused for good |
-| `tools/litestream-compat/tests/sync.rs` | `litestream restore` rebuilds a replica sync wrote, with a hand-off and every level, at every TXID still held |
+| `tools/litestream-compat/tests/sync.rs` | `litestream restore` rebuilds a replica sync wrote, with a hand-off and every level, at every TXID still held; one that also carries a writer-only store restores its shared store the same, and Litestream restores the writer-only store from `moul/writer-only` |
 
 The S3 tests run when `MOUL_S3_ENDPOINT` is set; CI runs them against MinIO:
 
@@ -128,9 +162,8 @@ MOUL_S3_ENDPOINT=http://127.0.0.1:9000 cargo test -p moul-sync --test s3
 
 ## Not yet
 
-- The writer-only store is not replicated. It holds nothing until the engine
-  port (Phase 4); then it gets its own capture under `moul/writer-only/`, and
-  a device fetches it when it takes over.
+- Only a server pushes the writer-only store. A browser device neither
+  pushes it nor fetches it when it takes over writing.
 - Futures are not `Send`: sync runs on one thread, in a browser worker or
   under `block_on` in the CLI. The hub (Phase 6) will need `Send` ones.
 

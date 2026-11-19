@@ -97,7 +97,9 @@ lets builders pick any bucket, so its policy allows `connect-src https:`; see it
 - No sync from a closed browser: changes go out the next time the app is open, and Studio shows the
   last sync time.
 - Moul does not encrypt the replica: whoever can read the bucket can read the data.
-- Sign-ins, keys and codes are not synced: they stay on the device that wrote them.
+- Sign-ins, keys and codes are not synced: they stay on the device that wrote them. (A server,
+  `moul serve --replica`, pushes them beside the shared store as its writer-only store; see
+  [the server guide](server.md#replication-and-backups).)
 - Followers apply pages, not requests; editing on several devices at once arrives with Moul Hub.
 
 ## Restore without a browser

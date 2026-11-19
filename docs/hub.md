@@ -127,8 +127,9 @@ The event stream starts with `event: connected` (`data: {"database"}`), sends
 as `head` arrives and polls only as a fallback.
 
 The hub compacts each database it fronts, as a writer would (level 1 every 5
-minutes, level 2 every hour, a snapshot every day, 7 days of history), so
-devices that sync through a hub do not compact.
+minutes, level 2 every hour, a snapshot every day, 7 days of history), and
+the writer-only store a server pushes under `moul/writer-only/` the same way,
+so devices that sync through a hub do not compact.
 
 ## The hosted beta
 

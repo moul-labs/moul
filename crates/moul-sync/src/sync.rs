@@ -68,6 +68,14 @@ pub struct Options {
     pub retention: Retention,
     /// Never become the writer, not even of an empty replica: `moul pull`.
     pub follow_only: bool,
+    /// Never follow: only create the replica, or push on as its writer of
+    /// record. Connecting to a replica another device writes (or that holds
+    /// files no writer record names) fails instead of joining it, and so
+    /// does finding that another device took over: the local database is
+    /// never replaced by someone else's. For a server's writer-only store,
+    /// which only the device that writes the shared store pushes. Not with
+    /// `follow_only`.
+    pub push_only: bool,
     /// The time, in milliseconds since the epoch.
     pub clock: Box<dyn Fn() -> i64>,
 }
@@ -80,6 +88,7 @@ impl Default for Options {
             maintain_every: 60_000,
             retention: Retention::default(),
             follow_only: false,
+            push_only: false,
             clock: Box::new(moul_vfs::system_clock),
         }
     }
@@ -91,6 +100,7 @@ impl std::fmt::Debug for Options {
             .field("label", &self.label)
             .field("poll_every", &self.poll_every)
             .field("follow_only", &self.follow_only)
+            .field("push_only", &self.push_only)
             .finish_non_exhaustive()
     }
 }
@@ -342,6 +352,21 @@ impl Sync {
         result
     }
 
+    /// Fails when the device only pushes ([`Options::push_only`]) and would
+    /// now take on another writer's state: `why` says whose.
+    fn refuse_to_follow(&self, why: &str) -> Result<()> {
+        if !self.options.push_only {
+            return Ok(());
+        }
+        Err(Error::new(
+            ErrorKind::Conflict,
+            format!(
+                "{} {why}; this device only pushes its own, so it leaves the replica alone",
+                self.replica.describe()
+            ),
+        ))
+    }
+
     /// Reaches the replica and settles this device's role: creates the
     /// replica if it is empty, joins it if the device is new to it, or picks
     /// up where the device left off.
@@ -373,6 +398,7 @@ impl Sync {
                         ));
                     }
                     // LTX files but no writer record: Litestream wrote it.
+                    self.refuse_to_follow("holds files no writer record names")?;
                     self.writer = None;
                     let id = format!("ext:{}", self.replica.describe());
                     if self.state.replica.as_deref() != Some(id.as_str()) {
@@ -396,6 +422,7 @@ impl Sync {
                         // another device writes now.
                         self.lose_role(local).await?;
                     } else {
+                        self.refuse_to_follow(&format!("is written by device {}", rec.device))?;
                         self.set_role(local, Role::Follower, rec.generation)?;
                         self.catch_up(local).await?;
                     }
@@ -673,6 +700,7 @@ impl Sync {
         generation: u64,
         reason: &str,
     ) -> Result<()> {
+        self.refuse_to_follow(&format!("is another replica ({id}) than this device's"))?;
         // Read-only first: a write after the copy is taken would be in
         // neither the copy nor the replica's state that replaces it. Should
         // joining fail, the device stays read-only until the next call
@@ -979,6 +1007,7 @@ impl Sync {
     /// Another device writes now. Keeps a copy of anything local the replica
     /// does not hold, then follows.
     async fn lose_role(&mut self, local: &mut dyn Local) -> Result<()> {
+        self.refuse_to_follow("is written by another device now")?;
         // Read-only before reading the position: a write after it would be
         // counted as pushed, or left out of the copy, and the new writer's
         // files applied on top of it. Should this fail, the device stays

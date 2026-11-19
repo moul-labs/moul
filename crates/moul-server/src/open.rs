@@ -4,7 +4,8 @@
 //! <folder>/main.db     the shared store, a SQLite file other tools can read
 //! <folder>/writer.db   the writer-only store: secrets, the request log
 //! <folder>/device.db   this server's own state
-//! <folder>/ltx/        level-0 LTX files not yet pushed to the replica
+//! <folder>/ltx/        level-0 LTX files of main.db not yet pushed to the replica
+//! <folder>/ltx/writer-only/  the same for writer.db
 //! <folder>/files/      uploaded files, named by SHA-256
 //! <folder>/moul.lock   held while a process uses the folder
 //! ```
@@ -14,7 +15,7 @@ use std::path::Path;
 
 use moul_core::{Config, DiskBlobs, Engine, SystemHost};
 use moul_store::Store;
-use moul_vfs::{Capture, DiskStorage, Volume};
+use moul_vfs::{Capture, DiskStorage, Fanout, Volume};
 use rusqlite::OptionalExtension;
 
 use crate::config::ServerConfig;
@@ -25,6 +26,9 @@ pub struct Opened {
     pub engine: Engine,
     /// The capture of `main.db`, which replication pushes from.
     pub capture: Capture,
+    /// The capture of `writer.db`, which replication pushes under
+    /// `moul/writer-only/` while this server writes.
+    pub writer_capture: Capture,
     /// The admin key in force.
     pub admin_key: String,
     /// Held while the folder is in use.
@@ -75,7 +79,13 @@ pub fn open(config: &ServerConfig) -> Result<(Opened, bool), String> {
     let storage = DiskStorage::new(dir).map_err(|e| e.to_string())?;
     let ltx = DiskStorage::new(dir.join("ltx")).map_err(|e| e.to_string())?;
     let capture = Capture::open(ltx, "main.db").map_err(|e| e.to_string())?;
-    let volume = Volume::open_observed(storage, capture.clone()).map_err(|e| e.to_string())?;
+    let writer_ltx =
+        DiskStorage::new(dir.join("ltx").join("writer-only")).map_err(|e| e.to_string())?;
+    let writer_capture = Capture::open(writer_ltx, "writer.db").map_err(|e| e.to_string())?;
+    let observers = Fanout::new()
+        .with(capture.clone())
+        .with(writer_capture.clone());
+    let volume = Volume::open_observed(storage, observers).map_err(|e| e.to_string())?;
     let mut store = if config.follower {
         Store::open_follower(volume)
     } else {
@@ -168,6 +178,7 @@ pub fn open(config: &ServerConfig) -> Result<(Opened, bool), String> {
         Opened {
             engine,
             capture,
+            writer_capture,
             admin_key,
             lock,
         },

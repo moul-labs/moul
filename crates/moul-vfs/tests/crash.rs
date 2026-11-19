@@ -8,8 +8,9 @@
 //! COMMIT returned success, and at most one more (the one in flight, whose
 //! log record may have reached storage although its flush reported failure).
 //! The same is then done to recovery itself, and both are repeated with
-//! commit capture attached: then the level-0 files must also restore to
-//! exactly the database that was recovered.
+//! both stores captured, as a server does (`main.db` and `writer.db`, under a
+//! [`Fanout`]): then each store's level-0 files must also restore to exactly
+//! the file that was recovered.
 
 #![cfg(not(target_arch = "wasm32"))]
 
@@ -17,12 +18,12 @@ mod common;
 
 use common::{connect, integrity};
 use moul_ltx::{Ltx, Txid, restore};
-use moul_vfs::{Capture, CrashMode, MemoryStorage, Volume};
+use moul_vfs::{Capture, CrashMode, Fanout, MemoryStorage, Storage, StorageFile, Volume};
 use rusqlite::{Connection, params};
 
 type Rows = (Vec<(i64, Vec<u8>)>, Vec<(i64, String)>);
 
-const TXS: usize = 8;
+const TXS: usize = 9;
 
 fn run_tx(c: &Connection, i: usize) -> rusqlite::Result<()> {
     match i {
@@ -67,6 +68,10 @@ fn run_tx(c: &Connection, i: usize) -> rusqlite::Result<()> {
              UPDATE kv SET v = x'07' WHERE k = 7;
              COMMIT;",
         ),
+        // The writer-only store alone, over several pages.
+        8 => c.execute_batch(
+            "INSERT INTO secrets SELECT k + 100, printf('%0600d', k) FROM kv WHERE k < 40",
+        ),
         _ => unreachable!(),
     }
 }
@@ -105,15 +110,62 @@ fn expected_states(baseline: &MemoryStorage) -> Vec<Rows> {
     states
 }
 
-/// Opens a volume on `storage`, with capture keeping its files in the same
-/// storage when `captured`.
-fn open(storage: &MemoryStorage, captured: bool) -> moul_vfs::Result<(Option<Capture>, Volume)> {
+/// The files of `storage` whose names start with `prefix`, as a storage of
+/// their own: a second capture's folder on the same crashing disk.
+struct Prefixed(MemoryStorage, &'static str);
+
+impl Storage for Prefixed {
+    fn open(&self, name: &str) -> moul_vfs::Result<Box<dyn StorageFile>> {
+        self.0.open(&format!("{}{name}", self.1))
+    }
+    fn describe(&self) -> String {
+        format!("{} ({}*)", self.0.describe(), self.1)
+    }
+}
+
+/// The captures of `main.db` and `writer.db`.
+type Captures = Option<(Capture, Capture)>;
+
+/// Opens a volume on `storage`. When `captured`, both stores are captured,
+/// each keeping its files in the same storage under a name of its own.
+fn open(storage: &MemoryStorage, captured: bool) -> moul_vfs::Result<(Captures, Volume)> {
     if !captured {
         return Ok((None, Volume::open(storage.clone())?));
     }
-    let capture = Capture::open(storage.clone(), "main.db")?.with_clock(|| 0);
-    let volume = Volume::open_observed(storage.clone(), capture.clone())?;
-    Ok((Some(capture), volume))
+    let shared = Capture::open(storage.clone(), "main.db")?.with_clock(|| 0);
+    let writer_only =
+        Capture::open(Prefixed(storage.clone(), "writer-"), "writer.db")?.with_clock(|| 0);
+    let volume = Volume::open_observed(
+        storage.clone(),
+        Fanout::new().with(shared.clone()).with(writer_only.clone()),
+    )?;
+    Ok((Some((shared, writer_only)), volume))
+}
+
+/// Checks that `capture`'s files restore to exactly the file it captures.
+fn check_capture(capture: &Capture, volume: &Volume, what: &str) {
+    let file = capture.file();
+    let files: Vec<Vec<u8>> = (1..=capture.position().txid.0)
+        .map(|t| capture.read(Txid(t)).unwrap())
+        .collect();
+    let decoded: Vec<Ltx<'_>> = files
+        .iter()
+        .map(|b| Ltx::decode(b).unwrap_or_else(|e| panic!("{what}: {file}: {e}")))
+        .collect();
+    let exported = volume.export(&file).unwrap();
+    if decoded.is_empty() {
+        assert!(
+            exported.is_empty(),
+            "{what}: {file} holds data but no captured files"
+        );
+    } else {
+        let restored = restore::restore_to_vec(&decoded)
+            .unwrap_or_else(|e| panic!("{what}: {file}: restore failed: {e}"));
+        assert!(
+            restored == exported,
+            "{what}: the replica of {file} does not match it"
+        );
+    }
 }
 
 /// Opens the crashed storage and checks it holds one of `states[lo..=hi]`,
@@ -126,30 +178,11 @@ fn check(
     hi: usize,
     what: &str,
 ) {
-    let (capture, volume) =
+    let (captures, volume) =
         open(&storage, captured).unwrap_or_else(|e| panic!("{what}: reopen failed: {e}"));
-    if let Some(capture) = capture {
-        let files: Vec<Vec<u8>> = (1..=capture.position().txid.0)
-            .map(|t| capture.read(Txid(t)).unwrap())
-            .collect();
-        let decoded: Vec<Ltx<'_>> = files
-            .iter()
-            .map(|b| Ltx::decode(b).unwrap_or_else(|e| panic!("{what}: {e}")))
-            .collect();
-        let exported = volume.export("main.db").unwrap();
-        if decoded.is_empty() {
-            assert!(
-                exported.is_empty(),
-                "{what}: a database but no captured files"
-            );
-        } else {
-            let restored = restore::restore_to_vec(&decoded)
-                .unwrap_or_else(|e| panic!("{what}: restore failed: {e}"));
-            assert!(
-                restored == exported,
-                "{what}: the replica does not match the database"
-            );
-        }
+    if let Some((shared, writer_only)) = captures {
+        check_capture(&shared, &volume, what);
+        check_capture(&writer_only, &volume, what);
     }
     let conn = connect(&volume).unwrap_or_else(|e| panic!("{what}: connect failed: {e}"));
     assert_eq!(integrity(&conn), "ok", "{what}");
@@ -167,7 +200,7 @@ fn check(
 /// Runs the workload with step `fail` failing. Returns how many transactions
 /// reported success.
 fn run_failing(storage: &MemoryStorage, captured: bool, fail: u64) -> usize {
-    let (_capture, volume) = open(storage, captured).unwrap();
+    let (_captures, volume) = open(storage, captured).unwrap();
     let conn = connect(&volume).unwrap();
     storage.fail_at(Some(storage.steps() + fail));
     let mut ok = 0;

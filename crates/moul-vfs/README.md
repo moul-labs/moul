@@ -60,8 +60,22 @@ capture.snapshot_existing(&volume)?; // a database from before capture
   behind.
 - TXID 1 holds every page, as LTX requires. So does the file after any commit
   capture did not see, which the page-1 change counter shows.
-- Commits to the other stores write nothing here; the writer-only store gets
-  its own capture later.
+- Commits to the other stores write nothing here. The writer-only store
+  (`writer.db`) gets a capture of its own, in a storage of its own, and
+  [`Fanout`] hands each commit to both:
+
+```rust,ignore
+let shared = Capture::open(ltx_storage, "main.db")?;
+let writer_only = Capture::open(writer_only_ltx_storage, "writer.db")?;
+let volume = Volume::open_observed(
+    storage,
+    Fanout::new().with(shared.clone()).with(writer_only.clone()),
+)?;
+```
+
+  A commit that spans both stores becomes one file in each. If either
+  capture fails, the volume stops as it does for one, and the next open
+  hands the commit to both again; the one that had it already ignores it.
 
 A device that follows another writer uses three more calls:
 
@@ -84,8 +98,8 @@ step, then crashes the disk: unflushed writes are dropped, kept, or kept in
 part with the last one torn. After reopening, the database must pass
 `integrity_check` and hold exactly the transactions that reported success,
 plus at most the one in flight. The same is done to recovery itself. Both run
-again with capture attached, and then the level-0 files must also restore to
-exactly the database that was recovered.
+again with both stores captured, and then each store's level-0 files must
+also restore to exactly the file that was recovered.
 
 ```sh
 cargo test -p moul-vfs --release --test crash -- --nocapture

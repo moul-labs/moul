@@ -2,7 +2,9 @@
 //! level-0 LTX file, the unit a replica is built from.
 //!
 //! [`Capture`] is a volume [`Observer`]. For each commit that touches its file
-//! (`main.db`, the shared store) it appends the next TXID's file to
+//! (`main.db`, the shared store, or `writer.db`, the writer-only store, each
+//! with a capture of its own under a [`Fanout`](crate::Fanout)) it appends
+//! the next TXID's file to
 //! `ltx.pack` in its own storage, flushes it, then records the TXID and commit
 //! number in `capture.state` and flushes that. A crash between the two leaves
 //! a record the state does not count yet; the commit is still in the volume's

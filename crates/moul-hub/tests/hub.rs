@@ -490,28 +490,47 @@ async fn conditional_writes_keys_limits_and_pushes() {
     let _ = std::fs::remove_dir_all(dir);
 }
 
-/// A device: its stores in memory and its sync through the hub.
+/// A device: its stores in memory and its sync through the hub, with a
+/// second, push-only sync for its writer-only store as a server has.
 struct Device {
     store: Store,
     capture: Capture,
     sync: Sync,
+    writer_capture: Capture,
+    writer_only: Sync,
 }
 
 impl Device {
     fn new(base: &str, token: &str, follow_only: bool) -> Device {
         let capture = Capture::open(MemoryStorage::new(), "main.db").unwrap();
-        let volume = Volume::open_observed(MemoryStorage::new(), capture.clone()).unwrap();
-        let store = Store::open_follower(volume).unwrap();
-        let replica = HubReplica::with_default_client(Remote {
-            url: base.to_owned(),
-            database: "notes".into(),
-            token: token.to_owned(),
-        })
+        let writer_capture = Capture::open(MemoryStorage::new(), "writer.db").unwrap();
+        let volume = Volume::open_observed(
+            MemoryStorage::new(),
+            moul_vfs::Fanout::new()
+                .with(capture.clone())
+                .with(writer_capture.clone()),
+        )
         .unwrap();
+        let store = Store::open_follower(volume).unwrap();
+        let replica = || {
+            HubReplica::with_default_client(Remote {
+                url: base.to_owned(),
+                database: "notes".into(),
+                token: token.to_owned(),
+            })
+            .unwrap()
+        };
         let sync = Sync::new(
-            replica,
+            replica(),
             Options {
                 follow_only,
+                ..Options::default()
+            },
+        );
+        let writer_only = Sync::new(
+            moul_sync::Prefixed::writer_only(replica()),
+            Options {
+                push_only: true,
                 ..Options::default()
             },
         );
@@ -519,7 +538,18 @@ impl Device {
             store,
             capture,
             sync,
+            writer_capture,
+            writer_only,
         }
+    }
+
+    fn push_writer_only(&mut self) {
+        let mut local = moul_sync::WriterOnlyLocal {
+            store: &mut self.store,
+            capture: self.writer_capture.clone(),
+            conflicts: None,
+        };
+        block_on(self.writer_only.sync(&mut local)).unwrap();
     }
 
     fn round(&mut self) {
@@ -577,14 +607,19 @@ async fn two_devices((h, base, dir): (RunningHub, String, PathBuf)) {
         let mut a = Device::new(&b, &t, false);
         a.store
             .conn()
-            .execute_batch("CREATE TABLE t (x); INSERT INTO t VALUES (1);")
+            .execute_batch(
+                "CREATE TABLE t (x); INSERT INTO t VALUES (1);
+                 CREATE TABLE writer.secrets (x); INSERT INTO secrets VALUES (1);",
+            )
             .unwrap();
         a.round();
+        a.push_writer_only();
         a.store
             .conn()
-            .execute_batch("INSERT INTO t VALUES (2);")
+            .execute_batch("INSERT INTO t VALUES (2); INSERT INTO secrets VALUES (2);")
             .unwrap();
         a.round();
+        a.push_writer_only();
         let mut phone = Device::new(&b, &t, true);
         phone.round();
         phone
@@ -617,6 +652,15 @@ async fn two_devices((h, base, dir): (RunningHub, String, PathBuf)) {
     let (_, after) = call(
         reqwest::Method::GET,
         format!("{base}/api/hub/db/notes/list?prefix=ltx/1/"),
+        Some(&token),
+        None,
+    )
+    .await;
+    assert_eq!(after["items"].as_array().unwrap().len(), 1, "{after}");
+    // And the writer-only store a server pushes beside it, the same way.
+    let (_, after) = call(
+        reqwest::Method::GET,
+        format!("{base}/api/hub/db/notes/list?prefix=moul/writer-only/ltx/1/"),
         Some(&token),
         None,
     )

@@ -228,32 +228,124 @@ impl Local for StoreLocal<'_> {
     }
 
     fn save_conflict(&mut self, copy: ConflictCopy) -> BoxFuture<'_, Result<String>> {
-        Box::pin(async move {
-            #[cfg(not(target_arch = "wasm32"))]
-            if let Some(dir) = &self.conflicts {
-                let fail = |e: std::io::Error| {
-                    Error::new(ErrorKind::Local, format!("cannot keep {}: {e}", copy.name))
-                };
-                std::fs::create_dir_all(dir).map_err(fail)?;
-                let path = dir.join(&copy.name);
-                let tmp = dir.join(format!(".{}.tmp", copy.name));
-                {
-                    use std::io::Write;
-                    let mut f = std::fs::File::create(&tmp).map_err(fail)?;
-                    f.write_all(&copy.bytes)
-                        .and_then(|()| f.sync_all())
-                        .map_err(fail)?;
-                }
-                std::fs::rename(&tmp, &path).map_err(fail)?;
-                return Ok(path.display().to_string());
-            }
-            Err(Error::new(
-                ErrorKind::Local,
-                format!(
-                    "this device holds TXIDs {}-{} the replica does not ({}), and has nowhere to keep them",
-                    copy.from, copy.to, copy.reason
-                ),
-            ))
-        })
+        Box::pin(async move { keep_conflict(self.conflicts.as_deref(), copy) })
+    }
+}
+
+/// Writes `copy` into `dir`, durably, and returns its path. Refuses, so
+/// that sync stops rather than replace what it cannot keep, without a
+/// folder or in the browser.
+fn keep_conflict(dir: Option<&std::path::Path>, copy: ConflictCopy) -> Result<String> {
+    #[cfg(not(target_arch = "wasm32"))]
+    if let Some(dir) = dir {
+        let fail = |e: std::io::Error| {
+            Error::new(ErrorKind::Local, format!("cannot keep {}: {e}", copy.name))
+        };
+        std::fs::create_dir_all(dir).map_err(fail)?;
+        let path = dir.join(&copy.name);
+        let tmp = dir.join(format!(".{}.tmp", copy.name));
+        {
+            use std::io::Write;
+            let mut f = std::fs::File::create(&tmp).map_err(fail)?;
+            f.write_all(&copy.bytes)
+                .and_then(|()| f.sync_all())
+                .map_err(fail)?;
+        }
+        std::fs::rename(&tmp, &path).map_err(fail)?;
+        return Ok(path.display().to_string());
+    }
+    #[cfg(target_arch = "wasm32")]
+    let _ = dir;
+    Err(Error::new(
+        ErrorKind::Local,
+        format!(
+            "this device holds TXIDs {}-{} the replica does not ({}), and has nowhere to keep them",
+            copy.from, copy.to, copy.reason
+        ),
+    ))
+}
+
+/// Where the writer-only store's sync keeps its device state, beside the
+/// shared store's (`state`) in the device store.
+const WRITER_ONLY_STATE: &str = "writer-only";
+
+/// A store's writer-only store (`writer.db`) and its capture, as sync uses
+/// them: what a writer pushes to the replica under
+/// [`WRITER_ONLY_PREFIX`](crate::layout::WRITER_ONLY_PREFIX) with a second
+/// [`Sync`](crate::Sync) over [`Prefixed::writer_only`](crate::Prefixed::writer_only).
+///
+/// Its device state is kept apart from the shared store's, under the same
+/// device ID. Conflict copies go to the same folder as the shared store's,
+/// named `writer-only-conflict-…`. Telling it the role changes nothing: the
+/// shared store's sync decides whether the host writes.
+pub struct WriterOnlyLocal<'a> {
+    /// The stores.
+    pub store: &'a mut Store,
+    /// The capture of `writer.db`.
+    pub capture: Capture,
+    /// Where conflict copies go, as for [`StoreLocal::conflicts`].
+    pub conflicts: Option<PathBuf>,
+}
+
+impl std::fmt::Debug for WriterOnlyLocal<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WriterOnlyLocal")
+            .field("capture", &self.capture)
+            .finish_non_exhaustive()
+    }
+}
+
+impl Local for WriterOnlyLocal<'_> {
+    fn capture(&self) -> Capture {
+        self.capture.clone()
+    }
+
+    fn apply(&mut self, ltx: &[u8], mode: ApplyMode) -> Result<Position> {
+        store_apply(self.store, &self.capture, ltx, mode)
+    }
+
+    fn fence(&mut self) -> Result<Txid> {
+        Ok(self.capture.fence(self.store.volume())?)
+    }
+
+    fn rebase(&mut self) -> Result<Option<Txid>> {
+        Ok(self.capture.rebase(self.store.volume())?)
+    }
+
+    fn export(&mut self) -> Result<Vec<u8>> {
+        Ok(self.store.volume().export(&self.capture.file())?)
+    }
+
+    fn has_data(&mut self) -> Result<bool> {
+        let n: i64 =
+            self.store
+                .conn()
+                .query_row("SELECT count(*) FROM writer.sqlite_schema", [], |r| {
+                    r.get(0)
+                })?;
+        Ok(n > 0)
+    }
+
+    fn load_state(&mut self) -> Result<Option<DeviceState>> {
+        match store_get(self.store, WRITER_ONLY_STATE)? {
+            Some(json) => serde_json::from_str(&json)
+                .map(Some)
+                .map_err(|e| Error::new(ErrorKind::Local, format!("bad sync state: {e}"))),
+            // First use: the same device as the shared store's sync.
+            None => Ok(store_load_state(self.store)?.map(|s| DeviceState {
+                device: s.device,
+                ..DeviceState::default()
+            })),
+        }
+    }
+
+    fn save_state(&mut self, state: &DeviceState) -> Result<()> {
+        let json = serde_json::to_string(state).expect("state serializes");
+        store_set(self.store, WRITER_ONLY_STATE, Some(&json))
+    }
+
+    fn save_conflict(&mut self, mut copy: ConflictCopy) -> BoxFuture<'_, Result<String>> {
+        copy.name = format!("writer-only-{}", copy.name);
+        Box::pin(async move { keep_conflict(self.conflicts.as_deref(), copy) })
     }
 }

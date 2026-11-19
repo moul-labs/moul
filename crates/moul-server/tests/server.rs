@@ -637,6 +637,16 @@ async fn replicates_to_a_folder_that_restores() {
     })
     .await;
     let c = client();
+    let (s, _, b) = send(
+        json_post(
+            &c,
+            format!("{base}/api/setup"),
+            json!({"username": "root", "email": "root@x.co", "password": "supersecret1A"}),
+        )
+        .header("X-Admin-Key", KEY),
+    )
+    .await;
+    assert!(s < 300, "{s} {b}");
     notes(&c, &base, json!({})).await;
     for i in 0..3 {
         send(json_post(
@@ -646,18 +656,71 @@ async fn replicates_to_a_folder_that_restores() {
         ))
         .await;
     }
-    // Stopping pushes what is left.
+    // Stopping pushes what is left, of both stores.
     srv.stop().await;
     let replica = moul_sync::DirReplica::new(dir.join("replica"));
-    let (_, bytes) = moul_sync::block_on(moul_sync::restore::restore_db(&replica, None)).unwrap();
+    let restore = |r: &dyn moul_sync::Replica| {
+        moul_sync::block_on(moul_sync::restore::restore_db(r, None))
+            .unwrap()
+            .1
+    };
+    let shared = restore(&replica);
     let out = dir.join("restored.db");
-    std::fs::write(&out, bytes).unwrap();
+    std::fs::write(&out, &shared).unwrap();
     let conn = rusqlite::Connection::open(&out).unwrap();
     let n: i64 = conn
         .query_row("SELECT count(*) FROM notes", [], |r| r.get(0))
         .unwrap();
     assert_eq!(n, 3);
+    let roots: i64 = conn
+        .query_row(
+            "SELECT count(*) FROM sqlite_schema WHERE name = '_rootUsers'",
+            [],
+            |r| r.get(0),
+        )
+        .unwrap();
+    assert_eq!(roots, 0, "secrets stay out of the shared store");
+
+    // The writer-only store sits beside it, and restores on its own.
+    assert!(
+        dir.join("replica/moul/writer-only/moul/head.json")
+            .is_file()
+    );
+    let writer_only = restore(&moul_sync::Prefixed::writer_only(&replica));
+    let out = dir.join("restored-writer.db");
+    std::fs::write(&out, &writer_only).unwrap();
+    let conn = rusqlite::Connection::open(&out).unwrap();
+    let root: String = conn
+        .query_row("SELECT username FROM _rootUsers", [], |r| r.get(0))
+        .unwrap();
+    assert_eq!(root, "root");
+
+    // A server on the two restored files is the same server: its root user
+    // signs in with the same password.
+    let (srv2, base2, dir2) = server("replica-restored", |c| {
+        std::fs::create_dir_all(&c.dir).unwrap();
+        std::fs::write(c.dir.join("main.db"), &shared).unwrap();
+        std::fs::write(c.dir.join("writer.db"), &writer_only).unwrap();
+    })
+    .await;
+    let login = |password: &str| {
+        json_post(
+            &c,
+            format!("{base2}/api/admin/login"),
+            json!({"identity": "root", "password": password}),
+        )
+        .header("X-Admin-Key", KEY)
+    };
+    let (s, _, b) = send(login("wrong password")).await;
+    assert_eq!(s, 400, "{b}");
+    let (s, _, b) = send(login("supersecret1A")).await;
+    assert_eq!(s, 200, "{b}");
+    assert!(b["token"].is_string(), "{b}");
+    let (_, _, list) = send(c.get(format!("{base2}/api/moul/notes/records"))).await;
+    assert_eq!(list["items"].as_array().map(Vec::len), Some(3), "{list}");
+    srv2.stop().await;
     let _ = std::fs::remove_dir_all(dir);
+    let _ = std::fs::remove_dir_all(dir2);
 }
 
 #[tokio::test]
@@ -849,6 +912,13 @@ async fn a_read_only_server_never_claims_its_replica() {
             .join("moul")
             .join("writer.json")
             .exists()
+    );
+    assert!(
+        !dir.join("replica")
+            .join("moul")
+            .join("writer-only")
+            .exists(),
+        "a server that does not write never pushes its writer-only store"
     );
     let (s, _, _) = send(
         json_post(

@@ -44,6 +44,7 @@ pub fn open_db(config: &ServerConfig) -> Result<(DbHandle, DbThread, Opened), St
         let open::Opened {
             engine,
             capture,
+            writer_capture,
             admin_key,
             lock,
         } = opened;
@@ -65,6 +66,7 @@ pub fn open_db(config: &ServerConfig) -> Result<(DbHandle, DbThread, Opened), St
                 chores.push(Box::new(Replicate::new(
                     r,
                     capture,
+                    writer_capture,
                     cfg.dir.join("conflicts"),
                     &label,
                     cfg.follower,
@@ -72,7 +74,7 @@ pub fn open_db(config: &ServerConfig) -> Result<(DbHandle, DbThread, Opened), St
                 Some(d)
             }
             None => {
-                chores.push(Box::new(Release::new(capture)));
+                chores.push(Box::new(Release::new(capture, writer_capture)));
                 None
             }
         };

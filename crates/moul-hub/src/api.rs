@@ -1004,7 +1004,9 @@ async fn admin_invite(State(state): State<AppState>, req: Request) -> Response {
 }
 
 /// Compacts databases that were pushed to, every minute: level 1 every 5
-/// minutes, level 2 every hour, a snapshot a day, 7 days of history.
+/// minutes, level 2 every hour, a snapshot a day, 7 days of history. The
+/// writer-only store a server pushes under `moul/writer-only/` is compacted
+/// the same way.
 pub fn spawn_maintenance(state: AppState, hub: Arc<Hub>) {
     tokio::spawn(async move {
         let mut tick = tokio::time::interval(Duration::from_secs(60));
@@ -1045,19 +1047,26 @@ pub async fn maintain_due(state: &AppState, hub: &Hub) -> usize {
         let report = hub
             .store
             .with(&account, &name, |r| {
-                let head = block_on(r.get(moul_sync::layout::HEAD_KEY))
-                    .ok()
-                    .flatten()
-                    .and_then(|o| serde_json::from_slice::<moul_sync::layout::Head>(&o.bytes).ok());
-                if let Some(h) = head {
-                    block_on(moul_sync::maintain::maintain(
-                        r,
-                        moul_ltx::Txid(h.txid),
-                        None,
-                        &moul_sync::Retention::default(),
-                        moul_vfs::system_clock(),
-                    ))
-                    .map_err(|e| e.to_string())?;
+                // The shared store, then the writer-only store a server
+                // pushes beside it, in the same layout.
+                let writer_only = moul_sync::Prefixed::writer_only(r);
+                for store in [r, &writer_only as &dyn moul_sync::Replica] {
+                    let head = block_on(store.get(moul_sync::layout::HEAD_KEY))
+                        .ok()
+                        .flatten()
+                        .and_then(|o| {
+                            serde_json::from_slice::<moul_sync::layout::Head>(&o.bytes).ok()
+                        });
+                    if let Some(h) = head {
+                        block_on(moul_sync::maintain::maintain(
+                            store,
+                            moul_ltx::Txid(h.txid),
+                            None,
+                            &moul_sync::Retention::default(),
+                            moul_vfs::system_clock(),
+                        ))
+                        .map_err(|e| e.to_string())?;
+                    }
                 }
                 let bytes: i64 = block_on(r.list(""))
                     .map_err(|e| e.to_string())?

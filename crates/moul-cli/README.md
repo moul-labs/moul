@@ -22,7 +22,8 @@ moul mcp <folder> [--read-only]
 moul hub [<folder>] [--listen <addr>] [--store <store>] [--signup open|invite|closed]
 moul login <hub>
 moul logout <hub>
-moul restore <replica> -o notes.db [--txid <n>] [--force]
+moul restore <replica> -o notes.db [--txid <n>] [--writer-only] [--force]
+moul restore <replica> -o ./notes/ [--force]
 moul pull <replica> ./notes [--watch] [--every <seconds>]
 moul info <replica>
 moul schema <database> [-o moul.schema.json]
@@ -42,7 +43,12 @@ moul check [<schema file | database>] [--json] [--strict]
   `moul+https://<hub>/<database>`.
 - **`restore`** rebuilds the database a replica holds into a plain SQLite
   file and checks its integrity, as `litestream restore` does. `--txid`
-  restores an earlier state still in the replica's history.
+  restores an earlier state still in the replica's history. `--writer-only`
+  restores the writer-only store a server pushes beside it (root users,
+  password hashes, keys, settings, the outbox) instead. Given a folder (one
+  that exists, or a path ending in `/`), it restores both, as `main.db` and
+  `writer.db`, for `moul serve` to open; it refuses a folder that holds
+  anything else, such as a server's commit log.
 - **`pull`** keeps a local copy in a folder, following the replica's writer.
   `./notes/main.db` is byte for byte the writer's file and any SQLite tool can
   read it while `moul` is not running. `--watch` keeps following, every 3

@@ -9,7 +9,7 @@ use std::time::Duration;
 use moul_ltx::{SNAPSHOT_LEVEL, Txid};
 use moul_store::Store;
 use moul_sync::layout::{HEAD_KEY, Head, WRITER_KEY, WriterRecord, list_files};
-use moul_sync::{Options, Replica, Role, StoreLocal, Sync, block_on, rfc3339};
+use moul_sync::{Options, Prefixed, Replica, Role, StoreLocal, Sync, block_on, rfc3339};
 use moul_vfs::{Capture, DiskStorage, Volume};
 
 const USAGE: &str = "\
@@ -42,9 +42,15 @@ Usage:
       in ~/.config/moul/hubs.json for pull, restore, info and serve.
   moul logout <hub>
       Revoke this computer's token at the hub and forget it.
-  moul restore <replica> -o <file> [--txid <n>] [--force]
+  moul restore <replica> -o <file> [--txid <n>] [--writer-only] [--force]
+  moul restore <replica> -o <folder>/ [--force]
       Rebuild the database a replica holds into a plain SQLite file, as
       `litestream restore` does. --txid restores an earlier state.
+      --writer-only restores the writer-only store instead (root users,
+      password hashes, keys, settings, the outbox), which a server pushes
+      beside the shared store while it writes. Given a folder (one that
+      exists, or a path ending in /), restores both as main.db and
+      writer.db, ready for `moul serve <folder>`.
   moul pull <replica> <folder> [--watch] [--every <seconds>]
       Keep a local copy of a replica in <folder>, following its writer.
       <folder>/main.db is a SQLite file other tools can read while moul is
@@ -182,31 +188,90 @@ fn open_replica(spec: &str) -> Result<Box<dyn Replica>> {
 }
 
 fn restore(args: &[String]) -> Result<()> {
-    let a = Args::parse(args, &["-o", "--output", "--txid"], &["--force", "-f"])?;
+    let a = Args::parse(
+        args,
+        &["-o", "--output", "--txid"],
+        &["--force", "-f", "--writer-only"],
+    )?;
     let spec = a.positional(0, "the replica")?;
     a.arity(1)?;
-    let out = PathBuf::from(
-        a.value(&["-o", "--output"])
-            .ok_or("missing -o <file>: where to write the database")?,
-    );
+    let out_arg = a
+        .value(&["-o", "--output"])
+        .ok_or("missing -o <file>: where to write the database")?;
+    let out = PathBuf::from(out_arg);
     let target = match a.value(&["--txid"]) {
         Some(t) => Some(Txid(parse_txid(t)?)),
         None => None,
     };
-    if out.exists() && !(a.has("--force") || a.has("-f")) {
+    let force = a.has("--force") || a.has("-f");
+    let writer_only = a.has("--writer-only");
+    if out_arg.ends_with(std::path::is_separator) || out.is_dir() {
+        if target.is_some() {
+            return Err(
+                "--txid is a moment in one store; give -o <file> to restore one store at a TXID"
+                    .into(),
+            );
+        }
+        if writer_only {
+            return Err("--writer-only restores one store; give -o <file>".into());
+        }
+        let replica = open_replica(spec)?;
+        return restore_folder(replica.as_ref(), &out, force);
+    }
+    if out.exists() && !force {
         return Err(format!(
             "{} exists; pass --force to replace it",
             out.display()
         ));
     }
     let replica = open_replica(spec)?;
-    let (header, db) = block_on(moul_sync::restore::restore_db(replica.as_ref(), target))
-        .map_err(|e| e.to_string())?;
+    let prefixed;
+    let source: &dyn Replica = if writer_only {
+        prefixed = Prefixed::writer_only(replica.as_ref());
+        if block_on(list_files(&prefixed))
+            .map_err(|e| e.to_string())?
+            .is_empty()
+        {
+            return Err(no_writer_only(replica.as_ref()));
+        }
+        &prefixed
+    } else {
+        replica.as_ref()
+    };
+    let (header, db) =
+        block_on(moul_sync::restore::restore_db(source, target)).map_err(|e| e.to_string())?;
+    let tmp = stage(&out, &db)?;
+    fs::rename(&tmp, &out).map_err(|e| format!("cannot write {}: {e}", out.display()))?;
+    println!(
+        "restored {}TXID {} ({} pages of {} bytes) to {}",
+        if writer_only {
+            "the writer-only store at "
+        } else {
+            ""
+        },
+        header.max_txid.0,
+        header.commit,
+        header.page_size,
+        out.display()
+    );
+    Ok(())
+}
+
+fn no_writer_only(replica: &dyn Replica) -> String {
+    format!(
+        "{} holds no writer-only store; a server pushes one while it writes (moul serve --replica)",
+        replica.describe()
+    )
+}
+
+/// Writes `db` beside `out` and checks it, without replacing `out` yet.
+/// Returns the file written, for the caller to rename into place.
+fn stage(out: &Path, db: &[u8]) -> Result<PathBuf> {
     let tmp = out.with_extension("moul-restore.tmp");
     {
         let mut f =
             File::create(&tmp).map_err(|e| format!("cannot write {}: {e}", tmp.display()))?;
-        f.write_all(&db)
+        f.write_all(db)
             .and_then(|()| f.sync_all())
             .map_err(|e| format!("cannot write {}: {e}", tmp.display()))?;
     }
@@ -214,14 +279,92 @@ fn restore(args: &[String]) -> Result<()> {
         let _ = fs::remove_file(&tmp);
         return Err(e);
     }
-    fs::rename(&tmp, &out).map_err(|e| format!("cannot write {}: {e}", out.display()))?;
+    Ok(tmp)
+}
+
+/// Restores both stores into `dir` as `main.db` and `writer.db`: a folder
+/// `moul serve` opens with its root users, keys and settings. Only into a
+/// folder that holds nothing else, because a server's folder holds a commit
+/// log that would replay over the restored files.
+fn restore_folder(replica: &dyn Replica, dir: &Path, force: bool) -> Result<()> {
+    const FILES: [&str; 2] = ["main.db", "writer.db"];
+    if dir.exists() {
+        let entries =
+            fs::read_dir(dir).map_err(|e| format!("cannot read {}: {e}", dir.display()))?;
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("cannot read {}: {e}", dir.display()))?;
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.ends_with(".moul-restore.tmp") {
+                continue; // left by a restore that stopped; written afresh
+            }
+            if !FILES.contains(&name.as_str()) {
+                return Err(format!(
+                    "{} holds other files ({name}); restore into a new folder",
+                    dir.display()
+                ));
+            }
+            if !force {
+                return Err(format!(
+                    "{} exists; pass --force to replace it",
+                    entry.path().display()
+                ));
+            }
+        }
+    }
+    fs::create_dir_all(dir).map_err(|e| format!("cannot create {}: {e}", dir.display()))?;
+    let restore = |r: &dyn Replica| {
+        block_on(moul_sync::restore::restore_db(r, None)).map_err(|e| e.to_string())
+    };
+    let shared = restore(replica)?;
+    let prefixed = Prefixed::writer_only(replica);
+    let writer_only = if block_on(list_files(&prefixed))
+        .map_err(|e| e.to_string())?
+        .is_empty()
+    {
+        None
+    } else {
+        Some(restore(&prefixed)?)
+    };
+    // Both are checked before either lands.
+    let main_path = dir.join(FILES[0]);
+    let writer_path = dir.join(FILES[1]);
+    let main_tmp = stage(&main_path, &shared.1)?;
+    let writer_tmp = match &writer_only {
+        Some((_, db)) => match stage(&writer_path, db) {
+            Ok(t) => Some(t),
+            Err(e) => {
+                let _ = fs::remove_file(&main_tmp);
+                return Err(e);
+            }
+        },
+        None => None,
+    };
+    let write = |e: std::io::Error| format!("cannot write into {}: {e}", dir.display());
+    fs::rename(&main_tmp, &main_path).map_err(write)?;
+    match writer_tmp {
+        Some(t) => fs::rename(&t, &writer_path).map_err(write)?,
+        // A writer.db left from before belongs to another database.
+        None if writer_path.exists() => fs::remove_file(&writer_path).map_err(write)?,
+        None => {}
+    }
+    let h = shared.0;
     println!(
         "restored TXID {} ({} pages of {} bytes) to {}",
-        header.max_txid.0,
-        header.commit,
-        header.page_size,
-        out.display()
+        h.max_txid.0,
+        h.commit,
+        h.page_size,
+        main_path.display()
     );
+    match writer_only {
+        Some((h, _)) => println!(
+            "restored the writer-only store at TXID {} ({} pages of {} bytes) to {}",
+            h.max_txid.0,
+            h.commit,
+            h.page_size,
+            writer_path.display()
+        ),
+        None => println!("note: {}", no_writer_only(replica)),
+    }
     Ok(())
 }
 
@@ -423,9 +566,22 @@ fn info(args: &[String]) -> Result<()> {
         {
             println!("head      TXID {} at {}", h.txid, rfc3339(h.at));
         }
+        let writer_only = Prefixed::writer_only(replica.as_ref());
+        let held = list_files(&writer_only).await.map_err(err)?;
+        let writer_only = match moul_ltx::restore::plan(&held, None) {
+            _ if held.is_empty() => "writer-only  none".to_owned(),
+            Ok(plan) => format!(
+                "writer-only  TXID {}, {} files, {} bytes",
+                plan.last().map_or(0, |f| f.max_txid.0),
+                held.len(),
+                held.iter().map(|f| f.size).sum::<u64>()
+            ),
+            Err(e) => format!("writer-only  restores nothing: {e}"),
+        };
         let files = list_files(replica.as_ref()).await.map_err(err)?;
         if files.is_empty() {
             println!("files     none");
+            println!("{writer_only}");
             return Ok(());
         }
         for level in 0..=SNAPSHOT_LEVEL {
@@ -463,6 +619,7 @@ fn info(args: &[String]) -> Result<()> {
             }
             Err(e) => println!("restores  nothing: {e}"),
         }
+        println!("{writer_only}");
         Ok(())
     })
 }

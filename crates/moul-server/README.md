@@ -53,7 +53,7 @@ running.stop().await;
 
 | Suite | Shows |
 | --- | --- |
-| `tests/server.rs` | A real server over loopback HTTP: live events and tickets, CORS and challenges, the request log, rate limits, signed webhooks and private addresses refused, the OAuth flow into MCP, the device flow, replication that restores, and a folder filled from a file |
+| `tests/server.rs` | A real server over loopback HTTP: live events and tickets, CORS and challenges, the request log, rate limits, signed webhooks and private addresses refused, the OAuth flow into MCP, the device flow, replication that restores both stores (a server on the restored files signs its root user in), a read-only server that pushes neither, and a folder filled from a file |
 | `tests/go_parity.rs` | The Go engine's recorded traffic replayed through the whole server; decisions listed in `DECIDED` |
 
 ## License

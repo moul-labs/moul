@@ -23,7 +23,7 @@ notes/main.db     the shared store: a SQLite file other tools can read
 notes/writer.db   secrets and logs: password hashes, keys, settings, the request log
 notes/device.db   this server's own state
 notes/files/      uploads, named by SHA-256
-notes/ltx/        commits not yet pushed to the replica
+notes/ltx/        commits not yet pushed to the replica (ltx/writer-only/ for writer.db)
 ```
 
 One process uses a folder at a time. `--from <file>` fills a new folder from
@@ -109,12 +109,44 @@ through the engine like Studio's, checked and recorded in the change log.
 ## Replication and backups
 
 `--replica` pushes every commit as it lands, as Litestream does, and compacts
-the replica. `litestream restore` and `moul restore` rebuild the database from
-it. A server whose replica another device takes over becomes a follower and
-refuses writes until it takes the role back.
+the replica. It pushes both stores a server writes:
 
-The writer-only store (root users, password hashes, keys, settings) is not in
-the replica yet; back up `writer.db` with the folder.
+```text
+<replica>/ltx/…, moul/head.json, moul/writer.json    main.db, as Litestream lays it out
+<replica>/moul/writer-only/ltx/…, moul/…             writer.db, in the same layout
+```
+
+The shared store is byte for byte the replica Litestream writes, so
+`litestream restore` rebuilds it and ignores the rest. The writer-only store
+(root users, password hashes, signing keys, settings, queued mail, webhook
+calls and jobs, the request log) is a replica of its own beside it: Litestream
+pointed at `<replica>/moul/writer-only` restores it too. Like the shared
+store it is not encrypted, so whoever can read the replica can read its
+password hashes and keys: anyone with the bucket's credentials, or on a hub,
+any device that reaches the database.
+
+`moul restore` rebuilds either store, or both into a folder that `moul serve`
+opens as the same server, root users and all:
+
+```sh
+moul restore s3://backups/notes -o notes.db                 # the shared store
+moul restore s3://backups/notes -o writer.db --writer-only  # the writer-only store
+moul restore s3://backups/notes -o ./notes-restored/        # both, as main.db and writer.db
+moul serve ./notes-restored
+```
+
+Each store has its own TXIDs, so `--txid` picks a moment in one store; a
+folder gets the newest state of both. The two are pushed one after the other,
+so after a crash the newest writer-only store can be a second or so behind or
+ahead of the shared one. Serve a restored folder with a new replica, or with
+none: with its old one it follows that replica's writer, as below.
+
+Only the server that writes pushes the writer-only store. Its sync only ever
+pushes: it never takes another device's writer-only store in place of its
+own, and stops with an error in the log if the replica's is someone else's.
+A server whose replica another device takes over becomes a follower and
+refuses writes until it takes the role back; meanwhile its own `writer.db`
+stays local and is not pushed.
 
 ## Where it departs from the Go engine
 
