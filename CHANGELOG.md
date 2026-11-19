@@ -28,6 +28,11 @@ The engine runs as a server, and devices can sync through a hub instead of a buc
   both stores into a folder `moul serve` opens as the same server.
 - **The engine** serves settings, root users, feature flags, jobs, webhooks and OAuth sign-in in
   every host, and writes mail, webhook calls and jobs as rows a server sends once.
+- **Invalid rules are refused when saved.** Creating or changing a collection, or applying a
+  schema file, answers 400 naming the rule when one does not compile, instead of storing it and
+  failing every later list with a 500. Studio shows the message under the rule. `moul check`
+  also catches a list rule that calls `exists(`, reads `@request.body`, or names a collection or
+  field with `@collection` that does not exist.
 - The parity suites now cover the server's routes; where Moul departs from Go (secrets never read
   back, checked OAuth state, registered MCP clients only, retried webhooks, …) each difference is
   a written decision.

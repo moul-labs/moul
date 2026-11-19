@@ -209,6 +209,8 @@ pub(crate) fn apply(cx: &mut Cx<'_>, file: &Value, prune: bool) -> ApiResult<App
     }
     let mut applied = Applied::default();
     let mut touched = Vec::new();
+    // Collections created or changed, whose rules are checked at the end.
+    let mut saved = Vec::new();
     let mut kept_ids: Vec<String> = Vec::new();
     // Creating in file order lets later collections point at earlier ones.
     for want in wanted {
@@ -225,6 +227,7 @@ pub(crate) fn apply(cx: &mut Cx<'_>, file: &Value, prune: bool) -> ApiResult<App
                 let made = collections::create_collection(cx, want)?;
                 applied.created.push(made.name.clone());
                 touched.push(made.id.clone());
+                saved.push(made.id.clone());
                 kept_ids.push(made.id);
             }
             Some(old) => {
@@ -251,9 +254,10 @@ pub(crate) fn apply(cx: &mut Cx<'_>, file: &Value, prune: bool) -> ApiResult<App
                     applied.unchanged.push(old.name.clone());
                     continue;
                 }
-                let saved = collections::update_collection_with(cx, &old, probe, false)?;
-                applied.updated.push(saved.name.clone());
-                touched.push(saved.id);
+                let changed = collections::update_collection_with(cx, &old, probe, false)?;
+                applied.updated.push(changed.name.clone());
+                touched.push(changed.id.clone());
+                saved.push(changed.id);
             }
         }
     }
@@ -280,6 +284,9 @@ pub(crate) fn apply(cx: &mut Cx<'_>, file: &Value, prune: bool) -> ApiResult<App
             }
         }
     }
+    // Once every collection is in place, so a rule may name one the file
+    // makes later.
+    crate::rules::refuse_broken(cx, &saved, true)?;
     if prune {
         for c in cx.collections()? {
             if !kept_ids.contains(&c.id) {

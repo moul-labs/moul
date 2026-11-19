@@ -60,7 +60,9 @@ fn check_name_free(cx: &mut Cx<'_>, c: &Collection) -> ApiResult<()> {
 }
 
 /// Saves a new collection and creates its table. Shared by the HTTP
-/// handler, imports of a schema file and tests.
+/// handler, imports of a schema file and tests. Its rules are not checked:
+/// the caller checks them once every collection it saves is in place
+/// ([`crate::rules::refuse_broken`]).
 pub(crate) fn create_collection(cx: &mut Cx<'_>, mut c: Collection) -> ApiResult<Collection> {
     if !matches!(
         c.kind,
@@ -105,6 +107,7 @@ pub(crate) fn create(cx: &mut Cx<'_>) -> ApiResult {
     let c: Collection = serde_json::from_value(Value::Object(body))
         .map_err(|_| ApiError::bad_request("Invalid request body"))?;
     let c = create_collection(cx, c)?;
+    crate::rules::refuse_broken(cx, std::slice::from_ref(&c.id), false)?;
     Ok(Response::json(201, c.to_json()))
 }
 
@@ -177,7 +180,8 @@ fn apply_patch(c: &mut Collection, body: &Map<String, Value>) -> Result<(), Stri
 
 /// Replaces the definition of `old` with `new`: renames the table, moves
 /// file references and relation targets with it, and changes columns by
-/// field id. Returns the saved definition.
+/// field id. Returns the saved definition. Its rules are not checked, as in
+/// [`create_collection`].
 pub(crate) fn update_collection(
     cx: &mut Cx<'_>,
     old: &Collection,
@@ -296,6 +300,7 @@ pub(crate) fn update(cx: &mut Cx<'_>, name: &str) -> ApiResult {
     let mut new = old.clone();
     apply_patch(&mut new, &body).map_err(ApiError::bad_request)?;
     let new = update_collection(cx, &old, new)?;
+    crate::rules::refuse_broken(cx, std::slice::from_ref(&new.id), false)?;
     Ok(Response::json(200, new.to_json()))
 }
 

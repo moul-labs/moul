@@ -222,7 +222,8 @@ fn the_file_and_each_definition_are_read_first() {
     // What only applying finds, blamed on its collection.
     let file = schema(vec![
         teams(),
-        json!({"id": "not an id!", "name": "posts", "rules": closed()}),
+        json!({"id": "not an id!", "name": "posts", "rules": closed(),
+               "fields": [{"name": "owner", "type": "text"}]}),
     ]);
     write(&dir, "apply.json", &file);
     let r = check_in(&dir, &["apply.json"]);
@@ -346,7 +347,8 @@ fn checks_a_database_made_by_the_engine_without_changing_it() {
     assert_eq!(r.code, 1, "{}", r.stdout);
     assert_eq!(r.json()["collections"], 2);
 
-    // The engine stores rules as given, so a database can hold a broken one.
+    // The engine refuses a broken rule, but a database the Go engine made
+    // can hold one.
     let r = engine.handle(
         Request::patch(
             "/api/moul/tasks",
@@ -354,8 +356,16 @@ fn checks_a_database_made_by_the_engine_without_changing_it() {
         )
         .owner(),
     );
-    assert_eq!(r.status, 200, "{:?}", r.body);
-    std::fs::write(dir.join("broken.db"), engine.store().export().unwrap()).unwrap();
+    assert_eq!(r.status, 400, "{:?}", r.body);
+    let broken = dir.join("broken.db");
+    std::fs::write(&broken, engine.store().export().unwrap()).unwrap();
+    rusqlite::Connection::open(&broken)
+        .unwrap()
+        .execute(
+            "UPDATE _moul SET rules = json_set(rules, '$.listRule', ?1) WHERE name = 'tasks'",
+            ["ownr = ''"],
+        )
+        .unwrap();
     let r = check_in(&dir, &["broken.db"]);
     assert_eq!(r.code, 1, "{}", r.stdout);
     assert!(

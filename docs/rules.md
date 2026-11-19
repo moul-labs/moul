@@ -16,7 +16,24 @@ An **empty rule lets everyone through**, guests included, with one exception: on
 collection, an empty list, view, update or delete rule is stored as `id = @request.auth.id`, so
 people see and change only their own account. Write `true` to open one of those to everyone. The
 owner (Studio, and clients made with `owner: true`) is never checked. Run [`moul check`](testing.md#moul-check) to catch rules that are
-open by mistake and fields that do not exist.
+open by mistake.
+
+## Invalid rules are refused
+
+Saving a collection (`POST /api/moul`, `PATCH /api/moul/{name}`, `POST /api/schema`, or Studio's
+Save) compiles each of its rules against the collections as they are once the save is made, and
+refuses a rule that does not compile, a field that does not exist included: nothing is saved,
+and the answer is a 400 naming the rule.
+
+```json
+{ "message": "Invalid listRule: invalid field \"ownr\"", "rule": "listRule" }
+```
+
+A schema file is checked once all of it is applied, so a rule may reach a collection the file
+makes later; the message names the collection too. A change that breaks a rule which compiled,
+such as removing a field it reads, is refused the same way. A database made by the Go engine,
+which stored any rule text, opens with its rules as they are; a broken one is refused the next
+time its collection is saved. `moul check` reports every broken rule at once.
 
 ## Common rules
 
@@ -35,7 +52,8 @@ id = @request.auth.id                                   (auth collections) your 
 ## What a rule can use
 
 - **The record's fields**, by name: `owner`, `status`, `title`. In list rules and filters, relation
-  paths reach into the related record: `project.owner = @request.auth.id`.
+  paths reach into the related record: `project.owner = @request.auth.id`. The other rules are
+  checked against one record, which holds only the related record's id.
 - **`@request.auth.*`**: the signed-in person (`id`, `email`, `username` and their record's
   fields). Empty for a guest.
 - **`@request.body.*`**: the data a create or update sends (not in list rules: a list has no
@@ -53,7 +71,8 @@ id = @request.auth.id                                   (auth collections) your 
   double quotes.
 - **Functions**: `exists(table, condition, …)` and `get(…)` read other tables directly. A rule
   that uses them makes every live query on the collection refresh on every commit, because it may
-  read any table. `strftime(…)` formats a date.
+  read any table. `strftime(…)` formats a date. A list rule becomes part of the query and calls no
+  function: use `@collection.<name>.<field>` or a relation path there.
 
 The language is the Go engine's, read the same way: the Go version's rule tests are replayed
 against this one, error messages included.

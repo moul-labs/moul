@@ -23,7 +23,7 @@ mod tokenize;
 mod translate;
 
 pub use evaluate::{EvalContext, Lookup, check, evaluate};
-pub use names::{collections_named, record_rule_names};
+pub use names::{collections_named, record_rule_names, rule_errors, rules_by_key};
 pub use sql::{
     FilterOptions, LoadCollection, SortOptions, SqlFilter, filter_sql, is_secret_field,
     is_valid_field, owner_fields, sort_sql,

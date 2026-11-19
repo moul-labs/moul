@@ -10,6 +10,7 @@ import { onPress } from '../lib/press';
 import { router } from '../lib/router';
 import { StoreController } from '../lib/store';
 import { toast } from '../lib/toast';
+import { type RuleErrors, ruleErrorsOf } from '../lib/rule-errors';
 import { baseStyles } from '../styles/base';
 import { pageStyles } from '../styles/page';
 import { validateSchemaFields } from '../utils/fieldValidation';
@@ -152,11 +153,14 @@ export class AdminCollectionPage extends LitElement {
   static override properties = {
     fields: { state: true },
     rules: { state: true },
+    ruleErrors: { state: true },
     isDeleteOpen: { state: true },
   };
 
   declare fields: MoulField[];
   declare rules: MoulRules;
+  /** What the last save said about a rule. */
+  declare ruleErrors: RuleErrors;
   declare isDeleteOpen: boolean;
 
   private get moulName(): string {
@@ -187,6 +191,7 @@ export class AdminCollectionPage extends LitElement {
     super();
     this.fields = [];
     this.rules = { ...EMPTY_RULES };
+    this.ruleErrors = {};
     this.isDeleteOpen = false;
     new StoreController(this, router);
   }
@@ -198,6 +203,7 @@ export class AdminCollectionPage extends LitElement {
       this.loadedMoul = moul;
       this.fields = moul.fields || [];
       this.rules = moul.rules || {};
+      this.ruleErrors = {};
     }
   }
 
@@ -217,8 +223,11 @@ export class AdminCollectionPage extends LitElement {
     });
     try {
       await this.saving.track(tx);
+      this.ruleErrors = {};
       toast.success('Schema Saved', 'Collection schema and associations saved successfully.');
     } catch (err: any) {
+      // A rule that does not compile: the message also goes under that rule.
+      this.ruleErrors = ruleErrorsOf(err);
       toast.error('Save Failed', err?.message || 'Failed to save collection schema.');
     }
   }
@@ -363,7 +372,11 @@ export class AdminCollectionPage extends LitElement {
           <admin-rules-editor
             ?is-auth-collection=${moul?.type === 'auth'}
             .rules=${this.rules}
-            @ruleschange=${(e: CustomEvent<{ rules: MoulRules }>) => (this.rules = e.detail.rules)}
+            .errors=${this.ruleErrors}
+            @ruleschange=${(e: CustomEvent<{ rules: MoulRules; errors: RuleErrors }>) => {
+              this.rules = e.detail.rules;
+              this.ruleErrors = e.detail.errors;
+            }}
           ></admin-rules-editor>
         </moul-card-body>
       </moul-card>

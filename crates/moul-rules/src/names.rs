@@ -1,10 +1,10 @@
-//! The names a record rule reads, checked against its collection before the
-//! rule is saved (`moul check`). The engine itself does not check them.
+//! The rules of a collection checked against it before they are saved: by
+//! the engine on every definition change, and by `moul check`.
 
 use moul_store::schema::{Collection, FieldType};
 
 use crate::go;
-use crate::sql::{LoadCollection, is_valid_field};
+use crate::sql::{FilterOptions, LoadCollection, filter_sql, is_valid_field};
 use crate::tokenize::{Kind, tokenize};
 use crate::translate::is_date_macro;
 use crate::{Error, check};
@@ -63,6 +63,107 @@ pub fn record_rule_names(
             continue;
         }
         if let Err(e) = name(&t.value, collection, load)
+            && !out.contains(&e)
+        {
+            out.push(e);
+        }
+    }
+    out
+}
+
+/// The rules of `collection`, each with the key the API and a schema file
+/// give it, in this order: `listRule`, `viewRule`, `createRule`,
+/// `updateRule`, `deleteRule`, `subscribeRule`.
+pub fn rules_by_key(collection: &Collection) -> [(&'static str, &str); 6] {
+    let r = &collection.rules;
+    [
+        ("listRule", &r.list_rule),
+        ("viewRule", &r.view_rule),
+        ("createRule", &r.create_rule),
+        ("updateRule", &r.update_rule),
+        ("deleteRule", &r.delete_rule),
+        ("subscribeRule", &r.subscribe_rule),
+    ]
+}
+
+/// Checks every rule of `collection` as it will run, and returns each
+/// problem with the key of its rule (see [`rules_by_key`]); an empty list
+/// means every rule compiles.
+///
+/// The list rule is compiled to SQL as a list compiles it ([`filter_sql`]),
+/// relation paths followed through `load`. Its `@collection.<name>.<field>`
+/// conditions become SQL as written, so `load` must find that collection
+/// and field. It cannot call a function (`exists(`, `get(`): only the other
+/// rules can, which are evaluated against one record and checked with
+/// [`record_rule_names`]. A blank list rule and an empty record rule let
+/// everyone through. The caller and the request only supply values, so
+/// neither is needed.
+pub fn rule_errors(
+    collection: &Collection,
+    load: Option<LoadCollection<'_>>,
+) -> Vec<(&'static str, Error)> {
+    let mut out = Vec::new();
+    for (key, rule) in rules_by_key(collection) {
+        if key == "listRule" {
+            if rule.trim().is_empty() {
+                continue;
+            }
+            out.extend(
+                list_rule_errors(rule, collection, load)
+                    .into_iter()
+                    .map(|e| (key, e)),
+            );
+        } else if !rule.is_empty() {
+            out.extend(
+                record_rule_names(rule, collection, load)
+                    .into_iter()
+                    .map(|e| (key, e)),
+            );
+        }
+    }
+    out
+}
+
+/// The problems of a list rule that is not blank; see [`rule_errors`].
+fn list_rule_errors(
+    rule: &str,
+    collection: &Collection,
+    load: Option<LoadCollection<'_>>,
+) -> Vec<Error> {
+    let tokens = tokenize(rule).unwrap_or_default();
+    // Compiling these fails as an "invalid field": say why.
+    if let Some(w) = tokens
+        .windows(2)
+        .find(|w| w[0].is(Kind::Identifier) && w[1].is(Kind::Paren) && w[1].value == "(")
+    {
+        return vec![Error::new(format!(
+            "a list rule cannot call {}(): use @collection.<name>.<field> or a relation path",
+            w[0].value
+        ))];
+    }
+    if let Some(t) = tokens
+        .iter()
+        .find(|t| t.is(Kind::Identifier) && t.value.starts_with("@request.body."))
+    {
+        return vec![Error::new(format!(
+            "a list rule cannot read {}: a list has no body",
+            t.value
+        ))];
+    }
+    let opts = FilterOptions {
+        param_prefix: "rule_",
+        untrusted: false,
+        load,
+        now_ms: 0,
+        cloak_hash: None,
+    };
+    if let Err(e) = filter_sql(rule, collection, None, None, &opts) {
+        return vec![e];
+    }
+    let mut out: Vec<Error> = Vec::new();
+    for t in tokens.iter().filter(|t| t.is(Kind::Identifier)) {
+        if let Some(rest) = t.value.strip_prefix("@collection.")
+            && let Err(e) = collection_column(&t.value, rest, load)
             && !out.contains(&e)
         {
             out.push(e);
@@ -287,6 +388,99 @@ mod tests {
         assert!(collections_named("owner = '@collection.members.user'").is_empty());
         assert!(collections_named("owner = @request.auth.id").is_empty());
         assert!(collections_named("@collection.members.user = 'x").is_empty());
+    }
+
+    fn teams() -> Collection {
+        serde_json::from_value(json!({
+            "name": "teams",
+            "fields": [{"name": "owner", "type": "text"}],
+        }))
+        .unwrap()
+    }
+
+    /// The problems of `tasks` with `rules`, as `key: message`.
+    fn rule_problems(rules: serde_json::Value) -> Vec<String> {
+        let mut c = tasks();
+        c.rules = serde_json::from_value(rules).unwrap();
+        let load = |n: &str| match n {
+            "members" => Some(members()),
+            "teams" => Some(teams()),
+            _ => None,
+        };
+        rule_errors(&c, Some(&load))
+            .into_iter()
+            .map(|(key, e)| format!("{key}: {}", e.message()))
+            .collect()
+    }
+
+    #[test]
+    fn every_rule_is_checked_as_it_runs() {
+        let fine = json!({
+            "listRule": "team.owner = @request.auth.id || @collection.members.user = @request.auth.id",
+            "viewRule": "exists('members', 'user = ?', @request.auth.id) && get('members', 'user = ?', owner) != nil",
+            "createRule": "@request.body.owner = @request.auth.id",
+            "updateRule": "true",
+            "deleteRule": "",
+            "subscribeRule": "",
+        });
+        assert_eq!(rule_problems(fine), Vec::<String>::new());
+        assert_eq!(
+            rule_problems(json!({"listRule": "  "})),
+            Vec::<String>::new()
+        );
+
+        // There is no `!`, and a condition is not a value.
+        assert_eq!(
+            rule_problems(json!({
+                "listRule": "!(title = 'x')",
+                "viewRule": "!(title = 'x')",
+            })),
+            [
+                "listRule: failed to tokenize filter: unexpected character '!' at position 0",
+                "viewRule: failed to translate rule: unexpected character '!' at position 0",
+            ]
+        );
+        assert_eq!(
+            rule_problems(json!({"listRule": "(title = 'x') = false"})),
+            [r#"listRule: unexpected token "=" at position 5"#]
+        );
+        // Fine in a record rule, not in a list rule: a list has no body.
+        assert_eq!(
+            rule_problems(json!({
+                "listRule": "@request.body.title = 'x'",
+                "createRule": "@request.body.title = 'x'",
+            })),
+            ["listRule: a list rule cannot read @request.body.title: a list has no body"]
+        );
+        assert_eq!(
+            rule_problems(json!({"listRule": "exists('members', 'user = ?', @request.auth.id)"})),
+            [
+                "listRule: a list rule cannot call exists(): use @collection.<name>.<field> or a relation path"
+            ]
+        );
+        // `@collection` reads the table as written: it must be a collection.
+        assert_eq!(
+            rule_problems(json!({
+                "listRule": "@collection.moul_sync.key != '' && @collection.members.usr = 'x'",
+            })),
+            [
+                r#"listRule: unknown collection "moul_sync" in "@collection.moul_sync.key""#,
+                r#"listRule: invalid field "usr" in "@collection.members.usr""#,
+            ]
+        );
+        assert_eq!(
+            rule_problems(json!({
+                "listRule": "team.ownr = ''",
+                "deleteRule": "ownr = '' || titel = ''",
+                "subscribeRule": "owner = 'x",
+            })),
+            [
+                r#"listRule: invalid field "ownr" in path "team.ownr""#,
+                r#"deleteRule: invalid field "ownr""#,
+                r#"deleteRule: invalid field "titel""#,
+                "subscribeRule: failed to translate rule: unterminated string literal starting at position 8",
+            ]
+        );
     }
 
     #[test]

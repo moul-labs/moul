@@ -11,6 +11,7 @@ import { LiveQueryController, TransactionController } from '../lib/live-query';
 import { onPress } from '../lib/press';
 import { router } from '../lib/router';
 import { toast } from '../lib/toast';
+import { type RuleErrors, ruleErrorsOf } from '../lib/rule-errors';
 import { baseStyles } from '../styles/base';
 import { pageHeader, pageStyles } from '../styles/page';
 import { validateSchemaFields } from '../utils/fieldValidation';
@@ -142,6 +143,7 @@ export class AdminCollectionsPage extends LitElement {
     newType: { state: true },
     newFields: { state: true },
     newRules: { state: true },
+    newRuleErrors: { state: true },
     error: { state: true },
   };
 
@@ -152,6 +154,8 @@ export class AdminCollectionsPage extends LitElement {
   declare newType: string;
   declare newFields: MoulField[];
   declare newRules: MoulRules;
+  /** What the server said about a rule of the new collection. */
+  declare newRuleErrors: RuleErrors;
   declare error: string | null;
 
   private readonly mouls = new LiveQueryController(this, (q) => q.from({ moul: moulsCollection }));
@@ -170,6 +174,7 @@ export class AdminCollectionsPage extends LitElement {
     this.newType = 'base';
     this.newFields = [];
     this.newRules = { ...EMPTY_RULES };
+    this.newRuleErrors = {};
     this.createTab = 'general';
     this.error = null;
   }
@@ -221,6 +226,9 @@ export class AdminCollectionsPage extends LitElement {
       await this.creating.track(tx);
     } catch (err: any) {
       this.error = err?.message || 'Failed to create collection';
+      // A rule that does not compile: show it on the Rules tab, under that rule.
+      this.newRuleErrors = ruleErrorsOf(err);
+      if (Object.keys(this.newRuleErrors).length) this.createTab = 'rules';
       return;
     }
     this.isCreateOpen = false;
@@ -397,7 +405,11 @@ export class AdminCollectionsPage extends LitElement {
                 <admin-rules-editor
                   ?is-auth-collection=${this.newType === 'auth'}
                   .rules=${this.newRules}
-                  @ruleschange=${(e: CustomEvent<{ rules: MoulRules }>) => (this.newRules = e.detail.rules)}
+                  .errors=${this.newRuleErrors}
+                  @ruleschange=${(e: CustomEvent<{ rules: MoulRules; errors: RuleErrors }>) => {
+                    this.newRules = e.detail.rules;
+                    this.newRuleErrors = e.detail.errors;
+                  }}
                 ></admin-rules-editor>
               </div>
             </moul-tab-panel>

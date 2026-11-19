@@ -1041,17 +1041,20 @@ fn rule_sql_cannot_read_the_writer_or_device_store() {
         e.handle(Request::get(&format!("/api/moul/notes/records/{id}"))),
         200,
     );
-    // A list rule naming a device-store table fails closed.
+    // A list rule naming a device-store table is refused when saved, and
+    // fails closed in a database that holds one anyway.
+    let naming = "@collection.moul_sync.key != ''";
     ok(
-        e.handle(
-            Request::patch(
-                "/api/moul/notes",
-                json!({"rules": {"listRule": "@collection.moul_sync.key != ''"}}),
-            )
-            .owner(),
-        ),
-        200,
+        e.handle(Request::patch("/api/moul/notes", json!({"rules": {"listRule": naming}})).owner()),
+        400,
     );
+    e.store()
+        .conn()
+        .execute(
+            "UPDATE _moul SET rules = json_set(rules, '$.listRule', ?1) WHERE name = 'notes'",
+            [naming],
+        )
+        .unwrap();
     e.store()
         .conn()
         .execute_batch("CREATE TABLE IF NOT EXISTS device.moul_sync (key TEXT, value TEXT); INSERT INTO device.moul_sync VALUES ('config', 'secret')")
@@ -2311,7 +2314,7 @@ fn reads_name_the_collections_a_live_query_depends_on() {
         json!({
             "name": "notes",
             "fields": [{"name": "body", "type": "text"}],
-            "rules": {"listRule": "exists('teams', 'id != \"\"')"},
+            "rules": {"viewRule": "exists('teams', 'id != \"\"')"},
         }),
     );
     let id = |v: &Value| v["id"].as_str().unwrap().to_owned();
@@ -2501,4 +2504,259 @@ fn dot_ids_are_refused_and_the_log_has_a_tail() {
         .map(|c| c["seq"].as_i64().unwrap())
         .collect();
     assert_eq!(got, seqs[seqs.len() - 2..].to_vec());
+}
+
+// ---------------------------------------------------------------- rules on save
+
+/// The 400 a refused save answers: its message and the rule it names.
+fn refused(r: Response) -> (String, String) {
+    let body = ok(r, 400);
+    (
+        body["message"].as_str().unwrap().to_owned(),
+        body["rule"].as_str().unwrap_or_default().to_owned(),
+    )
+}
+
+#[test]
+fn a_rule_that_does_not_compile_is_refused_when_saved() {
+    let mut e = engine();
+    define(
+        &mut e,
+        json!({"name": "teams", "fields": [{"name": "owner", "type": "text"}]}),
+    );
+    define(
+        &mut e,
+        json!({"name": "members", "fields": [{"name": "user", "type": "text"}]}),
+    );
+    let tasks = json!({
+        "name": "tasks",
+        "fields": [
+            {"name": "title", "type": "text"},
+            {"name": "status", "type": "text"},
+            {"name": "owner", "type": "text"},
+            {"name": "team", "type": "relation",
+             "relationConfig": {"targetMoul": "teams", "cardinality": "1:N"}},
+        ],
+    });
+    let with_rules = |rules: Value| {
+        let mut c = tasks.clone();
+        c["rules"] = rules;
+        c
+    };
+
+    // Not made at all.
+    let (message, rule) = refused(
+        e.handle(
+            Request::post(
+                "/api/moul",
+                with_rules(json!({"listRule": "!(status = 'x')"})),
+            )
+            .owner(),
+        ),
+    );
+    assert_eq!(
+        message,
+        "Invalid listRule: failed to tokenize filter: unexpected character '!' at position 0"
+    );
+    assert_eq!(rule, "listRule");
+    assert_eq!(
+        e.handle(Request::get("/api/moul/tasks").owner()).status,
+        404
+    );
+
+    // Every rule that runs can be saved.
+    let fine = json!({
+        "listRule": "team.owner = @request.auth.id || @collection.members.user = @request.auth.id",
+        "viewRule": "exists('members', 'user = ?', @request.auth.id) || get('members', 'user = ?', owner) != nil",
+        "createRule": "@request.auth.id != '' && @request.body.owner = @request.auth.id",
+        "updateRule": "true",
+        "deleteRule": "",
+        "subscribeRule": "@collection.members.user = @request.auth.id",
+    });
+    define(&mut e, with_rules(fine.clone()));
+    let list = |e: &mut Engine| e.handle(Request::get("/api/moul/tasks/records")).status;
+    assert_eq!(list(&mut e), 200);
+
+    for (rules, want) in [
+        (
+            json!({"listRule": "(status = 'x') = false"}),
+            ("listRule", r#"unexpected token "=" at position 5"#),
+        ),
+        (
+            json!({"listRule": "@request.body.title != ''"}),
+            (
+                "listRule",
+                "a list rule cannot read @request.body.title: a list has no body",
+            ),
+        ),
+        (
+            json!({"listRule": "exists('members', 'user = ?', @request.auth.id)"}),
+            (
+                "listRule",
+                "a list rule cannot call exists(): use @collection.<name>.<field> or a relation path",
+            ),
+        ),
+        (
+            json!({"listRule": "@collection.membres.user = @request.auth.id"}),
+            (
+                "listRule",
+                r#"unknown collection "membres" in "@collection.membres.user""#,
+            ),
+        ),
+        (
+            json!({"viewRule": "ownr = @request.auth.id || titel = ''"}),
+            ("viewRule", r#"invalid field "ownr"; invalid field "titel""#),
+        ),
+        (
+            json!({"updateRule": "team.owner = @request.auth.id"}),
+            (
+                "updateRule",
+                r#""team.owner" follows the relation "team", which only a list rule can do"#,
+            ),
+        ),
+    ] {
+        let (message, rule) = refused(
+            e.handle(Request::patch("/api/moul/tasks", json!({"rules": rules.clone()})).owner()),
+        );
+        assert_eq!(
+            message,
+            format!("Invalid {}: {}", want.0, want.1),
+            "{rules}"
+        );
+        assert_eq!(rule, want.0);
+    }
+    // Nothing was stored, and lists still work.
+    assert_eq!(
+        ok(e.handle(Request::get("/api/moul/tasks").owner()), 200)["rules"],
+        fine
+    );
+    assert_eq!(list(&mut e), 200);
+
+    // A change that breaks a rule which compiled is refused too.
+    let mut fields = tasks["fields"].clone();
+    fields
+        .as_array_mut()
+        .unwrap()
+        .retain(|f| f["name"] != "owner");
+    let (message, rule) =
+        refused(e.handle(Request::patch("/api/moul/tasks", json!({"fields": fields})).owner()));
+    assert_eq!(message, r#"Invalid viewRule: invalid field "owner""#);
+    assert_eq!(rule, "viewRule");
+    let (message, _) = refused(
+        e.handle(
+            Request::patch(
+                "/api/moul/teams",
+                json!({"fields": [{"name": "boss", "type": "text"}],
+                   "rules": {"listRule": "own = ''"}}),
+            )
+            .owner(),
+        ),
+    );
+    assert_eq!(message, r#"Invalid listRule: invalid field "own""#);
+}
+
+#[test]
+fn a_schema_file_with_a_rule_that_does_not_compile_changes_nothing() {
+    let mut e = engine();
+    // Rules are checked once the whole file is applied: one may reach a
+    // collection the file makes after it.
+    let projects = |list_rule: &str| {
+        json!({
+            "name": "projects",
+            "fields": [{"name": "team", "type": "relation",
+                        "relationConfig": {"targetMoul": "teams", "cardinality": "1:N"}}],
+            "rules": {"listRule": list_rule, "viewRule": "@collection.teams.owner = @request.auth.id"},
+        })
+    };
+    let teams = json!({"name": "teams", "fields": [{"name": "owner", "type": "text"}]});
+    let file =
+        |list_rule: &str| json!({"format": 1, "collections": [projects(list_rule), teams.clone()]});
+    let applied = ok(
+        e.handle(Request::post("/api/schema", file("team.owner = @request.auth.id")).owner()),
+        200,
+    );
+    assert_eq!(applied["created"], json!(["projects", "teams"]));
+
+    // A broken rule refuses the whole file, naming the collection.
+    let mut broken = file("team.ownr = @request.auth.id");
+    broken["collections"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"name": "notes"}));
+    let (message, rule) = refused(e.handle(Request::post("/api/schema", broken).owner()));
+    assert_eq!(
+        message,
+        r#"Invalid listRule of the collection "projects": invalid field "ownr" in path "team.ownr""#
+    );
+    assert_eq!(rule, "listRule");
+    assert_eq!(
+        e.handle(Request::get("/api/moul/notes").owner()).status,
+        404
+    );
+    assert_eq!(
+        ok(e.handle(Request::get("/api/moul/projects").owner()), 200)["rules"]["listRule"],
+        "team.owner = @request.auth.id"
+    );
+    assert_eq!(
+        e.handle(Request::get("/api/moul/projects/records")).status,
+        200
+    );
+}
+
+#[test]
+fn a_go_database_holding_a_broken_rule_opens_and_is_fixed_by_saving() {
+    let store = Store::open_in_memory().unwrap();
+    moul_fixtures::Fixtures::default()
+        .db("cbc2a77b5c6e0079")
+        .unwrap()
+        .load_into(store.conn())
+        .unwrap();
+    // The Go engine stored any rule text.
+    store
+        .conn()
+        .execute(
+            "UPDATE _moul SET rules = json_set(rules, '$.listRule', '!(name = ''x'')') WHERE name = 'categories'",
+            [],
+        )
+        .unwrap();
+    let mut e = Engine::open(
+        store,
+        SeededHost::new(9, NOW),
+        MemoryBlobs::new(),
+        Config::default(),
+    )
+    .unwrap();
+    let c = ok(e.handle(Request::get("/api/moul/categories").owner()), 200);
+    assert_eq!(c["rules"]["listRule"], "!(name = 'x')");
+    // The owner lists without the rule; anyone else meets it.
+    ok(
+        e.handle(Request::get("/api/moul/categories/records").owner()),
+        200,
+    );
+    assert_eq!(
+        e.handle(Request::get("/api/moul/categories/records"))
+            .status,
+        500
+    );
+
+    // Saving the collection again means fixing the rule.
+    let (message, rule) = refused(
+        e.handle(Request::patch("/api/moul/categories", json!({"name": "topics"})).owner()),
+    );
+    assert!(message.starts_with("Invalid listRule: "), "{message}");
+    assert_eq!(rule, "listRule");
+    ok(
+        e.handle(
+            Request::patch(
+                "/api/moul/categories",
+                json!({"name": "topics", "rules": {"listRule": "name != 'x'"}}),
+            )
+            .owner(),
+        ),
+        200,
+    );
+    assert_eq!(
+        ok(e.handle(Request::get("/api/moul/topics/records")), 200)["totalItems"],
+        4
+    );
 }

@@ -2,14 +2,15 @@
 //!
 //! A schema file goes through the stages its application would, each only
 //! once the one before it found no error: the JSON and its format, each
-//! definition, then applying the whole file to an empty in-memory engine.
+//! definition, each rule (the engine refuses one that does not compile, but
+//! names only the first), then applying the whole file to an empty
+//! in-memory engine.
 //! The collections the engine then holds are checked as a database's
 //! are: relation targets, every rule against its collection, and rules
 //! that let anyone write. Screens join these checks with the manifest.
 
 use moul_core::definition::{SCHEMA_FORMAT, read_definition};
 use moul_core::{Config, Engine, MemoryBlobs, Request, SeededHost};
-use moul_rules::FilterOptions;
 use moul_store::Store;
 use moul_store::schema::{Collection, CollectionKind, FieldType};
 use serde::Serialize;
@@ -272,6 +273,13 @@ fn check_schema(r: &mut Report, bytes: &[u8]) -> Result<Option<Vec<(usize, Colle
     if !r.errors.is_empty() {
         return Ok(None);
     }
+    // Applying refuses a rule that does not compile too, but names only the
+    // first. Rules open to anyone are worth knowing of all the same.
+    rule_errors(r, &defs);
+    if !r.errors.is_empty() {
+        open_rules(r, &defs);
+        return Ok(None);
+    }
 
     let mut engine = empty_engine()?;
     if let Err(message) = apply(&mut engine, file.clone()) {
@@ -308,19 +316,6 @@ fn check_schema(r: &mut Report, bytes: &[u8]) -> Result<Option<Vec<(usize, Colle
     ))
 }
 
-/// The rules of a collection, by their key in a schema file.
-fn rules_of(c: &Collection) -> [(&'static str, &str); 6] {
-    let r = &c.rules;
-    [
-        ("listRule", &r.list_rule),
-        ("viewRule", &r.view_rule),
-        ("createRule", &r.create_rule),
-        ("updateRule", &r.update_rule),
-        ("deleteRule", &r.delete_rule),
-        ("subscribeRule", &r.subscribe_rule),
-    ]
-}
-
 /// Reports every relation whose target is none of `all`.
 fn relation_targets(r: &mut Report, all: &[(usize, Collection)]) {
     for (i, c) in all {
@@ -341,43 +336,33 @@ fn relation_targets(r: &mut Report, all: &[(usize, Collection)]) {
     }
 }
 
-/// The checks on collections as an engine holds them, by their place in
-/// the file.
-fn check_collections(r: &mut Report, all: &[(usize, Collection)]) {
+/// Reports every rule that does not compile against its collection, as the
+/// engine checks a rule before saving it: relation paths and
+/// `@collection.<name>` reach the collections in `all`.
+fn rule_errors(r: &mut Report, all: &[(usize, Collection)]) {
     let load = |name: &str| {
         all.iter()
             .find(|(_, c)| c.name == name)
             .map(|(_, c)| c.clone())
     };
-    relation_targets(r, all);
     for (i, c) in all {
         let at = place(*i, &c.name);
-        for (key, rule) in rules_of(c) {
-            let where_ = format!("{at}.rules.{key}");
-            if key == "listRule" {
-                // As a list compiles it for everyone but the owner. A
-                // blank list rule lets everyone list.
-                if rule.trim().is_empty() {
-                    continue;
-                }
-                let opts = FilterOptions {
-                    param_prefix: "rule_",
-                    untrusted: false,
-                    load: Some(&load),
-                    now_ms: 0,
-                    cloak_hash: None,
-                };
-                if let Err(e) = moul_rules::filter_sql(rule, c, None, None, &opts) {
-                    r.error(where_, e.message());
-                }
-            } else if !rule.is_empty() {
-                // Evaluated against one record, `@request.body` included.
-                for e in moul_rules::record_rule_names(rule, c, Some(&load)) {
-                    r.error(where_.clone(), e.message());
-                }
-            }
+        for (key, e) in moul_rules::rule_errors(c, Some(&load)) {
+            r.error(format!("{at}.rules.{key}"), e.message());
         }
     }
+}
+
+/// The checks on collections as an engine holds them, by their place in
+/// the file.
+fn check_collections(r: &mut Report, all: &[(usize, Collection)]) {
+    relation_targets(r, all);
+    rule_errors(r, all);
+    open_rules(r, all);
+}
+
+/// Warns of every rule that lets anyone write.
+fn open_rules(r: &mut Report, all: &[(usize, Collection)]) {
     // Who may write without signing in. An auth collection's empty list,
     // view, update and delete rules become "only your own account" when
     // applied, but a Go engine database may still hold empty ones.

@@ -161,6 +161,18 @@ the Go engine's tests. These differences are decisions:
   cannot come back re-encoded. Logging out with a token this engine did not
   sign answers as Go does but stores nothing.
 - **Errors.** A 500 never carries SQLite's text, which can quote rules.
+- **Rules are compiled when saved.** Creating or changing collections
+  (`POST /api/moul`, `PATCH /api/moul/{name}`, `POST /api/schema`) is
+  refused with a 400 naming the rule (`"rule": "listRule"`) when a rule of a
+  collection the request saves does not compile against the collections as
+  they are once it is made: the list rule as a list compiles it, and its
+  `@collection` names checked; the others as `moul check` checks them. Go
+  stored any rule text, and every list then failed with a 500. No recorded
+  Go test saves such a rule, so the parity suite skips nothing for it. A
+  database the Go engine made opens with its rules as they are; a broken one
+  is refused when its collection is next saved. A change to one collection
+  that breaks another's rule (a rename that `@collection` names) is not
+  caught: `moul check` reports it.
 - **Password hashes** with a bcrypt cost above 16 are refused rather than
   checked (Go accepts up to 31): one check at cost 20 would hold the
   engine's only thread for about a minute.

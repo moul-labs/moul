@@ -1,5 +1,6 @@
 import { css, html, LitElement } from 'lit';
 import { fieldValue } from '../../lib/forms';
+import { type RuleErrors } from '../../lib/rule-errors';
 import { onPress } from '../../lib/press';
 import { baseStyles } from '../../styles/base';
 import './rule-docs-modal';
@@ -93,7 +94,9 @@ const RULE_INPUTS: RuleInput[] = [
 
 /**
  * The five access rules of a collection, with one-click presets and the rule reference.
- * Fires `ruleschange` (`detail.rules`) on every edit; set `rules` back to apply it.
+ * `errors` (see `ruleErrorsOf`) shows under each rule. Fires `ruleschange` on every edit with
+ * `detail.rules`, and `detail.errors` without the messages of the rules it changed; set both
+ * back to apply them.
  */
 export class AdminRulesEditor extends LitElement {
   static override styles = [
@@ -155,23 +158,31 @@ export class AdminRulesEditor extends LitElement {
 
   static override properties = {
     rules: { attribute: false },
+    errors: { attribute: false },
     isAuthCollection: { type: Boolean, attribute: 'is-auth-collection' },
     isDocsOpen: { state: true },
   };
 
   declare rules: MoulRules;
+  declare errors: RuleErrors;
   declare isAuthCollection: boolean;
   declare isDocsOpen: boolean;
 
   constructor() {
     super();
     this.rules = { ...EMPTY_RULES };
+    this.errors = {};
     this.isAuthCollection = false;
     this.isDocsOpen = false;
   }
 
   private emit(rules: MoulRules) {
-    this.dispatchEvent(new CustomEvent('ruleschange', { detail: { rules } }));
+    // An edited rule may compile now; the next save says.
+    const errors = { ...this.errors };
+    for (const key of Object.keys(errors) as (keyof MoulRules)[]) {
+      if ((rules[key] || '') !== (this.rules[key] || '')) delete errors[key];
+    }
+    this.dispatchEvent(new CustomEvent('ruleschange', { detail: { rules, errors } }));
   }
 
   override render() {
@@ -207,6 +218,7 @@ export class AdminRulesEditor extends LitElement {
               label=${input.label}
               placeholder=${input.placeholder(auth)}
               description=${input.description(auth)}
+              error-message=${this.errors[input.key] ?? ''}
               .value=${this.rules[input.key] || ''}
               @input=${(e: Event) => this.emit({ ...this.rules, [input.key]: fieldValue(e) })}
             ></moul-text-field>

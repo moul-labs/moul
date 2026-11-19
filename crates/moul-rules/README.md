@@ -21,7 +21,8 @@ This crate reads them exactly as the Go engine does.
 | Columns a rule pins to the caller | [`owner_fields`] |
 | Whether a column may be filtered, or is secret | [`is_valid_field`], [`is_secret_field`] |
 | Syntax errors, before a rule is saved | [`check`] |
-| Fields a record rule reads that its collection lacks (`moul check`) | [`record_rule_names`] |
+| Fields a record rule reads that its collection lacks | [`record_rule_names`] |
+| Every rule of a collection compiled as it will run, before it is saved | [`rule_errors`], [`rules_by_key`] |
 | The expression a rule stands for | [`translate`] |
 | How deeply a rule or filter may nest | [`MAX_DEPTH`] |
 

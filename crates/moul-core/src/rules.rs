@@ -7,7 +7,7 @@ use rusqlite::Connection;
 use rusqlite::types::{Value as Sql, ValueRef};
 use serde_json::{Map, Value, json};
 
-use crate::api::{ApiResult, Response};
+use crate::api::{ApiError, ApiResult, Response};
 use crate::engine::{Catalog, Cx};
 use crate::guard::SqlGuard;
 
@@ -143,6 +143,42 @@ pub(crate) fn filter(
     moul_rules::filter_sql(filter, c, auth, request, &opts)
         .map(|f| f.map(|f| (f.sql, f.params)))
         .map_err(|e| e.message().to_owned())
+}
+
+/// Refuses a definition change that leaves a collection it `saved` (ids,
+/// checked in this order) with a rule that does not compile: stored, a
+/// broken list rule fails every list of the collection with a 500. Checked
+/// once the change is made, before it commits, against the collections as
+/// they now are: a schema file may point at a collection it makes after
+/// this one, and renames are followed. A rule stored earlier, such as one
+/// in a Go engine database, is not checked until its collection is saved
+/// again. The answer names the rule, in the message and as `rule`; `named`
+/// adds the collection's name, for a change to several.
+pub(crate) fn refuse_broken(cx: &mut Cx<'_>, saved: &[String], named: bool) -> ApiResult<()> {
+    let all = cx.collections()?;
+    let load = |name: &str| all.iter().find(|c| c.name == name).cloned();
+    for c in saved
+        .iter()
+        .filter_map(|id| all.iter().find(|c| &c.id == id))
+    {
+        let problems = moul_rules::rule_errors(c, Some(&load));
+        let Some(&(key, _)) = problems.first() else {
+            continue;
+        };
+        let text = problems
+            .iter()
+            .filter(|(k, _)| *k == key)
+            .map(|(_, e)| e.message())
+            .collect::<Vec<_>>()
+            .join("; ");
+        let message = if named {
+            format!("Invalid {key} of the collection {:?}: {text}", c.name)
+        } else {
+            format!("Invalid {key}: {text}")
+        };
+        return Err(ApiError::bad_request(message).with("rule", json!(key)));
+    }
+    Ok(())
 }
 
 /// A sort string as `ORDER BY` terms.
