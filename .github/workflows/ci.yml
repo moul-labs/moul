@@ -212,10 +212,13 @@ jobs:
           echo "engine: $gz bytes gzipped"
           test "$gz" -le 2097152
       - run: npm ci
+      # Build first: Studio and the Playground take the SDK's types and code from its dist (and
+      # the Playground takes Studio's types from Studio's), which a fresh checkout does not have.
+      # The workspaces build in order: the SDK, Studio, then the Playground.
+      - run: npm run build
       - run: npm run typecheck
       # The SDK's tests run on the headless engine in Node.
       - run: npm test
-      - run: npm run build
       - run: npm pack --dry-run -w @moul-dev/client -w @moul-dev/studio
       - uses: actions/upload-artifact@v4
         with:
