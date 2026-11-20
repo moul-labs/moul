@@ -568,7 +568,7 @@ async fn two_devices_sync_through_the_hub_and_it_compacts() {
 }
 
 /// The same through a hub whose replicas are in an S3-compatible bucket,
-/// when `MOUL_S3_ENDPOINT` names one (CI runs MinIO).
+/// when `MOUL_S3_ENDPOINT` names one (CI runs RustFS).
 #[tokio::test]
 async fn two_devices_sync_through_a_hub_on_s3() {
     let Ok(endpoint) = std::env::var("MOUL_S3_ENDPOINT") else {

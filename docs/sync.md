@@ -12,7 +12,7 @@ bucket.
 
 ## Set up a bucket
 
-Any S3-compatible store with conditional writes works: Cloudflare R2, Amazon S3, MinIO.
+Any S3-compatible store with conditional writes works: Cloudflare R2, Amazon S3, RustFS.
 
 1. **Make a bucket.**
 2. **Make a key for it.** It should read and write only this bucket: the key is kept in the
@@ -45,7 +45,7 @@ Any S3-compatible store with conditional writes works: Cloudflare R2, Amazon S3,
    ```
 
    For R2 leave `region` empty; for S3 give the bucket's region. Path-style addresses are on by
-   default, which R2 and MinIO need. `prefix` keeps several databases in one bucket.
+   default, which R2 and RustFS need. `prefix` keeps several databases in one bucket.
 
 ## Content security policy
 

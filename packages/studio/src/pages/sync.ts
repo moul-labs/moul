@@ -56,7 +56,7 @@ type Mode = 'hub' | 'bucket';
 
 /**
  * Sync settings: sync the database through a Moul Hub (sign in with an email code, pick or make a
- * database) or with an S3-compatible bucket (Cloudflare R2, Amazon S3, MinIO), see which device
+ * database) or with an S3-compatible bucket (Cloudflare R2, Amazon S3, RustFS), see which device
  * writes, hand writing over, add another device with a link or QR code, and deal with conflict
  * copies. The replica is the one Litestream writes, so `litestream restore` reads it.
  */
@@ -635,7 +635,7 @@ export class AdminSyncPage extends LitElement {
               ${this.field('label', 'Name of this device', { description: 'Shown to your other devices' })}
             </div>
             <moul-checkbox ?is-checked=${this.form.pathStyle !== false} @change=${(e: CustomEvent<{ isChecked: boolean }>) => this.set('pathStyle', e.detail.isChecked)}
-              >Path-style addresses (R2, MinIO)</moul-checkbox
+              >Path-style addresses (R2, RustFS)</moul-checkbox
             >
             <div class="actions">
               <moul-button type="submit" variant="primary" ?is-pending=${this.busy === 'Connecting'}>Turn on sync</moul-button>

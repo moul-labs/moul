@@ -77,7 +77,7 @@
         <div class="panel-head"><h2>Sync</h2><span class="badge" id="role-badge">off</span></div>
 
         <form id="sync-form" autocomplete="off">
-          <p class="note">Sync writes a Litestream-compatible replica to an S3-compatible bucket you own (Cloudflare R2, Amazon S3, MinIO). Keys stay in this browser's device store and are sent only to the bucket. Use a key scoped to one bucket. The bucket needs a CORS rule for this page; see the README.</p>
+          <p class="note">Sync writes a Litestream-compatible replica to an S3-compatible bucket you own (Cloudflare R2, Amazon S3, RustFS). Keys stay in this browser's device store and are sent only to the bucket. Use a key scoped to one bucket. The bucket needs a CORS rule for this page; see the README.</p>
           <label>Endpoint<input name="endpoint" placeholder="https://<account>.r2.cloudflarestorage.com" required></label>
           <div class="two">
             <label>Bucket<input name="bucket" required></label>

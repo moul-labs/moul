@@ -44,7 +44,9 @@ call it:
   make an API token with Object Read & Write on that bucket only.
 - **Amazon S3:** endpoint `https://s3.<region>.amazonaws.com` and the region.
   Set the rule under Permissions → CORS.
-- **MinIO:** allows any origin by default.
+- **RustFS:** endpoint `http://localhost:9000`, region `us-east-1`. Set the
+  rule on the bucket, or start RustFS with `RUSTFS_CORS_ALLOWED_ORIGINS` set to
+  the page's origin.
 
 The keys stay in this browser's device store (`device.db`), which is never
 replicated, and are sent only to the bucket. A script injected into the page

@@ -18,7 +18,7 @@ Litestream wrote.
 | Piece | API |
 | --- | --- |
 | Where a replica lives | [`Replica`]: `get`, `put` with a condition, `list`, `delete` |
-| An S3-compatible bucket (R2, S3, MinIO) | [`S3Replica`], signed with SigV4, over `ureq` natively and `fetch` in the browser |
+| An S3-compatible bucket (R2, S3, RustFS) | [`S3Replica`], signed with SigV4, over `ureq` natively and `fetch` in the browser |
 | A database on a Moul Hub (`docs/hub.md`) | [`HubReplica`], with the device's token, over the same HTTP clients; [`hub::EventParser`] reads its event stream |
 | A folder, laid out as Litestream's file replica | `DirReplica` (native) |
 | Memory, with lost requests, lost answers and a full disk to order | [`MemoryReplica`] |
@@ -151,13 +151,14 @@ newest state still restores without it.
 | `tests/hub.rs` | The hub transport against a stand-in hub that serves the protocol: devices converge and hand off through it without compacting, and a revoked token is refused for good |
 | `tools/litestream-compat/tests/sync.rs` | `litestream restore` rebuilds a replica sync wrote, with a hand-off and every level, at every TXID still held; one that also carries a writer-only store restores its shared store the same, and Litestream restores the writer-only store from `moul/writer-only` |
 
-The S3 tests run when `MOUL_S3_ENDPOINT` is set; CI runs them against MinIO:
+The S3 tests run when `MOUL_S3_ENDPOINT` is set; CI runs them against
+[RustFS](https://github.com/rustfs/rustfs). `scripts/start-rustfs.sh` downloads
+the pinned release and starts it with the bucket and keys the tests default to:
 
 ```sh
-MINIO_ROOT_USER=moul-test MINIO_ROOT_PASSWORD=moul-test-secret \
-  minio server /tmp/minio --address 127.0.0.1:9000 &
-mkdir -p /tmp/minio/moul-test
+scripts/start-rustfs.sh
 MOUL_S3_ENDPOINT=http://127.0.0.1:9000 cargo test -p moul-sync --test s3
+kill "$(cat target/rustfs/rustfs.pid)"
 ```
 
 ## Not yet

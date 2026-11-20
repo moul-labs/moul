@@ -83,7 +83,7 @@ jobs:
       - run: cargo test -p litestream-compat
 
   sync-s3:
-    name: Sync and the hub against MinIO
+    name: Sync and the hub against RustFS
     runs-on: ubuntu-latest
     env:
       MOUL_REQUIRE_S3: "1"
@@ -95,20 +95,7 @@ jobs:
       - uses: actions/checkout@v5
       - run: rustup show
       - uses: Swatinem/rust-cache@v2
-      - name: Start MinIO
-        run: |
-          curl -fsSL -o "$RUNNER_TEMP/minio" https://dl.min.io/server/minio/release/linux-amd64/minio
-          chmod +x "$RUNNER_TEMP/minio"
-          mkdir -p "$RUNNER_TEMP/minio-data/moul-test"
-          MINIO_ROOT_USER=moul-test MINIO_ROOT_PASSWORD=moul-test-secret \
-            nohup "$RUNNER_TEMP/minio" server "$RUNNER_TEMP/minio-data" --address 127.0.0.1:9000 \
-            > "$RUNNER_TEMP/minio.log" 2>&1 &
-          for i in $(seq 1 30); do
-            curl -fs http://127.0.0.1:9000/minio/health/live && exit 0
-            sleep 1
-          done
-          cat "$RUNNER_TEMP/minio.log"
-          exit 1
+      - run: scripts/start-rustfs.sh
       # Conditional writes, racing devices, hand-off and conflicts through a
       # real S3-compatible store.
       - run: cargo test -p moul-sync --test s3
@@ -271,24 +258,11 @@ jobs:
       - name: Install ${{ matrix.browser }}
         run: npx playwright install --with-deps ${{ matrix.browser }}
         working-directory: browser-tests
-      - name: Start MinIO
-        run: |
-          curl -fsSL -o "$RUNNER_TEMP/minio" https://dl.min.io/server/minio/release/linux-amd64/minio
-          chmod +x "$RUNNER_TEMP/minio"
-          mkdir -p "$RUNNER_TEMP/minio-data/moul-test"
-          MINIO_ROOT_USER=moul-test MINIO_ROOT_PASSWORD=moul-test-secret \
-            nohup "$RUNNER_TEMP/minio" server "$RUNNER_TEMP/minio-data" --address 127.0.0.1:9000 \
-            > "$RUNNER_TEMP/minio.log" 2>&1 &
-          for i in $(seq 1 30); do
-            curl -fs http://127.0.0.1:9000/minio/health/live && exit 0
-            sleep 1
-          done
-          cat "$RUNNER_TEMP/minio.log"
-          exit 1
+      - run: scripts/start-rustfs.sh
       # The SDK in a worker: tabs sharing a database, live queries, leader hand-off.
       - run: node e2e.mjs --browsers ${{ matrix.browser }}
         working-directory: browser-tests
-      # The built Playground under its own CSP, offline, and two devices syncing through MinIO.
+      # The built Playground under its own CSP, offline, and two devices syncing through RustFS.
       - run: node playground.mjs --browsers ${{ matrix.browser }}
         working-directory: browser-tests
       # Studio's dist build in an app bundled with Vite: the Overview, the SDK's changes, the download.

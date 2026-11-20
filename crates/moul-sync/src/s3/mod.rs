@@ -1,4 +1,4 @@
-//! A replica in an S3-compatible bucket: Amazon S3, Cloudflare R2, MinIO.
+//! A replica in an S3-compatible bucket: Amazon S3, Cloudflare R2, RustFS.
 //!
 //! Requests are signed with SigV4 and sent through an [`HttpClient`]. Writes
 //! that must not race carry `If-None-Match: *` (a new TXID) or `If-Match`
@@ -25,7 +25,7 @@ pub struct S3Config {
     /// The service endpoint, such as `https://<account>.r2.cloudflarestorage.com`,
     /// `https://s3.us-east-1.amazonaws.com` or `http://localhost:9000`.
     pub endpoint: String,
-    /// The signing region: `auto` for R2, `us-east-1` for MinIO.
+    /// The signing region: `auto` for R2, `us-east-1` for RustFS.
     pub region: String,
     /// The bucket.
     pub bucket: String,
@@ -39,7 +39,7 @@ pub struct S3Config {
     /// A session token, for temporary credentials.
     pub session_token: Option<String>,
     /// Address the bucket as a path (`endpoint/bucket/key`) rather than as a
-    /// host name (`bucket.endpoint/key`). R2 and MinIO accept paths.
+    /// host name (`bucket.endpoint/key`). R2 and RustFS accept paths.
     pub path_style: bool,
 }
 

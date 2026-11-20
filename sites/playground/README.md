@@ -17,7 +17,7 @@ node browser-tests/playground.mjs     # the built site in Chromium, Firefox and 
 ```
 
 `browser-tests/playground.mjs` also syncs two devices through a bucket when `MOUL_S3_ENDPOINT` is
-set (see `crates/moul-sync` for running MinIO locally).
+set (`scripts/start-rustfs.sh` starts one locally).
 
 It is static: `npm run deploy -w moul-playground` uploads `dist/` to Cloudflare (`wrangler.jsonc`)
 at play.moul.dev. `public/_headers` sets the content security policy: only this site's own scripts,

@@ -2,7 +2,7 @@
 //!
 //! Set `MOUL_S3_ENDPOINT` (and optionally `MOUL_S3_BUCKET`, `MOUL_S3_REGION`,
 //! `MOUL_S3_ACCESS_KEY_ID`, `MOUL_S3_SECRET_ACCESS_KEY`) to run these; CI runs
-//! them against MinIO. Without it they pass without doing anything, unless
+//! them against RustFS. Without it they pass without doing anything, unless
 //! `MOUL_REQUIRE_S3=1`. Each test works under its own prefix.
 
 #![cfg(not(target_arch = "wasm32"))]

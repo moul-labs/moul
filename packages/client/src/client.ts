@@ -1185,7 +1185,7 @@ export interface BucketSyncSettings {
   /** A key scoped to this bucket. */
   accessKeyId: string;
   secretAccessKey: string;
-  /** Path-style addressing (`endpoint/bucket/key`): on by default, which R2 and MinIO need. */
+  /** Path-style addressing (`endpoint/bucket/key`): on by default, which R2 and RustFS need. */
   pathStyle?: boolean;
   /** A name for this device, such as "Laptop", shown to the others. */
   label?: string;
